@@ -1,0 +1,105 @@
+package net.jenkimods.bioforge.item.infection;
+
+import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+public class PetriDishItem extends BlockItem {
+
+    public PetriDishItem() {
+        super(BioForge.PETRI_DISH_BLOCK.get(), new Properties().stacksTo(1));
+    }
+
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack dishStack = player.getItemInHand(hand);
+
+        if (isInoculated(dishStack)) {
+            // Harvest at stage ≥ 3
+            if (dishStack.getOrCreateTag().getInt("Growth") >= 3) {
+                InteractionHand otherHand = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+                ItemStack otherStack = player.getItemInHand(otherHand);
+                if (otherStack.getItem() instanceof SwabItem && !SwabItem.isContaminated(otherStack)) {
+                    if (!level.isClientSide()) {
+                        String data = NbtObfuscator.readString(dishStack.getOrCreateTag());
+                        if (data != null) {
+                            NbtObfuscator.writeString(otherStack.getOrCreateTag(), data);
+                            if (dishStack.getOrCreateTag().getInt("Growth") == 3) {
+                                NbtObfuscator.clear(dishStack.getOrCreateTag());
+                                dishStack.getOrCreateTag().putInt("Growth", 0);
+                            }
+                            // Force client to see the changed dish
+                            player.setItemInHand(hand, dishStack);
+                            if (player instanceof ServerPlayer sp) {
+                                sp.inventoryMenu.broadcastChanges();
+                            }
+                            level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
+                            player.sendSystemMessage(Component.translatable("item.bioforge.petri_dish.harvested"));
+                        }
+                    }
+                    return InteractionResultHolder.success(dishStack);
+                }
+            }
+            return super.use(level, player, hand);
+        }
+
+        // Inoculate
+        InteractionHand otherHand = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+        ItemStack otherStack = player.getItemInHand(otherHand);
+        if (otherStack.getItem() instanceof SwabItem && SwabItem.isContaminated(otherStack)) {
+            if (!level.isClientSide()) {
+                String payload = NbtObfuscator.readString(otherStack.getOrCreateTag());
+                if (payload == null) return InteractionResultHolder.fail(dishStack);
+
+                NbtObfuscator.writeString(dishStack.getOrCreateTag(), payload);
+                dishStack.getOrCreateTag().putInt("Growth", 0);
+
+                // Force client to see the inoculated dish
+                player.setItemInHand(hand, dishStack);
+                if (player instanceof ServerPlayer sp) {
+                    sp.inventoryMenu.broadcastChanges();
+                }
+
+                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+                player.sendSystemMessage(Component.translatable("item.bioforge.petri_dish.inoculated"));
+            }
+            return InteractionResultHolder.success(dishStack);
+        }
+
+        return super.use(level, player, hand);
+    }
+
+    public static boolean isInoculated(ItemStack stack) {
+        return NbtObfuscator.readString(stack.getOrCreateTag()) != null;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable Level level,
+                                List<Component> tooltip, TooltipFlag flag) {
+        if (!isInoculated(stack)) {
+            tooltip.add(Component.translatable("item.bioforge.petri_dish.tooltip.empty")
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.bioforge.petri_dish.tooltip.usage")
+                    .withStyle(ChatFormatting.DARK_GRAY));
+        } else {
+            tooltip.add(Component.translatable("item.bioforge.petri_dish.tooltip.cultured")
+                    .withStyle(ChatFormatting.DARK_RED));
+            int growth = stack.getOrCreateTag().getInt("Growth");
+            tooltip.add(Component.literal("Growth stage: " + growth).withStyle(ChatFormatting.GRAY));
+        }
+    }
+}
