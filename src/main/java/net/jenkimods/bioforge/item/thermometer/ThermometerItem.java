@@ -118,7 +118,6 @@ public class ThermometerItem extends Item {
                 saveAllTemps(stack, tPlus, tMinus);
                 stack.getOrCreateTag().remove(NBT_LAST_TARGET);
 
-                // Send the player's own UUID for self‑measurement
                 ThermometerNetworkHandler.sendReading(serverPlayer, hand == InteractionHand.MAIN_HAND,
                         tPlus, tMinus, "", until, player.getUUID());
             }
@@ -168,7 +167,6 @@ public class ThermometerItem extends Item {
                 saveAllTemps(stack, tPlus, tMinus);
                 stack.getOrCreateTag().putString(NBT_LAST_TARGET, name);
 
-                // Send the target's UUID
                 ThermometerNetworkHandler.sendReading(serverPlayer, hand == InteractionHand.MAIN_HAND,
                         tPlus, tMinus, name, until, target.getUUID());
             }
@@ -190,7 +188,6 @@ public class ThermometerItem extends Item {
             stack.getOrCreateTag().putString(NBT_LAST_TARGET, targetName);
         }
 
-        // Clipboard recording – use UUID matching
         if (ClipboardClientHandler.hasPatient()) {
             UUID clipboardUUID = ClipboardClientHandler.getSubjectUUID();
             if (targetUUID != null && clipboardUUID != null && targetUUID.equals(clipboardUUID)) {

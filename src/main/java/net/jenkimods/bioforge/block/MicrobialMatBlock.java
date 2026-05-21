@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 public class MicrobialMatBlock extends BaseEntityBlock {
 
     public static final IntegerProperty GROWTH = IntegerProperty.create("growth", 0, 4);
-    public static final BooleanProperty HOST_CROP = BooleanProperty.create("host_crop"); // true if on crop
+    public static final BooleanProperty HOST_CROP = BooleanProperty.create("host_crop");
 
     private static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 1.0, 16.0);
 
@@ -102,7 +102,7 @@ public class MicrobialMatBlock extends BaseEntityBlock {
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
         if (!level.isClientSide() && entity instanceof LivingEntity living) {
-            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 1)); // 2 sec, level II
+            living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 1));
         }
     }
 
@@ -132,7 +132,7 @@ public class MicrobialMatBlock extends BaseEntityBlock {
                               @Nullable BlockEntity be, ItemStack tool) {
         if (!level.isClientSide() && be instanceof MicrobialMatBlockEntity mat) {
             if (!player.isCreative()) {
-                // Drop nothing – mats are non‑collectable without swab
+
             }
         }
         level.removeBlockEntity(pos);
@@ -144,7 +144,7 @@ public class MicrobialMatBlock extends BaseEntityBlock {
         if (state.getBlock() != newState.getBlock() && !level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MicrobialMatBlockEntity) {
-                // Drop nothing
+
             }
         }
         super.onRemove(state, level, pos, newState, isMoving);

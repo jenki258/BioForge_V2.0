@@ -29,7 +29,7 @@ public class NecroticPatchBlock extends Block {
         return SHAPE;
     }
 
-    // Slowly recover to dirt
+
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (random.nextFloat() < 0.05f) {

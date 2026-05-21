@@ -63,7 +63,6 @@ public class PulseOximeterOverlay {
             return;
         }
 
-        // Fade‑in initialisation
         if (fadeStartTime == 0) fadeStartTime = System.currentTimeMillis();
         long now = System.currentTimeMillis();
         float fadeIn = Math.min(1.0f, (now - fadeStartTime) / (FADE_DURATION_SEC * 1000f));
@@ -74,7 +73,6 @@ public class PulseOximeterOverlay {
         long elapsed = now - PulseOximeterClientHandler.getStartTime();
         float stable = Math.min(1.0f, elapsed / 2500f);
 
-        // Update waveform
         if (now - lastWaveformUpdate > 40) {
             lastWaveformUpdate = now;
             double phase = (now * 0.01) % 1.0;

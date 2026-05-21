@@ -175,7 +175,6 @@ public class ReflexHammerClientHandler {
             return;
         }
 
-        // Distance / validity check for entity targets
         if (!selfMode && targetEntityId >= 0) {
             Entity target = mc.level.getEntity(targetEntityId);
             if (target == null || !target.isAlive() || player.distanceTo(target) > MAX_DISTANCE) {

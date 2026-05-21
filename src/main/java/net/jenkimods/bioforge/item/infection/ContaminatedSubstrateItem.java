@@ -31,12 +31,10 @@ public class ContaminatedSubstrateItem extends BlockItem {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack substrateStack = player.getItemInHand(hand);
 
-        // Already inoculated → allow placement (handled by useOn normally)
         if (isInoculated(substrateStack)) {
             return super.use(level, player, hand);
         }
 
-        // Try to inoculate from swab in other hand
         InteractionHand otherHand = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack otherStack = player.getItemInHand(otherHand);
         if (otherStack.getItem() instanceof SwabItem && SwabItem.isContaminated(otherStack)) {
@@ -52,19 +50,16 @@ public class ContaminatedSubstrateItem extends BlockItem {
             return InteractionResultHolder.success(substrateStack);
         }
 
-        // Not inoculated and no swab → cannot place
         if (!level.isClientSide()) {
             player.sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.not_inoculated"));
         }
         return InteractionResultHolder.fail(substrateStack);
     }
 
-    // Prevent right‑click‑on‑block placement if not inoculated
     @Override
     public InteractionResult useOn(UseOnContext context) {
         ItemStack stack = context.getItemInHand();
         if (!isInoculated(stack)) {
-            // Only show message on server
             if (!context.getLevel().isClientSide()) {
                 context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.not_inoculated"));
             }
@@ -73,7 +68,6 @@ public class ContaminatedSubstrateItem extends BlockItem {
         return super.useOn(context);
     }
 
-    // In creative, clear the NBT after placing to prevent reuse
     @Override
     public InteractionResult place(BlockPlaceContext context) {
         ItemStack stack = context.getItemInHand();

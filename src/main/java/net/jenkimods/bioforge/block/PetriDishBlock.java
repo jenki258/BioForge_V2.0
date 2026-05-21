@@ -68,7 +68,6 @@ public class PetriDishBlock extends BaseEntityBlock {
         return new PetriDishBlockEntity(pos, state);
     }
 
-    // ── Place only on a solid face ──
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
         BlockPos below = pos.below();
@@ -89,7 +88,6 @@ public class PetriDishBlock extends BaseEntityBlock {
                 : null;
     }
 
-    // ── Hitbox ──
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
         return SHAPE;
@@ -105,7 +103,6 @@ public class PetriDishBlock extends BaseEntityBlock {
         return Shapes.empty();
     }
 
-    // ── Random tick growth ──
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         BlockEntity be = level.getBlockEntity(pos);
@@ -114,7 +111,6 @@ public class PetriDishBlock extends BaseEntityBlock {
         }
     }
 
-    // ── Place with existing NBT ──
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
@@ -130,7 +126,6 @@ public class PetriDishBlock extends BaseEntityBlock {
         }
     }
 
-    // ── Inoculate / Harvest ──
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos,
                                  Player player, InteractionHand hand, BlockHitResult hit) {
@@ -156,7 +151,6 @@ public class PetriDishBlock extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
 
-        // Harvest (stage ≥ 3)
         if (dish.growthStage >= 3) {
             if (held.getItem() instanceof SwabItem && !SwabItem.isContaminated(held)) {
                 if (dish.harvest(held, player)) {
@@ -169,35 +163,31 @@ public class PetriDishBlock extends BaseEntityBlock {
         return InteractionResult.PASS;
     }
 
-    // ── Replace the entire playerDestroy + onRemove section with this ──
 
     @Override
     public void playerDestroy(Level level, Player player, BlockPos pos, BlockState state,
                               @Nullable BlockEntity be, ItemStack tool) {
         if (!level.isClientSide() && be instanceof PetriDishBlockEntity dish) {
             if (!player.isCreative()) {
-                // Drop the item with stored data
                 ItemStack drop = new ItemStack(BioForge.PETRI_DISH.get(), 1);
                 dish.saveToStack(drop);
                 popResource(level, pos, drop);
             }
         }
-        // Remove the block entity and the block without triggering onRemove drops
         level.removeBlockEntity(pos);
         level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        // All dropping is now handled in playerDestroy.
-        // onRemove is only called for non‑player removals (pistons etc.) –
-        // we still need to drop there.
+
+
         if (state.getBlock() != newState.getBlock() && !level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof PetriDishBlockEntity dish) {
-                // Only drop if the block wasn't already removed by a player.
-                // Since playerDestroy removes the BE before onRemove runs,
-                // this section will only fire for pistons etc.
+
+
+
                 ItemStack drop = new ItemStack(BioForge.PETRI_DISH.get(), 1);
                 dish.saveToStack(drop);
                 popResource(level, pos, drop);

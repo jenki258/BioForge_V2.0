@@ -46,7 +46,7 @@ public class InfestedBlock extends BaseEntityBlock {
     public InfestedBlock() {
         super(BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_GRAY)
-                .strength(1.5F)                    // harder than mat
+                .strength(1.5F)
                 .noOcclusion()
                 .randomTicks());
         registerDefaultState(stateDefinition.any().setValue(GROWTH, 0));
@@ -66,7 +66,6 @@ public class InfestedBlock extends BaseEntityBlock {
         return new InfestedBlockEntity(pos, state);
     }
 
-    // Full block – no special shape
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
         return Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 16.0);
@@ -74,7 +73,7 @@ public class InfestedBlock extends BaseEntityBlock {
 
     @Override
     public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-        return true;   // full block doesn't need support
+        return true;
     }
 
     @Nullable
@@ -83,14 +82,12 @@ public class InfestedBlock extends BaseEntityBlock {
         return defaultBlockState();
     }
 
-    // Random tick – calls entity's randomTick for surface growth/spread
     @Override
     public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         BlockEntity be = level.getBlockEntity(pos);
         if (be instanceof InfestedBlockEntity entity) entity.randomTick(level, pos, state, random);
     }
 
-    // Swab harvest
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos,
                                  Player player, InteractionHand hand, BlockHitResult hit) {
@@ -110,7 +107,6 @@ public class InfestedBlock extends BaseEntityBlock {
         return InteractionResult.PASS;
     }
 
-    // Infection on stepping (fungi)
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
         if (level.isClientSide() || !(entity instanceof LivingEntity living)) return;
@@ -167,7 +163,6 @@ public class InfestedBlock extends BaseEntityBlock {
         data.setInfected(true);
         data.setPathogenType(pt);
         data.setInfectionType(it);
-        // Parse remaining symptom pairs
         for (int i = 1; i < parts.length; i++) {
             String[] kv = parts[i].split("=");
             if (kv.length == 2) {
@@ -215,11 +210,11 @@ public class InfestedBlock extends BaseEntityBlock {
                               @Nullable BlockEntity be, ItemStack tool) {
         if (!level.isClientSide() && be instanceof InfestedBlockEntity mat) {
             if (!player.isCreative()) {
-                // Revert handled in onRemove
+
             }
         }
         level.removeBlockEntity(pos);
-        // Let onRemove handle the reversion
+
         super.playerDestroy(level, player, pos, state, be, tool);
     }
 

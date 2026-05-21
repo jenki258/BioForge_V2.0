@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -35,12 +34,10 @@ public class InfestedBlockEntity extends BlockEntity {
     @Nullable
     public BlockState hostState = null;
 
-    // Counts random ticks for periodic actions
     private int tickCounter = 0;
-
-    // Actions every N random ticks (adjustable)
-    private static final int RESOURCE_INTERVAL = 5;   // generate 1 bio point
-    private static final int SPREAD_INTERVAL = 3;     // attempt underground spread
+    private static final int RESOURCE_INTERVAL = 5;
+    private static final int SPREAD_INTERVAL = 3;
+    private int colonyRadius = 20;
 
     public InfestedBlockEntity(BlockPos pos, BlockState state) {
         super(BioForge.INFESTED_BLOCK_BE.get(), pos, state);
@@ -49,7 +46,6 @@ public class InfestedBlockEntity extends BlockEntity {
         }
     }
 
-    // ── Strain data ──
     public void setStrainData(String encrypted) {
         this.strainData = encrypted;
         if (encrypted != null && !encrypted.equals("CLEAN")) {
@@ -66,6 +62,10 @@ public class InfestedBlockEntity extends BlockEntity {
                 if (p.startsWith("InfectionStrength=")) {
                     try { infectionStrength = Float.parseFloat(p.substring(18)); } catch (Exception ignored) {}
                 }
+                String[] kv = p.split("=");
+                if (kv.length == 2 && kv[0].equals("ColonyRadius")) {
+                    try { colonyRadius = Math.round(Float.parseFloat(kv[1])); } catch (Exception ignored) {}
+                }
             }
         }
         setChanged();
@@ -81,37 +81,30 @@ public class InfestedBlockEntity extends BlockEntity {
         setChanged();
     }
 
-    // ── Random tick (ALL logic lives here now) ──
     public void randomTick(ServerLevel level, BlockPos pos, BlockState state, RandomSource random) {
         if (strainData == null) return;
 
-        // Survival check
         if (!isWithinInfluence(level)) {
             die(level, pos);
             return;
         }
 
-        // Increment tick counter (wrap to avoid overflow)
         tickCounter = (tickCounter + 1) % 1000;
         setChanged();
 
-        // 1) Resource generation (every RESOURCE_INTERVAL random ticks)
         if (tickCounter % RESOURCE_INTERVAL == 0) {
             generateResources(level);
         }
 
-        // 2) Underground spread (every SPREAD_INTERVAL random ticks)
         if (tickCounter % SPREAD_INTERVAL == 0) {
             attemptUndergroundSpread(level, pos);
         }
 
-        // 3) Growth
         int growth = state.getValue(InfestedBlock.GROWTH);
         if (growth < 4 && random.nextFloat() < getGrowthChance()) {
             level.setBlock(pos, state.setValue(InfestedBlock.GROWTH, growth + 1), 3);
         }
 
-        // 4) Surface mat spawn
         if (growth >= 2 && random.nextFloat() < 0.10f) {
             int dx = random.nextInt(3) - 1;
             int dz = random.nextInt(3) - 1;
@@ -135,7 +128,7 @@ public class InfestedBlockEntity extends BlockEntity {
     private boolean isWithinInfluence(ServerLevel level) {
         if (corePos == null) return false;
         BlockState coreState = level.getBlockState(corePos);
-        return coreState.is(BioForge.COLONY_CORE.get()) && worldPosition.closerThan(corePos, 20.0);
+        return coreState.is(BioForge.COLONY_CORE.get()) && worldPosition.closerThan(corePos, colonyRadius);
     }
 
     private void die(ServerLevel level, BlockPos pos) {
@@ -163,7 +156,6 @@ public class InfestedBlockEntity extends BlockEntity {
 
     private void attemptUndergroundSpread(ServerLevel level, BlockPos pos) {
         RandomSource random = level.random;
-        // 70% chance downward
         if (random.nextFloat() < 0.7f) {
             BlockPos down = pos.below();
             BlockState downState = level.getBlockState(down);
@@ -171,7 +163,6 @@ public class InfestedBlockEntity extends BlockEntity {
                 if (tryCreateInfestedBlock(level, down, downState)) return;
             }
         }
-        // Horizontal / downward random
         int dx = random.nextInt(3) - 1;
         int dz = random.nextInt(3) - 1;
         int dy = random.nextFloat() < 0.5f ? -1 : 0;
@@ -217,7 +208,6 @@ public class InfestedBlockEntity extends BlockEntity {
                 || state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/moisture")));
     }
 
-    // ── NBT (save/load tickCounter) ──
     @Override
     public void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
@@ -229,6 +219,7 @@ public class InfestedBlockEntity extends BlockEntity {
         }
         if (hostState != null) tag.putString("Host", NbtUtils.writeBlockState(hostState).toString());
         tag.putInt("TickCounter", tickCounter);
+        tag.putInt("ColonyRadius", colonyRadius);
     }
 
     @Override
@@ -252,6 +243,7 @@ public class InfestedBlockEntity extends BlockEntity {
             }
         }
         tickCounter = tag.getInt("TickCounter");
+        colonyRadius = tag.getInt("ColonyRadius");
     }
 
     @Override public CompoundTag getUpdateTag() { CompoundTag t = super.getUpdateTag(); saveAdditional(t); return t; }

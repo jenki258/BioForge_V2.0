@@ -29,7 +29,6 @@ public class PetriDishItem extends BlockItem {
         ItemStack dishStack = player.getItemInHand(hand);
 
         if (isInoculated(dishStack)) {
-            // Harvest at stage ≥ 3
             if (dishStack.getOrCreateTag().getInt("Growth") >= 3) {
                 InteractionHand otherHand = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
                 ItemStack otherStack = player.getItemInHand(otherHand);
@@ -42,7 +41,6 @@ public class PetriDishItem extends BlockItem {
                                 NbtObfuscator.clear(dishStack.getOrCreateTag());
                                 dishStack.getOrCreateTag().putInt("Growth", 0);
                             }
-                            // Force client to see the changed dish
                             player.setItemInHand(hand, dishStack);
                             if (player instanceof ServerPlayer sp) {
                                 sp.inventoryMenu.broadcastChanges();
@@ -57,7 +55,6 @@ public class PetriDishItem extends BlockItem {
             return super.use(level, player, hand);
         }
 
-        // Inoculate
         InteractionHand otherHand = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack otherStack = player.getItemInHand(otherHand);
         if (otherStack.getItem() instanceof SwabItem && SwabItem.isContaminated(otherStack)) {
@@ -68,7 +65,6 @@ public class PetriDishItem extends BlockItem {
                 NbtObfuscator.writeString(dishStack.getOrCreateTag(), payload);
                 dishStack.getOrCreateTag().putInt("Growth", 0);
 
-                // Force client to see the inoculated dish
                 player.setItemInHand(hand, dishStack);
                 if (player instanceof ServerPlayer sp) {
                     sp.inventoryMenu.broadcastChanges();

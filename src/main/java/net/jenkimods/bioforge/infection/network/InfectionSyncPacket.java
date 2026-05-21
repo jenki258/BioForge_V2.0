@@ -8,7 +8,6 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class InfectionSyncPacket {
-
     private final boolean infected;
     private final String pathogenType;
     private final String infectionType;
@@ -26,14 +25,15 @@ public class InfectionSyncPacket {
     private final float oxygenSaturation;
     private final float perfusionIndex;
     private final float infectionStrength;
+    private final float colonyRadius;
+    private final float maxInfestedBlocks;
 
     public InfectionSyncPacket(boolean infected, String pathogenType, String infectionType,
-                               String heartRate, String lungSound,
-                               boolean temperaturePlus, boolean temperatureMinus,
+                               String heartRate, String lungSound, boolean temperaturePlus, boolean temperatureMinus,
                                float redness, float lesions, float secretion, float swelling,
                                float reflexDelay, float reflexStrength, float neuralDamage,
-                               float oxygenSaturation, float perfusionIndex,
-                               float infectionStrength) {
+                               float oxygenSaturation, float perfusionIndex, float infectionStrength,
+                               float colonyRadius, float maxInfestedBlocks) {
         this.infected = infected;
         this.pathogenType = pathogenType;
         this.infectionType = infectionType;
@@ -51,6 +51,8 @@ public class InfectionSyncPacket {
         this.oxygenSaturation = oxygenSaturation;
         this.perfusionIndex = perfusionIndex;
         this.infectionStrength = infectionStrength;
+        this.colonyRadius = colonyRadius;
+        this.maxInfestedBlocks = maxInfestedBlocks;
     }
 
     public static InfectionSyncPacket fromData(InfectionData data) {
@@ -71,7 +73,9 @@ public class InfectionSyncPacket {
                 data.getSymptom(BioForgeSymptoms.NEURAL_DAMAGE),
                 data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION),
                 data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX),
-                data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH)
+                data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH),
+                data.getSymptom(BioForgeSymptoms.COLONY_RADIUS),
+                data.getSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS)
         );
     }
 
@@ -93,6 +97,8 @@ public class InfectionSyncPacket {
         buf.writeFloat(pkt.oxygenSaturation);
         buf.writeFloat(pkt.perfusionIndex);
         buf.writeFloat(pkt.infectionStrength);
+        buf.writeFloat(pkt.colonyRadius);
+        buf.writeFloat(pkt.maxInfestedBlocks);
     }
 
     public static InfectionSyncPacket decode(FriendlyByteBuf buf) {
@@ -113,12 +119,14 @@ public class InfectionSyncPacket {
         float oxygenSaturation = buf.readFloat();
         float perfusionIndex = buf.readFloat();
         float infectionStrength = buf.readFloat();
+        float colonyRadius = buf.readFloat();
+        float maxInfestedBlocks = buf.readFloat();
         return new InfectionSyncPacket(infected, pathogenType, infectionType,
                 heartRate, lungSound, temperaturePlus, temperatureMinus,
                 redness, lesions, secretion, swelling,
                 reflexDelay, reflexStrength, neuralDamage,
-                oxygenSaturation, perfusionIndex,
-                infectionStrength);
+                oxygenSaturation, perfusionIndex, infectionStrength,
+                colonyRadius, maxInfestedBlocks);
     }
 
     public static void handle(InfectionSyncPacket pkt, Supplier<NetworkEvent.Context> ctxSupplier) {
@@ -132,8 +140,8 @@ public class InfectionSyncPacket {
                     pkt.temperaturePlus, pkt.temperatureMinus,
                     pkt.redness, pkt.lesions, pkt.secretion, pkt.swelling,
                     pkt.reflexDelay, pkt.reflexStrength, pkt.neuralDamage,
-                    pkt.oxygenSaturation, pkt.perfusionIndex,
-                    pkt.infectionStrength);
+                    pkt.oxygenSaturation, pkt.perfusionIndex, pkt.infectionStrength,
+                    pkt.colonyRadius, pkt.maxInfestedBlocks);
         });
         ctx.setPacketHandled(true);
     }

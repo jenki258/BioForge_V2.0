@@ -84,7 +84,6 @@ public class OtoscopeOverlay {
             return;
         }
 
-        // Fade‑in initialisation
         if (fadeStartTime == 0) fadeStartTime = System.currentTimeMillis();
         long now = System.currentTimeMillis();
         float fadeIn = Math.min(1.0f, (now - fadeStartTime) / (FADE_DURATION_SEC * 1000f));
@@ -365,7 +364,6 @@ public class OtoscopeOverlay {
         return (alpha << 24) | (rgb & 0xFFFFFF);
     }
 
-    // ── Particle classes unchanged ──
     private enum SymptomType { REDNESS, LESION, SECRETION, SWELLING }
 
     private static class OtoscopeParticle {

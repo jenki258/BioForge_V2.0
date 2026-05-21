@@ -35,7 +35,6 @@ public class ClipboardItem extends Item {
         ItemStack clipboard = player.getItemInHand(hand);
         if (!level.isClientSide()) return InteractionResultHolder.success(clipboard);
 
-        // Shift‑right‑click → clear
         if (player.isShiftKeyDown()) {
             if (ClipboardClientHandler.hasPatient()) {
                 ClipboardClientHandler.clearClipboardItem();
@@ -44,16 +43,13 @@ public class ClipboardItem extends Item {
             return InteractionResultHolder.success(clipboard);
         }
 
-        // Paper in offhand → print report from THIS clipboard
         InteractionHand other = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack otherStack = player.getItemInHand(other);
         if (otherStack.is(Items.PAPER)) {
-            // Read from the clipboard in hand, ignoring the active session
             ClipboardClientHandler.finalizeReportFromStack(player, otherStack, clipboard);
             return InteractionResultHolder.success(clipboard);
         }
 
-        // If the clipboard already contains data, reactivate its session
         CompoundTag tag = clipboard.getOrCreateTag();
         if (NbtObfuscator.readString(tag) != null) {
             boolean reactivated = ClipboardClientHandler.reactivateSession(clipboard);
@@ -64,7 +60,6 @@ public class ClipboardItem extends Item {
             return InteractionResultHolder.success(clipboard);
         }
 
-        // Empty clipboard → assign a new patient
         Entity target = pickTargetEntity(player);
         if (target instanceof LivingEntity living) {
             ClipboardClientHandler.assignPatient(
@@ -109,7 +104,6 @@ public class ClipboardItem extends Item {
                 .withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.literal(""));
 
-        // Vitals
         tooltip.add(Component.translatable("clipboard.section.vital").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("TempC")) {
             float temp = Float.parseFloat(map.get("TempC"));
@@ -133,7 +127,6 @@ public class ClipboardItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.oxygen", String.format("%.0f%%", o2 * 100f), piDesc + unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Respiratory
         tooltip.add(Component.translatable("clipboard.section.respiratory").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("LungSound")) {
             String sound = Component.translatable("clipboard.stethoscope." + map.get("LungSound").toLowerCase()).getString();
@@ -141,7 +134,6 @@ public class ClipboardItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.lungs", sound + unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Neurological
         tooltip.add(Component.translatable("clipboard.section.neurological").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("ReflexDelay")) {
             String delay = Component.translatable("clipboard.reflex." + map.get("ReflexDelay").toLowerCase()).getString();
@@ -150,7 +142,6 @@ public class ClipboardItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.reflex", delay, strength, unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Visual
         tooltip.add(Component.translatable("clipboard.section.visual").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("Redness")) {
             String unstable = map.get("VisualUnstable").equals("true") ? " (?)" : "";
@@ -160,7 +151,6 @@ public class ClipboardItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.swelling", describeVisual(Float.parseFloat(map.get("Swelling"))) + unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Blood
         tooltip.add(Component.translatable("clipboard.section.blood").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         boolean reagentA = map.getOrDefault("ReagentA", "false").equals("true");
         boolean reagentB = map.getOrDefault("ReagentB", "false").equals("true");
@@ -177,7 +167,6 @@ public class ClipboardItem extends Item {
                 tooltip.add(Component.translatable("clipboard.entry.anti_d", map.get("AntiD").equals("true") ? "+" : "-").withStyle(ChatFormatting.WHITE));
         }
 
-        // Operational hints
         tooltip.add(Component.translatable("item.bioforge.clipboard.hint_resume").withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.clipboard.hint_print").withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.clipboard.hint_clear").withStyle(ChatFormatting.DARK_GRAY));

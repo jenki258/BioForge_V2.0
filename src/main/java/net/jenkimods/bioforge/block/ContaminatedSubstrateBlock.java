@@ -43,7 +43,7 @@ public class ContaminatedSubstrateBlock extends Block {
         return level.getBlockState(below).isFaceSturdy(level, below, Direction.UP);
     }
 
-    // When placed, immediately convert to microbial mat with stored strain
+
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
@@ -51,12 +51,12 @@ public class ContaminatedSubstrateBlock extends Block {
 
         String strain = NbtObfuscator.readString(stack.getOrCreateTag());
         if (strain == null || strain.isEmpty()) {
-            // Should not happen – fallback to air
+
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             return;
         }
 
-        // Replace MICROBIAL_MAT with COLONY_CORE
+
         level.setBlock(pos, BioForge.COLONY_CORE.get().defaultBlockState(), 3);
         if (level.getBlockEntity(pos) instanceof ColonyCoreBlockEntity core) {
             core.setStrainData(strain);

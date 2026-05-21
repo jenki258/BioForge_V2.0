@@ -27,7 +27,8 @@ public class ColonyCoreBlockEntity extends BlockEntity {
     public InfectionType infectionType = null;
     private int resources = 25;
     private int infectedBlockCount = 0;
-    private static final int MAX_INFESTED_BLOCKS = 100;
+    private int colonyRadius = 20;
+    private int maxInfestedBlocks = 100;
     private static final int MAT_SPAWN_COST = 1;
 
     public ColonyCoreBlockEntity(BlockPos pos, BlockState state) {
@@ -44,6 +45,19 @@ public class ColonyCoreBlockEntity extends BlockEntity {
                     try { colonyId = UUID.fromString(header[0]); } catch (IllegalArgumentException ignored) {}
                     pathogen = PathogenType.fromName(header[1]);
                     infectionType = InfectionType.fromName(header[2]);
+                }
+            }
+            for (String p : parts) {
+                String[] kv = p.split("=");
+                if (kv.length == 2) {
+                    switch (kv[0]) {
+                        case "ColonyRadius":
+                            try { colonyRadius = Math.round(Float.parseFloat(kv[1])); } catch (Exception ignored) {}
+                            break;
+                        case "MaxInfestedBlocks":
+                            try { maxInfestedBlocks = Math.round(Float.parseFloat(kv[1])); } catch (Exception ignored) {}
+                            break;
+                    }
                 }
             }
         }
@@ -76,19 +90,21 @@ public class ColonyCoreBlockEntity extends BlockEntity {
     }
 
     public int getResources() { return resources; }
+    public int getColonyRadius() { return colonyRadius; }
+    public int getMaxInfestedBlocks() { return maxInfestedBlocks; }
 
-    public boolean canCreateInfestedBlock() { return infectedBlockCount < MAX_INFESTED_BLOCKS; }
+    public boolean canCreateInfestedBlock() {
+        return infectedBlockCount < maxInfestedBlocks;
+    }
 
     public void incrementInfestedCount() { infectedBlockCount++; setChanged(); }
     public void decrementInfestedCount() { infectedBlockCount--; setChanged(); }
 
     public void randomTick(ServerLevel level, BlockPos pos, BlockState state, RandomSource random) {
         if (strainData == null) return;
-
         int attempts = 1 + random.nextInt(3);
         for (int i = 0; i < attempts; i++) {
-            if (!consumeResources(MAT_SPAWN_COST)) break;  // no points → no spawn
-
+            if (!consumeResources(MAT_SPAWN_COST)) break;
             int dx = random.nextInt(7) - 3;
             int dz = random.nextInt(7) - 3;
             int dy = random.nextFloat() < 0.2f ? 1 : 0;
@@ -97,7 +113,6 @@ public class ColonyCoreBlockEntity extends BlockEntity {
             if (!level.getBlockState(target).isAir()) continue;
             BlockPos below = target.below();
             if (!isValidSubstrate(level.getBlockState(below))) continue;
-
             level.setBlock(target, BioForge.MICROBIAL_MAT.get().defaultBlockState()
                     .setValue(MicrobialMatBlock.GROWTH, 0)
                     .setValue(MicrobialMatBlock.HOST_CROP, false), 3);
@@ -121,6 +136,8 @@ public class ColonyCoreBlockEntity extends BlockEntity {
         if (strainData != null) NbtObfuscator.writeString(tag, strainData);
         tag.putInt("Resources", resources);
         tag.putInt("InfectedCount", infectedBlockCount);
+        tag.putInt("ColonyRadius", colonyRadius);
+        tag.putInt("MaxInfestedBlocks", maxInfestedBlocks);
     }
 
     @Override
@@ -132,6 +149,8 @@ public class ColonyCoreBlockEntity extends BlockEntity {
         }
         resources = tag.getInt("Resources");
         infectedBlockCount = tag.getInt("InfectedCount");
+        colonyRadius = tag.getInt("ColonyRadius");
+        maxInfestedBlocks = tag.getInt("MaxInfestedBlocks");
     }
 
     @Override public CompoundTag getUpdateTag() { CompoundTag t = super.getUpdateTag(); saveAdditional(t); return t; }

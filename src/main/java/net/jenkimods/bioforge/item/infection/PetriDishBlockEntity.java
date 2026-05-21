@@ -120,7 +120,6 @@ public class PetriDishBlockEntity extends BlockEntity {
         }
     }
 
-    // ── Client synchronisation ──
     @Override
     public CompoundTag getUpdateTag() {
         CompoundTag tag = super.getUpdateTag();

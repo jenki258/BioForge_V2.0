@@ -45,7 +45,6 @@ public class ReflexHammerOverlay {
         int screenW = mc.getWindow().getGuiScaledWidth();
         int screenH = mc.getWindow().getGuiScaledHeight();
 
-        // Summary panel – no fade needed here
         if (ReflexHammerClientHandler.isSummaryVisible()) {
             fadeStartTime = 0;
             renderSummaryPanel(gfx, screenW, screenH, mc);
@@ -57,7 +56,6 @@ public class ReflexHammerOverlay {
             return;
         }
 
-        // Fade‑in initialisation
         if (fadeStartTime == 0) fadeStartTime = System.currentTimeMillis();
         long now = System.currentTimeMillis();
         float fadeIn = Math.min(1.0f, (now - fadeStartTime) / (FADE_DURATION_SEC * 1000f));

@@ -4,7 +4,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class InfectionClientCache {
-
     private InfectionClientCache() {}
 
     private static final AtomicBoolean infected = new AtomicBoolean(false);
@@ -24,13 +23,14 @@ public final class InfectionClientCache {
     private static final AtomicReference<Float> oxygenSaturation = new AtomicReference<>(0.95f);
     private static final AtomicReference<Float> perfusionIndex = new AtomicReference<>(0.7f);
     private static final AtomicReference<Float> infectionStrength = new AtomicReference<>(0.5f);
+    private static final AtomicReference<Float> colonyRadius = new AtomicReference<>(20.0f);
+    private static final AtomicReference<Float> maxInfestedBlocks = new AtomicReference<>(100.0f);
 
     public static void set(boolean isInfected, PathogenType pathogen, InfectionType infection,
-                           HeartRate hr, LungSound ls,
-                           boolean tempPlus, boolean tempMinus,
-                           float r, float l, float s, float w,
-                           float reflexDelay, float reflexStrength, float neuralDamage,
-                           float o2, float perf, float infStrength) {
+                           HeartRate hr, LungSound ls, boolean tempPlus, boolean tempMinus,
+                           float r, float l, float s, float w, float reflexDelay, float reflexStrength,
+                           float neuralDamage, float o2, float perf, float infStrength,
+                           float colonyRadius, float maxInfestedBlocks) {
         infected.set(isInfected);
         pathogenType.set(pathogen);
         infectionType.set(infection);
@@ -48,6 +48,8 @@ public final class InfectionClientCache {
         oxygenSaturation.set(o2);
         perfusionIndex.set(perf);
         infectionStrength.set(infStrength);
+        InfectionClientCache.colonyRadius.set(colonyRadius);
+        InfectionClientCache.maxInfestedBlocks.set(maxInfestedBlocks);
     }
 
     public static boolean isInfected() { return infected.get(); }
@@ -67,4 +69,6 @@ public final class InfectionClientCache {
     public static float getOxygenSaturation() { return oxygenSaturation.get(); }
     public static float getPerfusionIndex() { return perfusionIndex.get(); }
     public static float getInfectionStrength() { return infectionStrength.get(); }
+    public static float getColonyRadius() { return colonyRadius.get(); }
+    public static float getMaxInfestedBlocks() { return maxInfestedBlocks.get(); }
 }

@@ -17,7 +17,7 @@ public class ThermometerReadingPacket {
     private final boolean tempMinus;
     private final String targetName;
     private final long cooldownUntil;
-    private final UUID targetUUID;               // ← added
+    private final UUID targetUUID;
 
     public ThermometerReadingPacket(boolean mainHand, boolean tempPlus, boolean tempMinus,
                                     String targetName, long cooldownUntil, UUID targetUUID) {
@@ -35,7 +35,6 @@ public class ThermometerReadingPacket {
         buf.writeBoolean(msg.tempMinus);
         buf.writeUtf(msg.targetName);
         buf.writeLong(msg.cooldownUntil);
-        // Write UUID (nullable, empty UUID for self? We'll use hasUUID flag)
         buf.writeBoolean(msg.targetUUID != null);
         if (msg.targetUUID != null) {
             buf.writeUUID(msg.targetUUID);

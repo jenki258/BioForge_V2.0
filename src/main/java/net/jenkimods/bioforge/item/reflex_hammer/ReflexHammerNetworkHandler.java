@@ -56,7 +56,6 @@ public class ReflexHammerNetworkHandler {
                 new ReflexSummaryPacket(delay, strength, neural));
     }
 
-    // ---------- Packets ----------
     public static class ReflexStrikePacket {
         int entityId;
         float accuracy;

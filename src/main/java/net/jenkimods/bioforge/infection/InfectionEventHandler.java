@@ -66,6 +66,8 @@ public class InfectionEventHandler {
             newData.setSymptom(BioForgeSymptoms.REFLEX_DELAY, record.reflexDelay());
             newData.setSymptom(BioForgeSymptoms.REFLEX_STRENGTH, record.reflexStrength());
             newData.setSymptom(BioForgeSymptoms.NEURAL_DAMAGE, record.neuralDamage());
+            newData.setSymptom(BioForgeSymptoms.COLONY_RADIUS, record.colonyRadius());
+            newData.setSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS, record.maxInfestedBlocks());
         } else {
             newData.clearInfection();
             if (record != null) store.clearInfection(serverPlayer.getUUID());
@@ -124,27 +126,27 @@ public class InfectionEventHandler {
         data.setSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION, Math.min(1.0f, secretion));
         data.setSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING,  Math.min(1.0f, swelling));
 
-        // Oxygen & perfusion based on pathogen
+
         float oxygen, perfusion;
         switch (pathogen) {
             case BACTERIA:
-                oxygen   = 0.75f + rand.nextFloat() * 0.15f;   // moderately low
+                oxygen   = 0.75f + rand.nextFloat() * 0.15f;
                 perfusion = 0.5f + rand.nextFloat() * 0.3f;
                 break;
             case FUNGI:
-                oxygen   = 0.85f + rand.nextFloat() * 0.1f;    // mild
+                oxygen   = 0.85f + rand.nextFloat() * 0.1f;
                 perfusion = 0.4f + rand.nextFloat() * 0.4f;
                 break;
             case VIRUS:
-                oxygen   = 0.8f + rand.nextFloat() * 0.15f;     // slightly low
+                oxygen   = 0.8f + rand.nextFloat() * 0.15f;
                 perfusion = 0.3f + rand.nextFloat() * 0.3f;
                 break;
             case PRION:
-                oxygen   = 0.95f + rand.nextFloat() * 0.05f;    // normal
-                perfusion = 0.1f + rand.nextFloat() * 0.2f;     // very low perfusion
+                oxygen   = 0.95f + rand.nextFloat() * 0.05f;
+                perfusion = 0.1f + rand.nextFloat() * 0.2f;
                 break;
             case PARASITE:
-                oxygen   = 0.6f + rand.nextFloat() * 0.2f;      // low
+                oxygen   = 0.6f + rand.nextFloat() * 0.2f;
                 perfusion = 0.4f + rand.nextFloat() * 0.3f;
                 break;
             default:
@@ -155,7 +157,7 @@ public class InfectionEventHandler {
         data.setSymptom(BioForgeSymptoms.OXYGEN_SATURATION, Math.min(1.0f, oxygen));
         data.setSymptom(BioForgeSymptoms.PERFUSION_INDEX,   Math.min(1.0f, perfusion));
 
-        // Reflex symptoms
+
         float reflexDelay = 0.1f, reflexStrength = 0.8f, neuralDamage = 0.0f;
         switch (pathogen) {
             case VIRUS:
@@ -200,10 +202,10 @@ public class InfectionEventHandler {
             default       -> infectionStrength = 0.5f;
         }
 
-        // After existing code
+
         float radius = switch (pathogen) {
             case FUNGI -> 25.0f;
-            case VIRUS -> 30.0f;   // virus spread further?
+            case VIRUS -> 30.0f;
             default -> 20.0f;
         };
         float maxBlocks = switch (pathogen) {

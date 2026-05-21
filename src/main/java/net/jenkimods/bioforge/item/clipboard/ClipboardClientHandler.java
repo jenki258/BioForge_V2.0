@@ -37,7 +37,6 @@ public class ClipboardClientHandler {
 
     private static UUID sessionToken = null;
 
-    // ── Helper to find the clipboard that holds our session token ──
     private static ItemStack findActiveClipboard() {
         Player player = Minecraft.getInstance().player;
         if (player == null || sessionToken == null) return ItemStack.EMPTY;
@@ -54,7 +53,6 @@ public class ClipboardClientHandler {
         return ItemStack.EMPTY;
     }
 
-    // ── Write the in‑memory record to the clipboard's encrypted NBT ──
     private static void saveToClipboardNBT() {
         if (sessionToken == null || !hasPatient()) return;
 
@@ -92,7 +90,6 @@ public class ClipboardClientHandler {
         NbtObfuscator.writeString(target.getOrCreateTag(), sb.toString());
     }
 
-    // ── Assign a new patient ──
     public static void assignPatient(int id, String name, UUID uuid, ItemStack clipboardStack) {
         patientId = id;
         patientName = name;
@@ -121,7 +118,6 @@ public class ClipboardClientHandler {
         }
     }
 
-    // ── Reactivate an existing clipboard session ──
     public static boolean reactivateSession(ItemStack clipboard) {
         CompoundTag tag = clipboard.getOrCreateTag();
         String data = NbtObfuscator.readString(tag);
@@ -143,7 +139,6 @@ public class ClipboardClientHandler {
         patientName = name;
         subjectUUID = uuid;
 
-        // Try to resolve the entity ID by UUID (players only)
         Player player = Minecraft.getInstance().player;
         int resolvedId = -1;
         if (uuid != null && player != null) {
@@ -156,7 +151,6 @@ public class ClipboardClientHandler {
         }
         patientId = resolvedId;
 
-        // Restore cached fields
         temperatureC = map.containsKey("TempC") ? Float.parseFloat(map.get("TempC")) : null;
         heartRate = map.get("HeartRate");
         lungSound = map.get("LungSound");
@@ -182,7 +176,6 @@ public class ClipboardClientHandler {
         visualUnstable = map.getOrDefault("VisualUnstable", "false").equals("true");
         reflexUnstable = map.getOrDefault("ReflexUnstable", "false").equals("true");
 
-        // Re‑establish session token
         if (tag.contains("SessionToken")) {
             sessionToken = tag.getUUID("SessionToken");
         } else {
@@ -193,7 +186,6 @@ public class ClipboardClientHandler {
         return true;
     }
 
-    // ── Clear clipboard ──
     public static void clearClipboardItem() {
         ItemStack active = findActiveClipboard();
         if (active != null && !active.isEmpty()) {
@@ -219,7 +211,6 @@ public class ClipboardClientHandler {
         reagentA = reagentB = reagentD = false;
     }
 
-    // ── Getters (unchanged) ──
     public static boolean hasPatient() { return patientId != Integer.MIN_VALUE; }
     public static String getPatientName() { return patientName; }
     public static int getPatientId() { return patientId; }
@@ -261,7 +252,6 @@ public class ClipboardClientHandler {
         return count;
     }
 
-    // ── Recording methods (unchanged) ──
     public static void recordTemperature(float celsius, boolean unstable) {
         temperatureC = celsius; tempUnstable = unstable;
         saveToClipboardNBT();
@@ -294,7 +284,6 @@ public class ClipboardClientHandler {
         saveToClipboardNBT();
     }
 
-    // ── Final report ──
     public static void finalizeReportFromStack(Player player, ItemStack paper, ItemStack clipboardStack) {
         CompoundTag tag = clipboardStack.getOrCreateTag();
         String data = NbtObfuscator.readString(tag);
@@ -304,11 +293,9 @@ public class ClipboardClientHandler {
         CompoundTag reportTag = report.getOrCreateTag();
         NbtObfuscator.writeString(reportTag, data);
 
-        // Clear only this clipboard's NBT
         NbtObfuscator.clear(tag);
         tag.remove("SessionToken");
 
-        // If this clipboard was the active session, also clear the in‑memory handler
         if (sessionToken != null && tag.contains("SessionToken")) {
             UUID token = tag.getUUID("SessionToken");
             if (token.equals(sessionToken)) {

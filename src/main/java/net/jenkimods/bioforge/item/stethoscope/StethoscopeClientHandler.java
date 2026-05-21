@@ -31,7 +31,7 @@ public class StethoscopeClientHandler {
         if (listening && entityId == targetEntityId) return;
         stopSounds();
         listening = true;
-        listeningStartTime = System.currentTimeMillis();   // <-- add this
+        listeningStartTime = System.currentTimeMillis();
         targetEntityId = entityId;
         hasReading = false;
         heartRate = HeartRate.NORMAL;

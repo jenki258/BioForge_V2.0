@@ -41,7 +41,6 @@ public class MedicalReportItem extends Item {
                 .withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.literal(""));
 
-        // Vitals
         tooltip.add(Component.translatable("clipboard.section.vital").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("TempC")) {
             float temp = Float.parseFloat(map.get("TempC"));
@@ -65,7 +64,6 @@ public class MedicalReportItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.oxygen", String.format("%.0f%%", o2 * 100f), piDesc + unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Respiratory
         tooltip.add(Component.translatable("clipboard.section.respiratory").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("LungSound")) {
             String sound = Component.translatable("clipboard.stethoscope." + map.get("LungSound").toLowerCase()).getString();
@@ -73,7 +71,6 @@ public class MedicalReportItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.lungs", sound + unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Neurological
         tooltip.add(Component.translatable("clipboard.section.neurological").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("ReflexDelay")) {
             String delay = Component.translatable("clipboard.reflex." + map.get("ReflexDelay").toLowerCase()).getString();
@@ -82,7 +79,6 @@ public class MedicalReportItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.reflex", delay, strength, unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Visual
         tooltip.add(Component.translatable("clipboard.section.visual").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         if (map.containsKey("Redness")) {
             String unstable = map.get("VisualUnstable").equals("true") ? " (?)" : "";
@@ -92,7 +88,6 @@ public class MedicalReportItem extends Item {
             tooltip.add(Component.translatable("clipboard.entry.swelling", describeVisual(Float.parseFloat(map.get("Swelling"))) + unstable).withStyle(ChatFormatting.WHITE));
         } else { tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY)); }
 
-        // Blood – only show if all reagents present
         tooltip.add(Component.translatable("clipboard.section.blood").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
         boolean hasAntiA = map.containsKey("AntiA");
         boolean hasAntiB = map.containsKey("AntiB");

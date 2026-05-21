@@ -15,15 +15,15 @@ public class QuicksandSinkHandler {
         LivingEntity entity = event.getEntity();
         if (entity.level().isClientSide()) return;
 
-        BlockState state = entity.getBlockStateOn(); // state at entity's feet
+        BlockState state = entity.getBlockStateOn();
         if (state.getBlock() instanceof InfestedBlock) {
-            // Strong slow (applied each tick while standing)
+
             entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 4, false, false, false));
 
-            // Sink downward: apply a small constant downward motion
-            if (!entity.onGround()) return; // only sink if on ground
+
+            if (!entity.onGround()) return;
             entity.setDeltaMovement(entity.getDeltaMovement().x, -0.08D, entity.getDeltaMovement().z);
-            entity.hurtMarked = true; // mark velocity dirty
+            entity.hurtMarked = true;
         }
     }
 }

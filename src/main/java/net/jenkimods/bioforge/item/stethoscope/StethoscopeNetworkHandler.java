@@ -26,13 +26,11 @@ public class StethoscopeNetworkHandler {
         CHANNEL = NetworkRegistry.newSimpleChannel(
                 ResourceLocation.tryBuild(BioForge.MODID, "stethoscope"),
                 () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
-        // Client → Server
         CHANNEL.registerMessage(0, StethoscopeRequestPacket.class,
                 StethoscopeRequestPacket::encode,
                 StethoscopeRequestPacket::decode,
                 StethoscopeRequestPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        // Server → Client
         CHANNEL.registerMessage(1, StethoscopeReadingPacket.class,
                 StethoscopeReadingPacket::encode,
                 StethoscopeReadingPacket::decode,
@@ -85,7 +83,6 @@ public class StethoscopeNetworkHandler {
                 LungSound lungSound = data != null
                         ? data.getSymptom(BioForgeSymptoms.LUNG_SOUND) : LungSound.NORMAL;
 
-                // Send empty name when the target is the player himself
                 String targetName = "";
                 if (msg.entityId != -1) {
                     targetName = target.getDisplayName().getString();

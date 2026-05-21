@@ -21,7 +21,7 @@ import java.util.List;
 
 public class PulseOximeterItem extends Item {
     public static final int USE_DURATION = 72000;
-    public static final int HOLD_TICKS_REQUIRED = 40;   // faster than stethoscope
+    public static final int HOLD_TICKS_REQUIRED = 40;
 
     public PulseOximeterItem() {
         super(new Properties().stacksTo(1).durability(0));
@@ -44,7 +44,7 @@ public class PulseOximeterItem extends Item {
         if (!(entity instanceof Player player)) return;
         int usedTicks = USE_DURATION - remainingUseDuration;
         if (usedTicks < HOLD_TICKS_REQUIRED) return;
-        if ((usedTicks - HOLD_TICKS_REQUIRED) % 20 != 0) return;   // update every second
+        if ((usedTicks - HOLD_TICKS_REQUIRED) % 20 != 0) return;
 
         if (level.isClientSide()) {
             Entity target = pickTargetEntity(player);

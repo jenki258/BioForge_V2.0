@@ -74,7 +74,6 @@ public class StethoscopeItem extends Item {
                 targetId = target.getId();
             }
 
-            // Start listening if not already active, or if we switched targets.
             if (!StethoscopeClientHandler.isListening() || targetId != StethoscopeClientHandler.getCurrentTargetId()) {
                 StethoscopeClientHandler.beginListening(targetId);
             }

@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,12 +28,12 @@ public class MicrobialMatBlockEntity extends BlockEntity {
     public UUID colonyId = null;
 
     private static final int SPOROCARP_RADIUS = 10;
-    private static final double MAX_CORE_DISTANCE = 20.0;
     private static final float MAT_SPREAD_COST = 1.0f;
     private static final int INFESTED_CONVERSION_COST = 2;
 
     @Nullable
     private BlockPos corePos = null;
+    private int colonyRadius = 20;
 
     public MicrobialMatBlockEntity(BlockPos pos, BlockState state) {
         super(BioForge.MICROBIAL_MAT_BE.get(), pos, state);
@@ -55,6 +54,12 @@ public class MicrobialMatBlockEntity extends BlockEntity {
                     infectionType = InfectionType.fromName(header[1]);
                 }
             }
+            for (String p : parts) {
+                String[] kv = p.split("=");
+                if (kv.length == 2 && kv[0].equals("ColonyRadius")) {
+                    try { colonyRadius = Math.round(Float.parseFloat(kv[1])); } catch (Exception ignored) {}
+                }
+            }
         }
         setChanged();
         if (level != null && !level.isClientSide) {
@@ -72,17 +77,14 @@ public class MicrobialMatBlockEntity extends BlockEntity {
     @Nullable
     public BlockPos getCorePos() { return corePos; }
 
-    // Called every random tick
     public void randomTick(ServerLevel level, BlockPos pos, BlockState state, RandomSource random) {
         if (strainData == null) return;
 
-        // Survival check
         if (!isWithinInfluence(level, pos)) {
             level.setBlock(pos, BioForge.NECROTIC_PATCH.get().defaultBlockState(), 3);
             return;
         }
 
-        // Sunlight death for non‑fungi
         if (pathogen != PathogenType.FUNGI) {
             if (level.getBrightness(LightLayer.SKY, pos) >= 10) {
                 level.setBlock(pos, BioForge.NECROTIC_PATCH.get().defaultBlockState(), 3);
@@ -92,7 +94,6 @@ public class MicrobialMatBlockEntity extends BlockEntity {
 
         int growth = state.getValue(MicrobialMatBlock.GROWTH);
 
-        // Sporocarp replacement at growth 4 (fungi only)
         if (growth == 4 && pathogen == PathogenType.FUNGI) {
             if (!hasNearbySporocarp(level, pos)) {
                 level.setBlock(pos, BioForge.SPOROCARP.get().defaultBlockState(), 3);
@@ -104,7 +105,6 @@ public class MicrobialMatBlockEntity extends BlockEntity {
             return;
         }
 
-        // Growth – costs 1 resource
         if (growth < 4 && random.nextFloat() < getGrowthChance()) {
             if (consumeResources(1)) {
                 level.setBlock(pos, state.setValue(MicrobialMatBlock.GROWTH, growth + 1), 3);
@@ -112,7 +112,6 @@ public class MicrobialMatBlockEntity extends BlockEntity {
             }
         }
 
-        // Convert block below to infested block (stage ≥2)
         if (growth >= 2 && random.nextFloat() < 0.15f) {
             BlockPos below = pos.below();
             BlockState belowState = level.getBlockState(below);
@@ -134,7 +133,6 @@ public class MicrobialMatBlockEntity extends BlockEntity {
             }
         }
 
-        // Spread – costs MAT_SPREAD_COST
         if (pathogen != PathogenType.VIRUS && growth >= 1 && random.nextFloat() < getSpreadChance()) {
             if (consumeResources(MAT_SPREAD_COST)) {
                 attemptSpread(level, pos, random);
@@ -155,7 +153,7 @@ public class MicrobialMatBlockEntity extends BlockEntity {
         if (corePos == null) return false;
         BlockState coreState = level.getBlockState(corePos);
         if (!coreState.is(BioForge.COLONY_CORE.get())) return false;
-        return pos.closerThan(corePos, MAX_CORE_DISTANCE);
+        return pos.closerThan(corePos, colonyRadius);
     }
 
     private boolean hasNearbySporocarp(ServerLevel level, BlockPos pos) {
@@ -231,6 +229,7 @@ public class MicrobialMatBlockEntity extends BlockEntity {
             tag.putInt("CoreY", corePos.getY());
             tag.putInt("CoreZ", corePos.getZ());
         }
+        tag.putInt("ColonyRadius", colonyRadius);
     }
 
     @Override
@@ -243,6 +242,7 @@ public class MicrobialMatBlockEntity extends BlockEntity {
         if (tag.contains("CoreX")) {
             corePos = new BlockPos(tag.getInt("CoreX"), tag.getInt("CoreY"), tag.getInt("CoreZ"));
         }
+        colonyRadius = tag.getInt("ColonyRadius");
     }
 
     @Override public CompoundTag getUpdateTag() { CompoundTag t = super.getUpdateTag(); saveAdditional(t); return t; }

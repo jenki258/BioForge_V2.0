@@ -27,7 +27,6 @@ public class SwabItem extends Item {
         super(new Properties().stacksTo(1));
     }
 
-    // ── Self‑swab ──
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
@@ -37,14 +36,12 @@ public class SwabItem extends Item {
             InfectionData data = InfectionCapability.get(player);
             String payload = buildStrainPayload(data);
             NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
-            // Force the inventory update to the client
             player.setItemInHand(hand, stack);
             player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected_self"));
         }
         return InteractionResultHolder.success(stack);
     }
 
-    // ── Mob swab ──
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player,
                                                   LivingEntity target, InteractionHand hand) {
@@ -61,18 +58,17 @@ public class SwabItem extends Item {
         InfectionData data = InfectionCapability.get(target);
         String payload = buildStrainPayload(data);
         NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
-        // Force the inventory update to the client
         player.setItemInHand(hand, stack);
         player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected", target.getDisplayName()));
         return InteractionResult.CONSUME;
     }
 
-    // ── Full symptom payload builder ──
     private String buildStrainPayload(@Nullable InfectionData data) {
         if (data == null || !data.isInfected()) return "CLEAN";
         String colonyId = UUID.randomUUID().toString();
         StringBuilder sb = new StringBuilder();
-        sb.append(colonyId).append("|").append(data.getPathogenType().name()).append("|").append(data.getInfectionType().name());
+        sb.append(colonyId).append("|").append(data.getPathogenType().name())
+                .append("|").append(data.getInfectionType().name());
         sb.append(";").append("HeartRate=").append(data.getSymptom(BioForgeSymptoms.HEART_RATE).name());
         sb.append(";").append("LungSound=").append(data.getSymptom(BioForgeSymptoms.LUNG_SOUND).name());
         sb.append(";").append("TempPlus=").append(data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS));
@@ -87,6 +83,8 @@ public class SwabItem extends Item {
         sb.append(";").append("OxygenSaturation=").append(data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION));
         sb.append(";").append("PerfusionIndex=").append(data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX));
         sb.append(";").append("InfectionStrength=").append(data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH));
+        sb.append(";").append("ColonyRadius=").append(data.getSymptom(BioForgeSymptoms.COLONY_RADIUS));
+        sb.append(";").append("MaxInfestedBlocks=").append(data.getSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS));
         return sb.toString();
     }
 

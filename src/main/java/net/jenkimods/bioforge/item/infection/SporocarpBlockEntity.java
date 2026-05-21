@@ -30,7 +30,7 @@ public class SporocarpBlockEntity extends BlockEntity {
     private static final int REGEN_RADIUS = 10;
     private static final int BURST_RADIUS = 5;
     private int regenCooldown = 0;
-    private static final int REGEN_COOLDOWN_MAX = 1200; // 1 minute
+    private static final int REGEN_COOLDOWN_MAX = 1200;
 
     public SporocarpBlockEntity(BlockPos pos, BlockState state) {
         super(BioForge.SPOROCARP_BE.get(), pos, state);
@@ -66,7 +66,6 @@ public class SporocarpBlockEntity extends BlockEntity {
 
     public String getStrainData() { return strainData; }
 
-    // Passive regeneration ticker
     public static void tick(Level level, BlockPos pos, BlockState state, SporocarpBlockEntity entity) {
         if (level.isClientSide() || entity.strainData == null) return;
         entity.regenCooldown++;
@@ -76,10 +75,9 @@ public class SporocarpBlockEntity extends BlockEntity {
         }
     }
 
-    // Burst on death (sunlight)
     public void burst(ServerLevel level, BlockPos pos) {
-        if (corePos == null) return;   // safety: shouldn't happen
-        int count = 5 + level.random.nextInt(6); // 5-10 spores
+        if (corePos == null) return;
+        int count = 5 + level.random.nextInt(6);
         for (int i = 0; i < count; i++) {
             int dx = level.random.nextInt(BURST_RADIUS * 2 + 1) - BURST_RADIUS;
             int dz = level.random.nextInt(BURST_RADIUS * 2 + 1) - BURST_RADIUS;
@@ -95,7 +93,7 @@ public class SporocarpBlockEntity extends BlockEntity {
                     .setValue(MicrobialMatBlock.HOST_CROP, false), 3);
             if (level.getBlockEntity(targetPos) instanceof MicrobialMatBlockEntity mat) {
                 mat.setStrainData(strainData);
-                mat.setCorePos(corePos);   // spread with core position
+                mat.setCorePos(corePos);
             }
         }
         level.destroyBlock(pos, false);

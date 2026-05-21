@@ -26,17 +26,13 @@ public class PulseOximeterClientHandler {
     private static double lastTargetX, lastTargetY, lastTargetZ;
     private static long lastMoveCheck = 0;
 
-    /**
-     * Start inspection (called on first data arrival) or update data (subsequent calls).
-     * The stabilisation timer begins only once.
-     */
+
     public static void startInspection(float o2, float perf, boolean self, int entityId, String name) {
         if (!inspecting) {
             inspecting = true;
             startTime = System.currentTimeMillis();
             quality = 1.0f;
 
-            // record starting positions for movement detection
             Player player = Minecraft.getInstance().player;
             if (player != null) {
                 lastPlayerX = player.getX();
@@ -93,12 +89,10 @@ public class PulseOximeterClientHandler {
         Player player = mc.player;
         if (player == null) return;
 
-        // Time‑based stabilisation (quality gradually improves)
         long elapsed = System.currentTimeMillis() - startTime;
-        float stabilization = Math.min(1.0f, elapsed / 8000f);   // 3 s to full quality
+        float stabilization = Math.min(1.0f, elapsed / 8000f);
         quality = 0.3f + stabilization * 0.7f;
 
-        // Movement penalty (reduces quality temporarily)
         if (System.currentTimeMillis() - lastMoveCheck > 500) {
             double playerMoved = distance(player.getX(), player.getY(), player.getZ(),
                     lastPlayerX, lastPlayerY, lastPlayerZ);
@@ -115,7 +109,6 @@ public class PulseOximeterClientHandler {
             quality -= movePenalty * 0.5f;
             quality = Math.max(0.1f, Math.min(1.0f, quality));
 
-            // update last known positions
             lastPlayerX = player.getX();
             lastPlayerY = player.getY();
             lastPlayerZ = player.getZ();

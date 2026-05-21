@@ -12,7 +12,7 @@ public class BloodReagentResultPacket {
     private final String sourceName;
     private final String bloodType;
     private final Boolean antiA, antiB, antiD;
-    private final UUID subjectUUID;          // ← added
+    private final UUID subjectUUID;
 
     public BloodReagentResultPacket(String sourceName, String bloodType,
                                     Boolean antiA, Boolean antiB, Boolean antiD,
@@ -35,7 +35,7 @@ public class BloodReagentResultPacket {
         buf.writeBoolean(msg.antiD != null);
         if (msg.antiD != null) buf.writeBoolean(msg.antiD);
 
-        // Write subject UUID (nullable)
+
         buf.writeBoolean(msg.subjectUUID != null);
         if (msg.subjectUUID != null) {
             buf.writeUUID(msg.subjectUUID);
@@ -59,7 +59,7 @@ public class BloodReagentResultPacket {
     public static void handle(BloodReagentResultPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             if (ClipboardClientHandler.hasPatient()) {
-                // Prefer UUID matching, fallback to name
+
                 boolean match = false;
                 if (msg.subjectUUID != null && ClipboardClientHandler.getSubjectUUID() != null) {
                     match = msg.subjectUUID.equals(ClipboardClientHandler.getSubjectUUID());

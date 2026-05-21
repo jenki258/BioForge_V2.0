@@ -62,7 +62,7 @@ public class PetriDishColorHandler {
                                     default       -> 0xAAAAAA;
                                 };
                             }
-                            return 0xAAAAAA; // default grey
+                            return 0xAAAAAA;
                         }
                     }
                     return 0xFFFFFFFF;

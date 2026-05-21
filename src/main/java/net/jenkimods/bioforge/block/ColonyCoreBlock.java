@@ -23,7 +23,7 @@ public class ColonyCoreBlock extends BaseEntityBlock {
                 .mapColor(MapColor.COLOR_PURPLE)
                 .strength(5.0F, 1200.0F)
                 .noOcclusion()
-                .randomTicks());   // enable random ticks for spreading
+                .randomTicks());
     }
 
     @Override
@@ -42,6 +42,4 @@ public class ColonyCoreBlock extends BaseEntityBlock {
             core.randomTick(level, pos, state, random);
         }
     }
-
-    // No fixed ticker needed – spreading is purely random tick based
 }

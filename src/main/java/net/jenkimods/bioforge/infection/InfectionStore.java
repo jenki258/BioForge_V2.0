@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.UUID;
 
 public class InfectionStore extends SavedData {
-
     private static final String DATA_NAME = "bioforge_infections";
     private final Map<UUID, InfectionRecord> records = new HashMap<>();
 
@@ -39,10 +38,25 @@ public class InfectionStore extends SavedData {
         return tag;
     }
 
-    public void setInfection(UUID uuid, InfectionRecord record) { records.put(uuid, record); setDirty(); }
-    public void clearInfection(UUID uuid) { records.remove(uuid); setDirty(); }
-    @Nullable public InfectionRecord getInfection(UUID uuid) { return records.get(uuid); }
-    public boolean isInfected(UUID uuid) { InfectionRecord r = records.get(uuid); return r != null && r.infected(); }
+    public void setInfection(UUID uuid, InfectionRecord record) {
+        records.put(uuid, record);
+        setDirty();
+    }
+
+    public void clearInfection(UUID uuid) {
+        records.remove(uuid);
+        setDirty();
+    }
+
+    @Nullable
+    public InfectionRecord getInfection(UUID uuid) {
+        return records.get(uuid);
+    }
+
+    public boolean isInfected(UUID uuid) {
+        InfectionRecord r = records.get(uuid);
+        return r != null && r.infected();
+    }
 
     public record InfectionRecord(
             boolean infected,
@@ -62,14 +76,17 @@ public class InfectionStore extends SavedData {
             float neuralDamage,
             float oxygenSaturation,
             float perfusionIndex,
-            float infectionStrength
+            float infectionStrength,
+            float colonyRadius,
+            float maxInfestedBlocks
     ) {
-        public static final InfectionRecord NONE =
-                new InfectionRecord(false, false, null, null,
-                        HeartRate.NORMAL, LungSound.NORMAL, false, false,
-                        0.0f, 0.0f, 0.0f, 0.0f,
-                        0.0f, 0.5f, 0.0f,
-                        0.95f, 0.7f, 0.5f);
+        public static final InfectionRecord NONE = new InfectionRecord(
+                false, false, null, null,
+                HeartRate.NORMAL, LungSound.NORMAL,
+                false, false, 0.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.5f, 0.0f, 0.95f, 0.7f, 0.5f,
+                20.0f, 100.0f
+        );
 
         public CompoundTag toNbt() {
             CompoundTag tag = new CompoundTag();
@@ -91,20 +108,18 @@ public class InfectionStore extends SavedData {
             tag.putFloat("OxygenSaturation", oxygenSaturation);
             tag.putFloat("PerfusionIndex", perfusionIndex);
             tag.putFloat("InfectionStrength", infectionStrength);
+            tag.putFloat("ColonyRadius", colonyRadius);
+            tag.putFloat("MaxInfestedBlocks", maxInfestedBlocks);
             return tag;
         }
 
         public static InfectionRecord fromNbt(CompoundTag tag) {
             boolean infected = tag.getBoolean("Infected");
             boolean persistent = tag.getBoolean("Persistent");
-            PathogenType pathogenType = tag.contains("PathogenType")
-                    ? PathogenType.fromName(tag.getString("PathogenType")) : null;
-            InfectionType infectionType = tag.contains("InfectionType")
-                    ? InfectionType.fromName(tag.getString("InfectionType")) : null;
-            HeartRate heartRate = tag.contains("HeartRate")
-                    ? HeartRate.fromName(tag.getString("HeartRate")) : HeartRate.NORMAL;
-            LungSound lungSound = tag.contains("LungSound")
-                    ? LungSound.fromName(tag.getString("LungSound")) : LungSound.NORMAL;
+            PathogenType pathogenType = tag.contains("PathogenType") ? PathogenType.fromName(tag.getString("PathogenType")) : null;
+            InfectionType infectionType = tag.contains("InfectionType") ? InfectionType.fromName(tag.getString("InfectionType")) : null;
+            HeartRate heartRate = tag.contains("HeartRate") ? HeartRate.fromName(tag.getString("HeartRate")) : HeartRate.NORMAL;
+            LungSound lungSound = tag.contains("LungSound") ? LungSound.fromName(tag.getString("LungSound")) : LungSound.NORMAL;
             boolean tempPlus = tag.getBoolean("TempPlus");
             boolean tempMinus = tag.getBoolean("TempMinus");
             float redness = tag.getFloat("Redness");
@@ -117,11 +132,14 @@ public class InfectionStore extends SavedData {
             float oxygenSaturation = tag.contains("OxygenSaturation") ? tag.getFloat("OxygenSaturation") : 0.95f;
             float perfusionIndex = tag.contains("PerfusionIndex") ? tag.getFloat("PerfusionIndex") : 0.7f;
             float infectionStrength = tag.contains("InfectionStrength") ? tag.getFloat("InfectionStrength") : 0.5f;
+            float colonyRadius = tag.contains("ColonyRadius") ? tag.getFloat("ColonyRadius") : 20.0f;
+            float maxInfestedBlocks = tag.contains("MaxInfestedBlocks") ? tag.getFloat("MaxInfestedBlocks") : 100.0f;
             return new InfectionRecord(infected, persistent, pathogenType, infectionType,
                     heartRate, lungSound, tempPlus, tempMinus,
                     redness, lesions, secretion, swelling,
                     reflexDelay, reflexStrength, neuralDamage,
-                    oxygenSaturation, perfusionIndex, infectionStrength);
+                    oxygenSaturation, perfusionIndex, infectionStrength,
+                    colonyRadius, maxInfestedBlocks);
         }
     }
 }
