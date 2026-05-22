@@ -5,48 +5,30 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public enum PathogenType {
-
     VIRUS(
-            InfectionType.AIR_BORNE,
-            InfectionType.CONTACT_BASED,
-            InfectionType.ATTACK_BASED,
-            InfectionType.BLOOD,
-            InfectionType.FOOD_BORNE,
-            InfectionType.WATER_BORNE
+            InfectionType.AIR_BORNE, InfectionType.CONTACT_BASED,
+            InfectionType.ATTACK_BASED, InfectionType.BLOOD,
+            InfectionType.FOOD_BORNE, InfectionType.WATER_BORNE
     ),
-
     BACTERIA(
-            InfectionType.FOOD_BORNE,
-            InfectionType.WATER_BORNE,
-            InfectionType.CONTACT_BASED,
-            InfectionType.ATTACK_BASED,
-            InfectionType.ENVIRONMENTAL,
-            InfectionType.ANIMALS
+            InfectionType.FOOD_BORNE, InfectionType.WATER_BORNE,
+            InfectionType.CONTACT_BASED, InfectionType.ATTACK_BASED,
+            InfectionType.ENVIRONMENTAL, InfectionType.ANIMALS
     ),
-
     FUNGI(
-            InfectionType.AIR_BORNE,
-            InfectionType.CONTACT_BASED,
+            InfectionType.AIR_BORNE, InfectionType.CONTACT_BASED,
             InfectionType.ENVIRONMENTAL
     ),
-
     PARASITE(
-            InfectionType.FOOD_BORNE,
-            InfectionType.WATER_BORNE,
-            InfectionType.ANIMALS,
-            InfectionType.ATTACK_BASED,
+            InfectionType.FOOD_BORNE, InfectionType.WATER_BORNE,
+            InfectionType.ANIMALS, InfectionType.ATTACK_BASED,
             InfectionType.BLOOD
     ),
-
     PRION(
-            InfectionType.FOOD_BORNE,
-            InfectionType.BLOOD,
+            InfectionType.FOOD_BORNE, InfectionType.BLOOD,
             InfectionType.CONTACT_BASED
     ),
-
-    UNIVERSAL(
-            InfectionType.values()
-    );
+    UNIVERSAL(InfectionType.values());
 
     private final Set<InfectionType> allowedTransmissions;
 
@@ -60,6 +42,10 @@ public enum PathogenType {
 
     public Set<InfectionType> getAllowedTransmissions() {
         return allowedTransmissions;
+    }
+
+    public boolean isEnvironmental() {
+        return this == FUNGI || this == BACTERIA;
     }
 
     public static PathogenType fromName(String name) {

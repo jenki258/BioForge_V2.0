@@ -257,10 +257,10 @@
   "item.bioforge.petri_dish.inoculated": "Petri dish inoculated",
 
   "item.bioforge.contaminated_substrate": "Contaminated Substrate",
-  "item.bioforge.contaminated_substrate.tooltip.clean": "Uninoculated substrate",
-  "item.bioforge.contaminated_substrate.tooltip.usage": "Inoculate with a contaminated swab before placing",
-  "item.bioforge.contaminated_substrate.tooltip.inoculated": "Ready to spread infection",
-  "item.bioforge.contaminated_substrate.inoculated": "Substrate inoculated",
-  "item.bioforge.contaminated_substrate.not_inoculated": "The substrate must be inoculated first",
-  "message.bioforge.substrate.not_viable": "This strain cannot form a colony. Only Fungi or Virus colonies are possible"
+  "item.bioforge.contaminated_substrate.incompatible_pathogen": "§cThis pathogen (%s§c) cannot form a colony! Only fungi and bacteria are environmental pathogens.",
+  "item.bioforge.contaminated_substrate.not_inoculated": "§cThis substrate has not been inoculated yet. Hold a contaminated swab in your other hand.",
+  "item.bioforge.contaminated_substrate.inoculated": "§aSubstrate inoculated. You can now place it to start a colony.",
+  "item.bioforge.contaminated_substrate.tooltip.clean": "Empty – needs inoculation",
+  "item.bioforge.contaminated_substrate.tooltip.usage": "Hold a contaminated swab in your off-hand",
+  "item.bioforge.contaminated_substrate.tooltip.inoculated": "Inoculated – ready to place"
 }

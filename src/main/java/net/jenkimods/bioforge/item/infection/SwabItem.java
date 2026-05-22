@@ -34,6 +34,10 @@ public class SwabItem extends Item {
 
         if (!level.isClientSide()) {
             InfectionData data = InfectionCapability.get(player);
+            if (data == null || !data.isInfected()) {
+                player.sendSystemMessage(Component.translatable("item.bioforge.swab.not_infected"));
+                return InteractionResultHolder.fail(stack);
+            }
             String payload = buildStrainPayload(data);
             NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
             player.setItemInHand(hand, stack);
@@ -47,19 +51,25 @@ public class SwabItem extends Item {
                                                   LivingEntity target, InteractionHand hand) {
         Level level = player.level();
         if (level.isClientSide()) return InteractionResult.SUCCESS;
-
         if (isContaminated(stack)) return InteractionResult.FAIL;
 
         if (target.getType().is(BioForgeTags.NO_DIAGNOSTICS)) {
-            player.sendSystemMessage(Component.translatable("item.bioforge.swab.blocked", target.getDisplayName()));
+            player.sendSystemMessage(Component.translatable("item.bioforge.swab.blocked",
+                    target.getDisplayName()));
             return InteractionResult.FAIL;
         }
 
         InfectionData data = InfectionCapability.get(target);
+        if (data == null || !data.isInfected()) {
+            player.sendSystemMessage(Component.translatable("item.bioforge.swab.target_not_infected"));
+            return InteractionResult.FAIL;
+        }
+
         String payload = buildStrainPayload(data);
         NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
         player.setItemInHand(hand, stack);
-        player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected", target.getDisplayName()));
+        player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected",
+                target.getDisplayName()));
         return InteractionResult.CONSUME;
     }
 
@@ -93,8 +103,8 @@ public class SwabItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level,
-                                List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip,
+                                TooltipFlag flag) {
         if (!isContaminated(stack)) {
             tooltip.add(Component.translatable("item.bioforge.swab.tooltip.clean")
                     .withStyle(ChatFormatting.GRAY));

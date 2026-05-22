@@ -1,11 +1,12 @@
 package net.jenkimods.bioforge.block;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.item.infection.ColonyCoreBlockEntity;
-import net.jenkimods.bioforge.item.infection.MicrobialMatBlockEntity;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -43,24 +44,36 @@ public class ContaminatedSubstrateBlock extends Block {
         return level.getBlockState(below).isFaceSturdy(level, below, Direction.UP);
     }
 
-
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state,
+                            @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide()) return;
 
         String strain = NbtObfuscator.readString(stack.getOrCreateTag());
         if (strain == null || strain.isEmpty()) {
-
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             return;
         }
 
+        String[] parts = strain.split(";");
+        String[] header = parts[0].split("\\|");
+        PathogenType pathogen = PathogenType.fromName(header.length >= 3 ? header[1] : header[0]);
+
+        if (!pathogen.isEnvironmental()) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            if (placer != null) {
+                placer.sendSystemMessage(
+                        Component.translatable("item.bioforge.contaminated_substrate.incompatible_pathogen",
+                                pathogen.name())
+                );
+            }
+            return;
+        }
 
         level.setBlock(pos, BioForge.COLONY_CORE.get().defaultBlockState(), 3);
         if (level.getBlockEntity(pos) instanceof ColonyCoreBlockEntity core) {
             core.setStrainData(strain);
         }
-
     }
 }

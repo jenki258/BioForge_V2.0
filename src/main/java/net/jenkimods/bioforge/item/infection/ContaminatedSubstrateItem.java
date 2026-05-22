@@ -18,7 +18,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 
 public class ContaminatedSubstrateItem extends BlockItem {
@@ -30,20 +29,19 @@ public class ContaminatedSubstrateItem extends BlockItem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack substrateStack = player.getItemInHand(hand);
-
         if (isInoculated(substrateStack)) {
             return super.use(level, player, hand);
         }
 
         InteractionHand otherHand = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack otherStack = player.getItemInHand(otherHand);
+
         if (otherStack.getItem() instanceof SwabItem && SwabItem.isContaminated(otherStack)) {
             if (!level.isClientSide()) {
                 String payload = NbtObfuscator.readString(otherStack.getOrCreateTag());
                 if (payload == null) return InteractionResultHolder.fail(substrateStack);
 
                 NbtObfuscator.writeString(substrateStack.getOrCreateTag(), payload);
-
                 level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.inoculated"));
             }
@@ -88,16 +86,12 @@ public class ContaminatedSubstrateItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level,
-                                List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         if (!isInoculated(stack)) {
-            tooltip.add(Component.translatable("item.bioforge.contaminated_substrate.tooltip.clean")
-                    .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.translatable("item.bioforge.contaminated_substrate.tooltip.usage")
-                    .withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.contaminated_substrate.tooltip.clean").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.bioforge.contaminated_substrate.tooltip.usage").withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            tooltip.add(Component.translatable("item.bioforge.contaminated_substrate.tooltip.inoculated")
-                    .withStyle(ChatFormatting.DARK_RED));
+            tooltip.add(Component.translatable("item.bioforge.contaminated_substrate.tooltip.inoculated").withStyle(ChatFormatting.DARK_RED));
         }
     }
 }
