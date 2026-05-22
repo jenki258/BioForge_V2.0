@@ -261,5 +261,6 @@
   "item.bioforge.contaminated_substrate.tooltip.usage": "Inoculate with a contaminated swab before placing",
   "item.bioforge.contaminated_substrate.tooltip.inoculated": "Ready to spread infection",
   "item.bioforge.contaminated_substrate.inoculated": "Substrate inoculated",
-  "item.bioforge.contaminated_substrate.not_inoculated": "The substrate must be inoculated first"
+  "item.bioforge.contaminated_substrate.not_inoculated": "The substrate must be inoculated first",
+  "message.bioforge.substrate.not_viable": "This strain cannot form a colony. Only Fungi or Virus colonies are possible"
 }

@@ -46,6 +46,11 @@ public class InfestedBlockEntity extends BlockEntity {
         }
     }
 
+    @Nullable
+    public BlockPos getCorePos() {
+        return corePos;
+    }
+
     public void setStrainData(String encrypted) {
         this.strainData = encrypted;
         if (encrypted != null && !encrypted.equals("CLEAN")) {
