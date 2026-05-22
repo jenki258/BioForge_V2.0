@@ -247,6 +247,9 @@
   "item.bioforge.swab.collected": "Sample collected from %s",
   "item.bioforge.swab.blocked": "%s cannot be swabbed",
   "item.bioforge.petri_dish.harvested": "Sample collected from dish.",
+  "item.bioforge.swab.collected_mat": "§aSwab contaminated with microbial mat strain.",
+  "item.bioforge.swab.collected_sporocarp": "§aSwab contaminated with sporocarp strain.",
+  "item.bioforge.swab.collected_core": "§aSwab contaminated with colony core strain.",
 
   "item.bioforge.petri_dish": "Petri Dish",
   "block.bioforge.petri_dish": "Petri Dish",

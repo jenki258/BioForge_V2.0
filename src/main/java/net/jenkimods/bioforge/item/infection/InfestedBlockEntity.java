@@ -207,10 +207,7 @@ public class InfestedBlockEntity extends BlockEntity {
     }
 
     private boolean isValidSubstrate(BlockState state) {
-        return state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/organic")))
-                || state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/wood")))
-                || state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/stone")))
-                || state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/moisture")));
+        return state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/organic")));
     }
 
     @Override

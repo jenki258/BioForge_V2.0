@@ -1,11 +1,7 @@
 {
   "replace": false,
   "values": [
-    "minecraft:dirt",
-    "minecraft:grass_block",
-    "minecraft:podzol",
-    "minecraft:mycelium",
-    "minecraft:farmland",
+    "#minecraft:sculk_replaceable",
     "bioforge:infested_block"
   ]
 }

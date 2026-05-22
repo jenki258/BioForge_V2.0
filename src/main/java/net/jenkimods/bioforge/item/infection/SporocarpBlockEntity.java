@@ -123,8 +123,7 @@ public class SporocarpBlockEntity extends BlockEntity {
     }
 
     private boolean isSubstrate(BlockState state) {
-        return state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/organic")))
-                || state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/wood")));
+        return state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/organic")));
     }
 
     @Override
