@@ -38,6 +38,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -90,7 +91,6 @@ public class BioForge {
     public static final RegistryObject<Item> CENTRIFUGE_ITEM = ITEMS.register("centrifuge", () -> new BlockItem(CENTRIFUGE.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<CentrifugeBlockEntity>> CENTRIFUGE_BE = BLOCK_ENTITIES.register("centrifuge", () -> BlockEntityType.Builder.of(CentrifugeBlockEntity::new, CENTRIFUGE.get()).build(null));
     public static final RegistryObject<MenuType<CentrifugeMenu>> CENTRIFUGE_MENU = MENUS.register("centrifuge", () -> net.minecraftforge.common.extensions.IForgeMenuType.create(CentrifugeMenu::new));
-
 
     public static final RegistryObject<Block> MICROBIAL_MAT = BLOCKS.register("microbial_mat", MicrobialMatBlock::new);
     public static final RegistryObject<BlockEntityType<MicrobialMatBlockEntity>> MICROBIAL_MAT_BE =

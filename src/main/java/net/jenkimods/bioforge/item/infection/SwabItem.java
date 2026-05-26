@@ -75,7 +75,7 @@ public class SwabItem extends Item {
 
     private String buildStrainPayload(@Nullable InfectionData data) {
         if (data == null || !data.isInfected()) return "CLEAN";
-        String colonyId = UUID.randomUUID().toString();
+        String colonyId = "PLACEHOLDER";
         StringBuilder sb = new StringBuilder();
         sb.append(colonyId).append("|").append(data.getPathogenType().name())
                 .append("|").append(data.getInfectionType().name());

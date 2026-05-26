@@ -30,6 +30,7 @@ public class ColonyCoreBlockEntity extends BlockEntity {
     private int colonyRadius = 20;
     private int maxInfestedBlocks = 100;
     private static final int MAT_SPAWN_COST = 1;
+    private static final int MAX_RESOURCES = 5000;
 
     public ColonyCoreBlockEntity(BlockPos pos, BlockState state) {
         super(BioForge.COLONY_CORE_BE.get(), pos, state);
@@ -70,7 +71,7 @@ public class ColonyCoreBlockEntity extends BlockEntity {
     public String getStrainData() { return strainData; }
 
     public void addResources(int amount) {
-        resources += amount;
+        resources = Math.min(resources + amount, MAX_RESOURCES);
         setChanged();
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);

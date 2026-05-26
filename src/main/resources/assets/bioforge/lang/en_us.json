@@ -250,6 +250,7 @@
   "item.bioforge.swab.collected_mat": "§aSwab contaminated with microbial mat strain.",
   "item.bioforge.swab.collected_sporocarp": "§aSwab contaminated with sporocarp strain.",
   "item.bioforge.swab.collected_core": "§aSwab contaminated with colony core strain.",
+  "item.bioforge.swab.collected_infected_crop": "§aSwab contaminated with infected crop strain.",
 
   "item.bioforge.petri_dish": "Petri Dish",
   "block.bioforge.petri_dish": "Petri Dish",
@@ -260,10 +261,15 @@
   "item.bioforge.petri_dish.inoculated": "Petri dish inoculated",
 
   "item.bioforge.contaminated_substrate": "Contaminated Substrate",
+  "block.bioforge.contaminated_substrate": "Contaminated Substrate",
   "item.bioforge.contaminated_substrate.incompatible_pathogen": "§cThis pathogen (%s§c) cannot form a colony! Only fungi and bacteria are environmental pathogens.",
   "item.bioforge.contaminated_substrate.not_inoculated": "§cThis substrate has not been inoculated yet. Hold a contaminated swab in your other hand.",
   "item.bioforge.contaminated_substrate.inoculated": "§aSubstrate inoculated. You can now place it to start a colony.",
+  "item.bioforge.contaminated_substrate.crop_infected": "§aCrop successfully infected!",
+  "item.bioforge.contaminated_substrate.already_infected": "§cThis crop is already infected!",
   "item.bioforge.contaminated_substrate.tooltip.clean": "Empty – needs inoculation",
   "item.bioforge.contaminated_substrate.tooltip.usage": "Hold a contaminated swab in your off-hand",
-  "item.bioforge.contaminated_substrate.tooltip.inoculated": "Inoculated – ready to place"
+  "item.bioforge.contaminated_substrate.tooltip.inoculated": "Inoculated – ready to place",
+
+  "block.bioforge.infected_crop": "Infected Crop"
 }

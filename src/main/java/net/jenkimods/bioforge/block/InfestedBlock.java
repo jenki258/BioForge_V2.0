@@ -112,7 +112,7 @@ public class InfestedBlock extends BaseEntityBlock {
         if (level.isClientSide() || !(entity instanceof LivingEntity living)) return;
         BlockEntity be = level.getBlockEntity(pos);
         if (!(be instanceof InfestedBlockEntity mat)) return;
-        living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, 3));
+
         if (mat.pathogen == null || mat.pathogen != net.jenkimods.bioforge.infection.PathogenType.FUNGI) return;
 
         net.jenkimods.bioforge.infection.InfectionData data =

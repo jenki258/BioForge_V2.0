@@ -1,5 +1,6 @@
 package net.jenkimods.bioforge.event;
 
+import net.jenkimods.bioforge.block.InfestedBlock;
 import net.jenkimods.bioforge.block.MicrobialMatBlock;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -18,7 +19,7 @@ public class MatSlownessHandler {
         if (entity.level().isClientSide()) return;
 
         BlockState state = entity.getBlockStateOn();
-        if (state.getBlock() instanceof MicrobialMatBlock) {
+        if (state.getBlock() instanceof MicrobialMatBlock || state.getBlock() instanceof InfestedBlock) {
             entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 0, false, false, false));
         }
     }

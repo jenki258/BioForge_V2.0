@@ -5,8 +5,8 @@ import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.item.infection.InfestedBlockEntity;
 import net.jenkimods.bioforge.item.infection.MicrobialMatBlockEntity;
 import net.jenkimods.bioforge.item.infection.PetriDishBlockEntity;
+import net.jenkimods.bioforge.item.infection.SporocarpBlockEntity;
 import net.jenkimods.bioforge.util.NbtObfuscator;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Mod.EventBusSubscriber(modid = BioForge.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class PetriDishColorHandler {
 
-    private static final int VARIATION_RANGE = 20;
+    private static final int VARIATION_RANGE = 50;
 
     @SubscribeEvent
     public static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
@@ -52,7 +52,7 @@ public class PetriDishColorHandler {
 
         event.register(
                 (state, reader, pos, tintIndex) -> {
-                    if (tintIndex == 1 && pos != null && reader != null) {
+                    if (tintIndex == 0 && pos != null && reader != null) {
                         BlockEntity be = reader.getBlockEntity(pos);
                         if (be instanceof InfestedBlockEntity infested) {
                             return applyVariation(getBaseColor(infested.pathogen), pos, infested.colonyId);
@@ -60,6 +60,18 @@ public class PetriDishColorHandler {
                     }
                     return 0xFFFFFFFF;
                 }, BioForge.INFESTED_BLOCK.get()
+        );
+
+        event.register(
+                (state, reader, pos, tintIndex) -> {
+                    if (tintIndex == 1 && pos != null && reader != null) {
+                        BlockEntity be = reader.getBlockEntity(pos);
+                        if (be instanceof SporocarpBlockEntity spore) {
+                            return applyVariation(getBaseColor(spore.pathogen), pos, spore.colonyId);
+                        }
+                    }
+                    return 0xFFFFFFFF;
+                }, BioForge.SPOROCARP.get()
         );
     }
 
@@ -81,7 +93,7 @@ public class PetriDishColorHandler {
         );
     }
 
-    private static int getBaseColor(@Nullable PathogenType pathogen) {
+    public static int getBaseColor(@Nullable PathogenType pathogen) {
         if (pathogen == null) return 0xFFAAAAAA;
         return switch (pathogen) {
             case VIRUS    -> 0xFFCC6666;
@@ -93,22 +105,26 @@ public class PetriDishColorHandler {
         };
     }
 
-    private static int applyVariation(int baseColor, BlockPos pos, @Nullable UUID colonyId) {
+    public static int applyVariation(int baseColor, BlockPos pos, @Nullable UUID colonyId) {
         long seed;
         if (colonyId != null) {
             seed = colonyId.getMostSignificantBits() ^ colonyId.getLeastSignificantBits();
         } else {
-            seed = (long) pos.getX() * 31 + (long) pos.getY() * 17 + (long) pos.getZ() * 13;
+            seed = (long) pos.getX() * 31L + (long) pos.getY() * 17L + (long) pos.getZ() * 13L;
         }
 
-        int rOffset = (int) (seed % (VARIATION_RANGE + 1));
-        int gOffset = (int) ((seed >> 8) % (VARIATION_RANGE + 1));
-        int bOffset = (int) ((seed >> 16) % (VARIATION_RANGE + 1));
+        int rOff = (int) (Math.abs(seed) % (VARIATION_RANGE + 1));
+        int gOff = (int) (Math.abs(seed >> 8) % (VARIATION_RANGE + 1));
+        int bOff = (int) (Math.abs(seed >> 16) % (VARIATION_RANGE + 1));
 
         int a = (baseColor >> 24) & 0xFF;
-        int r = Math.min(255, Math.max(0, ((baseColor >> 16) & 0xFF) + rOffset));
-        int g = Math.min(255, Math.max(0, ((baseColor >> 8) & 0xFF) + gOffset));
-        int b = Math.min(255, Math.max(0, (baseColor & 0xFF) + bOffset));
+        int r = ((baseColor >> 16) & 0xFF) + rOff;
+        int g = ((baseColor >> 8) & 0xFF) + gOff;
+        int b = (baseColor & 0xFF) + bOff;
+
+        r = Math.min(255, Math.max(0, r));
+        g = Math.min(255, Math.max(0, g));
+        b = Math.min(255, Math.max(0, b));
 
         return (a << 24) | (r << 16) | (g << 8) | b;
     }

@@ -1,8 +1,12 @@
 package net.jenkimods.bioforge.item.infection;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.BioForgeTags;
+import net.jenkimods.bioforge.infection.CropInfection;
+import net.jenkimods.bioforge.infection.capability.CropInfectionCapability;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -17,8 +21,14 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
+import java.util.UUID;
 
 public class ContaminatedSubstrateItem extends BlockItem {
 
@@ -41,7 +51,9 @@ public class ContaminatedSubstrateItem extends BlockItem {
                 String payload = NbtObfuscator.readString(otherStack.getOrCreateTag());
                 if (payload == null) return InteractionResultHolder.fail(substrateStack);
 
-                NbtObfuscator.writeString(substrateStack.getOrCreateTag(), payload);
+                String newPayload = replaceColonyId(payload, UUID.randomUUID().toString());
+
+                NbtObfuscator.writeString(substrateStack.getOrCreateTag(), newPayload);
                 level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.inoculated"));
             }
@@ -56,14 +68,63 @@ public class ContaminatedSubstrateItem extends BlockItem {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        BlockState state = level.getBlockState(pos);
         ItemStack stack = context.getItemInHand();
+
         if (!isInoculated(stack)) {
-            if (!context.getLevel().isClientSide()) {
+            if (!level.isClientSide()) {
                 context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.not_inoculated"));
             }
             return InteractionResult.FAIL;
         }
+
+        if (state.is(BioForgeTags.INFECTABLE_CROPS)) {
+            if (level.isClientSide()) return InteractionResult.SUCCESS;
+            LevelChunk chunk = level.getChunkAt(pos);
+            var storage = chunk.getCapability(CropInfectionCapability.CROP_INFECTION).orElse(null);
+            if (storage != null && storage.isInfected(pos)) {
+                context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.already_infected"));
+                return InteractionResult.FAIL;
+            }
+        }
+
+        if (state.is(BioForgeTags.INFECTABLE_CROPS)) {
+            if (level.isClientSide()) return InteractionResult.SUCCESS;
+            String payload = NbtObfuscator.readString(stack.getOrCreateTag());
+            if (payload == null || payload.equals("CLEAN")) return InteractionResult.FAIL;
+
+            LevelChunk chunk = level.getChunkAt(pos);
+            var storage = chunk.getCapability(CropInfectionCapability.CROP_INFECTION).orElse(null);
+            if (storage == null) return InteractionResult.FAIL;
+
+
+            storage.setInfection(pos, new CropInfection(payload));
+            NbtObfuscator.clear(stack.getOrCreateTag());
+            chunk.setUnsaved(true);
+
+            if (!context.getPlayer().isCreative()) stack.shrink(1);
+            level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+            context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.crop_infected"));
+            return InteractionResult.SUCCESS;
+        }
+
         return super.useOn(context);
+    }
+
+    private int getAge(BlockState state) {
+        IntegerProperty ageProp = null;
+        for (var prop : state.getProperties()) {
+            if (prop.getName().equals("age") && prop instanceof IntegerProperty ip) {
+                ageProp = ip;
+                break;
+            }
+        }
+        if (ageProp != null) {
+            return state.getValue(ageProp);
+        }
+        return 0;
     }
 
     @Override
@@ -83,6 +144,14 @@ public class ContaminatedSubstrateItem extends BlockItem {
 
     public static boolean isInoculated(ItemStack stack) {
         return NbtObfuscator.readString(stack.getOrCreateTag()) != null;
+    }
+
+    private static String replaceColonyId(String payload, String newColonyId) {
+        int firstPipe = payload.indexOf('|');
+        if (firstPipe == -1) return payload;
+        int secondPipe = payload.indexOf('|', firstPipe + 1);
+        if (secondPipe == -1) return payload;
+        return newColonyId + payload.substring(firstPipe);
     }
 
     @Override
