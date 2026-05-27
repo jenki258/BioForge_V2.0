@@ -35,11 +35,11 @@ public class BloodKnowledgeCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-                Commands.literal("bloodknowledge")
-                        .then(Commands.literal("list")
+                Commands.literal("bioforge")
+                        .then(Commands.literal("bloodknowledge_list")
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(ctx -> executeList(ctx, EntityArgument.getPlayer(ctx, "player")))))
-                        .then(Commands.literal("get")
+                        .then(Commands.literal("bloodknowledge_get")
                                 .requires(src -> src.hasPermission(2))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .then(Commands.argument("entities", EntityArgument.entities())
@@ -47,11 +47,11 @@ public class BloodKnowledgeCommand {
                                                         ctx,
                                                         EntityArgument.getPlayer(ctx, "player"),
                                                         EntityArgument.getEntities(ctx, "entities"))))))
-                        .then(Commands.literal("clearall")
+                        .then(Commands.literal("bloodknowledge_clearall")
                                 .requires(src -> src.hasPermission(2))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(ctx -> executeClearAll(ctx, EntityArgument.getPlayer(ctx, "player")))))
-                        .then(Commands.literal("clear")
+                        .then(Commands.literal("bloodknowledge_clear")
                                 .requires(src -> src.hasPermission(2))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .then(Commands.argument("entry", StringArgumentType.greedyString())

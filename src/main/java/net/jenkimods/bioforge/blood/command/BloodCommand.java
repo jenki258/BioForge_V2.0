@@ -36,12 +36,12 @@ public class BloodCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 
         dispatcher.register(
-                Commands.literal("blood")
-                        .then(Commands.literal("get")
+                Commands.literal("bioforge")
+                        .then(Commands.literal("get_blood")
                                 .then(Commands.argument("entity", EntityArgument.entity())
                                         .executes(ctx -> executeGet(ctx,
                                                 EntityArgument.getEntity(ctx, "entity")))))
-                        .then(Commands.literal("set")
+                        .then(Commands.literal("set_blood")
                                 .requires(src -> src.hasPermission(2))
                                 .then(Commands.literal("amount")
                                         .then(Commands.argument("entities", EntityArgument.entities())
