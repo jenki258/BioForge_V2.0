@@ -269,7 +269,5 @@
   "item.bioforge.contaminated_substrate.already_infected": "§cThis crop is already infected!",
   "item.bioforge.contaminated_substrate.tooltip.clean": "Empty – needs inoculation",
   "item.bioforge.contaminated_substrate.tooltip.usage": "Hold a contaminated swab in your off-hand",
-  "item.bioforge.contaminated_substrate.tooltip.inoculated": "Inoculated – ready to place",
-
-  "block.bioforge.infected_crop": "Infected Crop"
+  "item.bioforge.contaminated_substrate.tooltip.inoculated": "Inoculated – ready to place"
 }

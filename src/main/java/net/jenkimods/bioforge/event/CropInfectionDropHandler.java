@@ -48,7 +48,7 @@ public class CropInfectionDropHandler {
                 for (ItemStack drop : originalDrops) {
                     if (strength <= 0.0f || level.random.nextFloat() > strength) {
                         if (itemStrain != null) {
-                            NbtObfuscator.writeString(drop.getOrCreateTag(), itemStrain);
+                            NbtObfuscator.writeStringDeterministic(drop.getOrCreateTag(), itemStrain);
                         }
                         Block.popResource(level, pos, drop);
                     }
