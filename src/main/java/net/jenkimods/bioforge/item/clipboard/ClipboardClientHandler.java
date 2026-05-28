@@ -329,7 +329,6 @@ public class ClipboardClientHandler {
     }
 
     public static void recordBloodData(String bloodType, Boolean antiA, Boolean antiB, Boolean antiD, UUID subjectUUID) {
-        // update static fields (keeps other features working)
         if (bloodType != null) ClipboardClientHandler.bloodType = bloodType;
         if (antiA != null) {
             ClipboardClientHandler.antiA = antiA;
@@ -368,21 +367,24 @@ public class ClipboardClientHandler {
             String storedUuid = map.get("SubjectUUID");
             if (storedUuid == null || !storedUuid.equals(subjectUUID.toString())) continue;
 
-            if (bloodType != null) {
-                map.put("BloodType", bloodType);
-            }
+            if (bloodType != null) ClipboardClientHandler.bloodType = bloodType;
             if (antiA != null) {
-                map.put("AntiA", antiA.toString());
-                map.put("ReagentA", "true");
+                ClipboardClientHandler.antiA = antiA;
+                ClipboardClientHandler.reagentA = true;
             }
             if (antiB != null) {
-                map.put("AntiB", antiB.toString());
-                map.put("ReagentB", "true");
+                ClipboardClientHandler.antiB = antiB;
+                ClipboardClientHandler.reagentB = true;
             }
             if (antiD != null) {
-                map.put("AntiD", antiD.toString());
-                map.put("ReagentD", "true");
+                ClipboardClientHandler.antiD = antiD;
+                ClipboardClientHandler.reagentD = true;
             }
+
+            if (bloodType != null) map.put("BloodType", bloodType);
+            if (antiA != null) { map.put("AntiA", antiA.toString()); map.put("ReagentA", "true"); }
+            if (antiB != null) { map.put("AntiB", antiB.toString()); map.put("ReagentB", "true"); }
+            if (antiD != null) { map.put("AntiD", antiD.toString()); map.put("ReagentD", "true"); }
 
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, String> entry : map.entrySet()) {

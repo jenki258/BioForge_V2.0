@@ -58,14 +58,22 @@ public class BloodReagentResultPacket {
 
     public static void handle(BloodReagentResultPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
-            if (ClipboardClientHandler.hasPatient() && msg.subjectUUID != null) {
-                boolean match = msg.subjectUUID.equals(ClipboardClientHandler.getSubjectUUID());
-                if (!match) {
+            if (msg.subjectUUID != null) {
+                ClipboardClientHandler.updateBloodDataOnClipboard(
+                        msg.subjectUUID, msg.bloodType, msg.antiA, msg.antiB, msg.antiD
+                );
+            }
+
+            if (ClipboardClientHandler.hasPatient()) {
+                boolean match = false;
+                if (msg.subjectUUID != null && ClipboardClientHandler.getSubjectUUID() != null) {
+                    match = msg.subjectUUID.equals(ClipboardClientHandler.getSubjectUUID());
+                } else {
                     match = ClipboardClientHandler.getPatientName().equalsIgnoreCase(msg.sourceName);
                 }
                 if (match) {
                     ClipboardClientHandler.recordBloodData(
-                            msg.bloodType, msg.antiA, msg.antiB, msg.antiD, msg.subjectUUID
+                            msg.bloodType, msg.antiA, msg.antiB, msg.antiD
                     );
                 }
             }
