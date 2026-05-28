@@ -2,6 +2,7 @@ package net.jenkimods.bioforge.item.infection;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.block.MicrobialMatBlock;
+import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
@@ -17,12 +18,13 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.util.*;
 
 public class SporocarpBlockEntity extends BlockEntity {
 
     private String strainData = null;
     public PathogenType pathogen = null;
+    public Set<InfectionType> infectionTypes = EnumSet.noneOf(InfectionType.class);
     public UUID colonyId = null;
     @Nullable
     private BlockPos corePos = null;
@@ -45,8 +47,12 @@ public class SporocarpBlockEntity extends BlockEntity {
                 if (header.length >= 3) {
                     try { colonyId = UUID.fromString(header[0]); } catch (IllegalArgumentException ignored) {}
                     pathogen = PathogenType.fromName(header[1]);
+                    infectionTypes.clear();
+                    parseTypes(header[2], infectionTypes);
                 } else if (header.length >= 2) {
                     pathogen = PathogenType.fromName(header[0]);
+                    infectionTypes.clear();
+                    parseTypes(header[1], infectionTypes);
                 }
             }
         }
@@ -126,6 +132,14 @@ public class SporocarpBlockEntity extends BlockEntity {
         return state.is(BlockTags.create(ResourceLocation.tryBuild("bioforge", "substrate/organic")));
     }
 
+    private void parseTypes(String raw, Set<InfectionType> target) {
+        if (raw == null || raw.isEmpty()) return;
+        for (String part : raw.split(",")) {
+            InfectionType it = InfectionType.fromName(part.trim());
+            if (it != null) target.add(it);
+        }
+    }
+
     @Override
     public void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
@@ -152,8 +166,12 @@ public class SporocarpBlockEntity extends BlockEntity {
                         if (header.length >= 3) {
                             try { colonyId = UUID.fromString(header[0]); } catch (IllegalArgumentException ignored) {}
                             pathogen = PathogenType.fromName(header[1]);
+                            infectionTypes.clear();
+                            parseTypes(header[2], infectionTypes);
                         } else if (header.length >= 2) {
                             pathogen = PathogenType.fromName(header[0]);
+                            infectionTypes.clear();
+                            parseTypes(header[1], infectionTypes);
                         }
                     }
                 }

@@ -17,6 +17,7 @@ public enum PathogenType {
     ),
     FUNGI(
             InfectionType.AIR_BORNE, InfectionType.CONTACT_BASED,
+            InfectionType.FOOD_BORNE,
             InfectionType.ENVIRONMENTAL
     ),
     PARASITE(

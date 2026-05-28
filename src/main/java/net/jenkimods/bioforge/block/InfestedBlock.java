@@ -1,6 +1,8 @@
 package net.jenkimods.bioforge.block;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.infection.*;
+import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.item.infection.InfestedBlockEntity;
 import net.jenkimods.bioforge.item.infection.SwabItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
@@ -8,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
@@ -38,6 +41,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 public class InfestedBlock extends BaseEntityBlock {
 
@@ -147,61 +153,48 @@ public class InfestedBlock extends BaseEntityBlock {
     }
 
     private void applyStrainToEntity(LivingEntity entity, String strain) {
-        net.jenkimods.bioforge.infection.InfectionData data =
-                net.jenkimods.bioforge.infection.InfectionCapability.get(entity);
+        InfectionData data = InfectionCapability.get(entity);
         if (data == null) return;
         String[] parts = strain.split(";");
         if (parts.length < 2) return;
         String[] header = parts[0].split("\\|");
         if (header.length < 2) return;
 
-        net.jenkimods.bioforge.infection.PathogenType pt =
-                net.jenkimods.bioforge.infection.PathogenType.fromName(header[1]);
-        net.jenkimods.bioforge.infection.InfectionType it =
-                net.jenkimods.bioforge.infection.InfectionType.fromName(header[2]);
-
+        PathogenType pt = PathogenType.fromName(header.length >= 3 ? header[1] : header[0]);
         data.setInfected(true);
         data.setPathogenType(pt);
-        data.setInfectionType(it);
+
+        String typesRaw = header.length >= 3 ? header[2] : header[1];
+        for (String typeName : typesRaw.split(",")) {
+            InfectionType it = InfectionType.fromName(typeName.trim());
+            if (it != null) data.addInfectionType(it);
+        }
+
         for (int i = 1; i < parts.length; i++) {
             String[] kv = parts[i].split("=");
             if (kv.length == 2) {
                 try {
                     switch (kv[0]) {
-                        case "HeartRate" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.HEART_RATE,
-                                net.jenkimods.bioforge.infection.HeartRate.fromName(kv[1]));
-                        case "LungSound" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.LUNG_SOUND,
-                                net.jenkimods.bioforge.infection.LungSound.fromName(kv[1]));
-                        case "TempPlus" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.TEMPERATURE_PLUS,
-                                Boolean.parseBoolean(kv[1]));
-                        case "TempMinus" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.TEMPERATURE_MINUS,
-                                Boolean.parseBoolean(kv[1]));
-                        case "Redness" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.OTOSCOPE_REDNESS,
-                                Float.parseFloat(kv[1]));
-                        case "Lesions" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.OTOSCOPE_LESIONS,
-                                Float.parseFloat(kv[1]));
-                        case "Secretion" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.OTOSCOPE_SECRETION,
-                                Float.parseFloat(kv[1]));
-                        case "Swelling" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.OTOSCOPE_SWELLING,
-                                Float.parseFloat(kv[1]));
-                        case "ReflexDelay" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.REFLEX_DELAY,
-                                Float.parseFloat(kv[1]));
-                        case "ReflexStrength" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.REFLEX_STRENGTH,
-                                Float.parseFloat(kv[1]));
-                        case "NeuralDamage" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.NEURAL_DAMAGE,
-                                Float.parseFloat(kv[1]));
-                        case "OxygenSaturation" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.OXYGEN_SATURATION,
-                                Float.parseFloat(kv[1]));
-                        case "PerfusionIndex" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.PERFUSION_INDEX,
-                                Float.parseFloat(kv[1]));
-                        case "InfectionStrength" -> data.setSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.INFECTION_STRENGTH,
-                                Float.parseFloat(kv[1]));
+                        case "HeartRate" -> data.setSymptom(BioForgeSymptoms.HEART_RATE, HeartRate.fromName(kv[1]));
+                        case "LungSound" -> data.setSymptom(BioForgeSymptoms.LUNG_SOUND, LungSound.fromName(kv[1]));
+                        case "TempPlus" -> data.setSymptom(BioForgeSymptoms.TEMPERATURE_PLUS, Boolean.parseBoolean(kv[1]));
+                        case "TempMinus" -> data.setSymptom(BioForgeSymptoms.TEMPERATURE_MINUS, Boolean.parseBoolean(kv[1]));
+                        case "Redness" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS, Float.parseFloat(kv[1]));
+                        case "Lesions" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS, Float.parseFloat(kv[1]));
+                        case "Secretion" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION, Float.parseFloat(kv[1]));
+                        case "Swelling" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING, Float.parseFloat(kv[1]));
+                        case "ReflexDelay" -> data.setSymptom(BioForgeSymptoms.REFLEX_DELAY, Float.parseFloat(kv[1]));
+                        case "ReflexStrength" -> data.setSymptom(BioForgeSymptoms.REFLEX_STRENGTH, Float.parseFloat(kv[1]));
+                        case "NeuralDamage" -> data.setSymptom(BioForgeSymptoms.NEURAL_DAMAGE, Float.parseFloat(kv[1]));
+                        case "OxygenSaturation" -> data.setSymptom(BioForgeSymptoms.OXYGEN_SATURATION, Float.parseFloat(kv[1]));
+                        case "PerfusionIndex" -> data.setSymptom(BioForgeSymptoms.PERFUSION_INDEX, Float.parseFloat(kv[1]));
+                        case "InfectionStrength" -> data.setSymptom(BioForgeSymptoms.INFECTION_STRENGTH, Float.parseFloat(kv[1]));
                     }
                 } catch (Exception ignored) {}
             }
         }
-        if (entity instanceof net.minecraft.server.level.ServerPlayer sp) {
-            net.jenkimods.bioforge.infection.InfectionEventHandler.syncToClient(sp, data);
+        if (entity instanceof ServerPlayer sp) {
+            InfectionEventHandler.syncToClient(sp, data);
         }
     }
 

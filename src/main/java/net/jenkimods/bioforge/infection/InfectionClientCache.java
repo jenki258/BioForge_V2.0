@@ -2,13 +2,14 @@ package net.jenkimods.bioforge.infection;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
 
 public final class InfectionClientCache {
     private InfectionClientCache() {}
 
     private static final AtomicBoolean infected = new AtomicBoolean(false);
     private static final AtomicReference<PathogenType> pathogenType = new AtomicReference<>(null);
-    private static final AtomicReference<InfectionType> infectionType = new AtomicReference<>(null);
+    private static final AtomicReference<List<InfectionType>> infectionTypes = new AtomicReference<>(List.of());
     private static final AtomicReference<HeartRate> heartRate = new AtomicReference<>(HeartRate.NORMAL);
     private static final AtomicReference<LungSound> lungSound = new AtomicReference<>(LungSound.NORMAL);
     private static final AtomicBoolean temperaturePlus = new AtomicBoolean(false);
@@ -26,14 +27,14 @@ public final class InfectionClientCache {
     private static final AtomicReference<Float> colonyRadius = new AtomicReference<>(20.0f);
     private static final AtomicReference<Float> maxInfestedBlocks = new AtomicReference<>(100.0f);
 
-    public static void set(boolean isInfected, PathogenType pathogen, InfectionType infection,
+    public static void set(boolean isInfected, PathogenType pathogen, List<InfectionType> types,
                            HeartRate hr, LungSound ls, boolean tempPlus, boolean tempMinus,
                            float r, float l, float s, float w, float reflexDelay, float reflexStrength,
                            float neuralDamage, float o2, float perf, float infStrength,
                            float colonyRadius, float maxInfestedBlocks) {
         infected.set(isInfected);
         pathogenType.set(pathogen);
-        infectionType.set(infection);
+        infectionTypes.set(Collections.unmodifiableList(new ArrayList<>(types)));
         heartRate.set(hr);
         lungSound.set(ls);
         temperaturePlus.set(tempPlus);
@@ -54,7 +55,7 @@ public final class InfectionClientCache {
 
     public static boolean isInfected() { return infected.get(); }
     public static PathogenType getPathogenType() { return pathogenType.get(); }
-    public static InfectionType getInfectionType() { return infectionType.get(); }
+    public static List<InfectionType> getInfectionTypes() { return infectionTypes.get(); }
     public static HeartRate getHeartRate() { return heartRate.get(); }
     public static LungSound getLungSound() { return lungSound.get(); }
     public static boolean isTemperaturePlus() { return temperaturePlus.get(); }

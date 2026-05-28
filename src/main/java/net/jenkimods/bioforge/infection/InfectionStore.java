@@ -5,9 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class InfectionStore extends SavedData {
     private static final String DATA_NAME = "bioforge_infections";
@@ -62,7 +60,7 @@ public class InfectionStore extends SavedData {
             boolean infected,
             boolean persistent,
             @Nullable PathogenType pathogenType,
-            @Nullable InfectionType infectionType,
+            List<InfectionType> infectionTypes,
             HeartRate heartRate,
             LungSound lungSound,
             boolean temperaturePlus,
@@ -81,7 +79,7 @@ public class InfectionStore extends SavedData {
             float maxInfestedBlocks
     ) {
         public static final InfectionRecord NONE = new InfectionRecord(
-                false, false, null, null,
+                false, false, null, List.of(),
                 HeartRate.NORMAL, LungSound.NORMAL,
                 false, false, 0.0f, 0.0f, 0.0f, 0.0f,
                 0.0f, 0.5f, 0.0f, 0.95f, 0.7f, 0.5f,
@@ -93,7 +91,9 @@ public class InfectionStore extends SavedData {
             tag.putBoolean("Infected", infected);
             tag.putBoolean("Persistent", persistent);
             if (pathogenType != null) tag.putString("PathogenType", pathogenType.name());
-            if (infectionType != null) tag.putString("InfectionType", infectionType.name());
+            StringJoiner joiner = new StringJoiner(",");
+            for (InfectionType t : infectionTypes) joiner.add(t.name());
+            tag.putString("InfectionTypes", joiner.toString());
             tag.putString("HeartRate", heartRate.name());
             tag.putString("LungSound", lungSound.name());
             tag.putBoolean("TempPlus", temperaturePlus);
@@ -116,10 +116,16 @@ public class InfectionStore extends SavedData {
         public static InfectionRecord fromNbt(CompoundTag tag) {
             boolean infected = tag.getBoolean("Infected");
             boolean persistent = tag.getBoolean("Persistent");
-            PathogenType pathogenType = tag.contains("PathogenType") ? PathogenType.fromName(tag.getString("PathogenType")) : null;
-            InfectionType infectionType = tag.contains("InfectionType") ? InfectionType.fromName(tag.getString("InfectionType")) : null;
-            HeartRate heartRate = tag.contains("HeartRate") ? HeartRate.fromName(tag.getString("HeartRate")) : HeartRate.NORMAL;
-            LungSound lungSound = tag.contains("LungSound") ? LungSound.fromName(tag.getString("LungSound")) : LungSound.NORMAL;
+            PathogenType pt = tag.contains("PathogenType") ? PathogenType.fromName(tag.getString("PathogenType")) : null;
+            List<InfectionType> types = new ArrayList<>();
+            if (tag.contains("InfectionTypes")) {
+                String raw = tag.getString("InfectionTypes");
+                for (String s : raw.split(",")) {
+                    if (!s.isEmpty()) types.add(InfectionType.fromName(s));
+                }
+            }
+            HeartRate hr = tag.contains("HeartRate") ? HeartRate.fromName(tag.getString("HeartRate")) : HeartRate.NORMAL;
+            LungSound ls = tag.contains("LungSound") ? LungSound.fromName(tag.getString("LungSound")) : LungSound.NORMAL;
             boolean tempPlus = tag.getBoolean("TempPlus");
             boolean tempMinus = tag.getBoolean("TempMinus");
             float redness = tag.getFloat("Redness");
@@ -134,8 +140,8 @@ public class InfectionStore extends SavedData {
             float infectionStrength = tag.contains("InfectionStrength") ? tag.getFloat("InfectionStrength") : 0.5f;
             float colonyRadius = tag.contains("ColonyRadius") ? tag.getFloat("ColonyRadius") : 20.0f;
             float maxInfestedBlocks = tag.contains("MaxInfestedBlocks") ? tag.getFloat("MaxInfestedBlocks") : 100.0f;
-            return new InfectionRecord(infected, persistent, pathogenType, infectionType,
-                    heartRate, lungSound, tempPlus, tempMinus,
+            return new InfectionRecord(infected, persistent, pt, types,
+                    hr, ls, tempPlus, tempMinus,
                     redness, lesions, secretion, swelling,
                     reflexDelay, reflexStrength, neuralDamage,
                     oxygenSaturation, perfusionIndex, infectionStrength,

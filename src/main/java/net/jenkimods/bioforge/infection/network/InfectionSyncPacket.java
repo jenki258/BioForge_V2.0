@@ -4,13 +4,13 @@ import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
-
+import java.util.*;
 import java.util.function.Supplier;
 
 public class InfectionSyncPacket {
     private final boolean infected;
     private final String pathogenType;
-    private final String infectionType;
+    private final List<String> infectionTypes;
     private final String heartRate;
     private final String lungSound;
     private final boolean temperaturePlus;
@@ -28,7 +28,7 @@ public class InfectionSyncPacket {
     private final float colonyRadius;
     private final float maxInfestedBlocks;
 
-    public InfectionSyncPacket(boolean infected, String pathogenType, String infectionType,
+    public InfectionSyncPacket(boolean infected, String pathogenType, List<String> infectionTypes,
                                String heartRate, String lungSound, boolean temperaturePlus, boolean temperatureMinus,
                                float redness, float lesions, float secretion, float swelling,
                                float reflexDelay, float reflexStrength, float neuralDamage,
@@ -36,7 +36,7 @@ public class InfectionSyncPacket {
                                float colonyRadius, float maxInfestedBlocks) {
         this.infected = infected;
         this.pathogenType = pathogenType;
-        this.infectionType = infectionType;
+        this.infectionTypes = infectionTypes;
         this.heartRate = heartRate;
         this.lungSound = lungSound;
         this.temperaturePlus = temperaturePlus;
@@ -56,10 +56,11 @@ public class InfectionSyncPacket {
     }
 
     public static InfectionSyncPacket fromData(InfectionData data) {
+        List<String> types = data.getInfectionTypes().stream().map(InfectionType::name).toList();
         return new InfectionSyncPacket(
                 data.isInfected(),
                 data.getPathogenType() != null ? data.getPathogenType().name() : "",
-                data.getInfectionType() != null ? data.getInfectionType().name() : "",
+                types,
                 data.getSymptom(BioForgeSymptoms.HEART_RATE).name(),
                 data.getSymptom(BioForgeSymptoms.LUNG_SOUND).name(),
                 data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS),
@@ -82,7 +83,7 @@ public class InfectionSyncPacket {
     public static void encode(InfectionSyncPacket pkt, FriendlyByteBuf buf) {
         buf.writeBoolean(pkt.infected);
         buf.writeUtf(pkt.pathogenType);
-        buf.writeUtf(pkt.infectionType);
+        buf.writeCollection(pkt.infectionTypes, FriendlyByteBuf::writeUtf);
         buf.writeUtf(pkt.heartRate);
         buf.writeUtf(pkt.lungSound);
         buf.writeBoolean(pkt.temperaturePlus);
@@ -104,7 +105,7 @@ public class InfectionSyncPacket {
     public static InfectionSyncPacket decode(FriendlyByteBuf buf) {
         boolean infected = buf.readBoolean();
         String pathogenType = buf.readUtf();
-        String infectionType = buf.readUtf();
+        List<String> types = buf.readList(FriendlyByteBuf::readUtf);
         String heartRate = buf.readUtf();
         String lungSound = buf.readUtf();
         boolean temperaturePlus = buf.readBoolean();
@@ -121,7 +122,7 @@ public class InfectionSyncPacket {
         float infectionStrength = buf.readFloat();
         float colonyRadius = buf.readFloat();
         float maxInfestedBlocks = buf.readFloat();
-        return new InfectionSyncPacket(infected, pathogenType, infectionType,
+        return new InfectionSyncPacket(infected, pathogenType, types,
                 heartRate, lungSound, temperaturePlus, temperatureMinus,
                 redness, lesions, secretion, swelling,
                 reflexDelay, reflexStrength, neuralDamage,
@@ -133,10 +134,13 @@ public class InfectionSyncPacket {
         NetworkEvent.Context ctx = ctxSupplier.get();
         ctx.enqueueWork(() -> {
             PathogenType pt = pkt.pathogenType.isEmpty() ? null : PathogenType.fromName(pkt.pathogenType);
-            InfectionType it = pkt.infectionType.isEmpty() ? null : InfectionType.fromName(pkt.infectionType);
+            List<InfectionType> types = new ArrayList<>();
+            for (String s : pkt.infectionTypes) {
+                types.add(InfectionType.fromName(s));
+            }
             HeartRate hr = HeartRate.fromName(pkt.heartRate);
             LungSound ls = LungSound.fromName(pkt.lungSound);
-            InfectionClientCache.set(pkt.infected, pt, it, hr, ls,
+            InfectionClientCache.set(pkt.infected, pt, types, hr, ls,
                     pkt.temperaturePlus, pkt.temperatureMinus,
                     pkt.redness, pkt.lesions, pkt.secretion, pkt.swelling,
                     pkt.reflexDelay, pkt.reflexStrength, pkt.neuralDamage,

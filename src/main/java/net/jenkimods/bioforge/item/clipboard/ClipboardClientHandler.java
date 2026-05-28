@@ -328,6 +328,71 @@ public class ClipboardClientHandler {
         reagentA = reagentB = reagentD = false;
     }
 
+    public static void recordBloodData(String bloodType, Boolean antiA, Boolean antiB, Boolean antiD, UUID subjectUUID) {
+        // update static fields (keeps other features working)
+        if (bloodType != null) ClipboardClientHandler.bloodType = bloodType;
+        if (antiA != null) {
+            ClipboardClientHandler.antiA = antiA;
+            ClipboardClientHandler.reagentA = true;
+        }
+        if (antiB != null) {
+            ClipboardClientHandler.antiB = antiB;
+            ClipboardClientHandler.reagentB = true;
+        }
+        if (antiD != null) {
+            ClipboardClientHandler.antiD = antiD;
+            ClipboardClientHandler.reagentD = true;
+        }
+
+        updateBloodDataOnClipboard(subjectUUID, bloodType, antiA, antiB, antiD);
+    }
+
+    public static void updateBloodDataOnClipboard(UUID subjectUUID, String bloodType,
+                                                  Boolean antiA, Boolean antiB, Boolean antiD) {
+        Player player = Minecraft.getInstance().player;
+        if (player == null || subjectUUID == null) return;
+
+        for (int i = 0; i < 36; i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.isEmpty() || !(stack.getItem() instanceof ClipboardItem)) continue;
+
+            String data = NbtObfuscator.readString(stack.getOrCreateTag());
+            if (data == null) continue;
+
+            Map<String, String> map = new HashMap<>();
+            for (String part : data.split(";")) {
+                String[] kv = part.split("=", 2);
+                if (kv.length == 2) map.put(kv[0], kv[1]);
+            }
+
+            String storedUuid = map.get("SubjectUUID");
+            if (storedUuid == null || !storedUuid.equals(subjectUUID.toString())) continue;
+
+            if (bloodType != null) {
+                map.put("BloodType", bloodType);
+            }
+            if (antiA != null) {
+                map.put("AntiA", antiA.toString());
+                map.put("ReagentA", "true");
+            }
+            if (antiB != null) {
+                map.put("AntiB", antiB.toString());
+                map.put("ReagentB", "true");
+            }
+            if (antiD != null) {
+                map.put("AntiD", antiD.toString());
+                map.put("ReagentD", "true");
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, String> entry : map.entrySet()) {
+                sb.append(entry.getKey()).append("=").append(entry.getValue()).append(";");
+            }
+            NbtObfuscator.writeString(stack.getOrCreateTag(), sb.toString());
+            break;
+        }
+    }
+
     public static UUID getSubjectUUID() {
         return subjectUUID;
     }

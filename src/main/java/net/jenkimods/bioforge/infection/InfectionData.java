@@ -3,16 +3,17 @@ package net.jenkimods.bioforge.infection;
 import net.jenkimods.bioforge.infection.symptoms.EntitySymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import org.jetbrains.annotations.Nullable;
+import java.util.Set;
 
 public interface InfectionData {
-
     boolean isInfected();
     @Nullable PathogenType getPathogenType();
-    @Nullable InfectionType getInfectionType();
+    Set<InfectionType> getInfectionTypes();
 
     void setInfected(boolean infected);
     void setPathogenType(@Nullable PathogenType pathogenType);
-    void setInfectionType(@Nullable InfectionType infectionType);
+    void addInfectionType(InfectionType type);
+    void removeInfectionType(InfectionType type);
     void clearInfection();
 
     EntitySymptoms getSymptoms();

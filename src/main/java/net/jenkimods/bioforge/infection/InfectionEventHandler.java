@@ -13,6 +13,9 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.EnumSet;
+import java.util.Random;
+
 @Mod.EventBusSubscriber(modid = BioForge.MODID)
 public class InfectionEventHandler {
 
@@ -25,14 +28,14 @@ public class InfectionEventHandler {
         if (attacker == null) return;
         InfectionData attackerData = InfectionCapability.get(attacker);
         if (attackerData == null || !attackerData.isInfected()) return;
-        if (attackerData.getInfectionType() != InfectionType.ATTACK_BASED) return;
-        if (attackerData.getPathogenType() == null) return;
-        if (!attackerData.getPathogenType().allows(InfectionType.ATTACK_BASED)) return;
+        if (!attackerData.getInfectionTypes().contains(InfectionType.ATTACK_BASED)) return;
+        PathogenType pathogen = attackerData.getPathogenType();
+        if (pathogen == null || !pathogen.allows(InfectionType.ATTACK_BASED)) return;
         InfectionData targetData = InfectionCapability.get(target);
         if (targetData == null || targetData.isInfected()) return;
         targetData.setInfected(true);
-        targetData.setPathogenType(attackerData.getPathogenType());
-        targetData.setInfectionType(InfectionType.ATTACK_BASED);
+        targetData.setPathogenType(pathogen);
+        targetData.addInfectionType(InfectionType.ATTACK_BASED);
         applyDefaultSymptoms(targetData);
         if (target instanceof ServerPlayer serverPlayer) {
             syncToClient(serverPlayer, targetData);
@@ -54,7 +57,7 @@ public class InfectionEventHandler {
         if (record != null && record.persistent()) {
             newData.setInfected(true);
             newData.setPathogenType(record.pathogenType());
-            newData.setInfectionType(record.infectionType());
+            for (InfectionType t : record.infectionTypes()) newData.addInfectionType(t);
             newData.setSymptom(BioForgeSymptoms.HEART_RATE, record.heartRate());
             newData.setSymptom(BioForgeSymptoms.LUNG_SOUND, record.lungSound());
             newData.setSymptom(BioForgeSymptoms.TEMPERATURE_PLUS, record.temperaturePlus());
@@ -86,7 +89,7 @@ public class InfectionEventHandler {
     public static void applyDefaultSymptoms(InfectionData data) {
         PathogenType pathogen = data.getPathogenType();
         if (pathogen == null) pathogen = PathogenType.UNIVERSAL;
-        java.util.Random rand = new java.util.Random();
+        Random rand = new Random();
 
         float redness, lesions, secretion, swelling;
         switch (pathogen) {
@@ -109,10 +112,7 @@ public class InfectionEventHandler {
                 swelling  = 0.3f + rand.nextFloat() * 0.3f;
                 break;
             case PRION:
-                redness   = 0.0f;
-                secretion = 0.0f;
-                lesions   = 0.0f;
-                swelling  = 0.0f;
+                redness = 0.0f; secretion = 0.0f; lesions = 0.0f; swelling = 0.0f;
                 break;
             default:
                 redness   = rand.nextFloat();
@@ -125,7 +125,6 @@ public class InfectionEventHandler {
         data.setSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS,   Math.min(1.0f, lesions));
         data.setSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION, Math.min(1.0f, secretion));
         data.setSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING,  Math.min(1.0f, swelling));
-
 
         float oxygen, perfusion;
         switch (pathogen) {
@@ -156,7 +155,6 @@ public class InfectionEventHandler {
         }
         data.setSymptom(BioForgeSymptoms.OXYGEN_SATURATION, Math.min(1.0f, oxygen));
         data.setSymptom(BioForgeSymptoms.PERFUSION_INDEX,   Math.min(1.0f, perfusion));
-
 
         float reflexDelay = 0.1f, reflexStrength = 0.8f, neuralDamage = 0.0f;
         switch (pathogen) {
@@ -202,7 +200,6 @@ public class InfectionEventHandler {
             default       -> infectionStrength = 0.5f;
         }
 
-
         float radius = switch (pathogen) {
             case FUNGI -> 25.0f;
             case VIRUS -> 30.0f;
@@ -221,11 +218,16 @@ public class InfectionEventHandler {
         data.setSymptom(BioForgeSymptoms.REFLEX_DELAY, reflexDelay);
         data.setSymptom(BioForgeSymptoms.REFLEX_STRENGTH, reflexStrength);
         data.setSymptom(BioForgeSymptoms.NEURAL_DAMAGE, neuralDamage);
-
-        data.setSymptom(BioForgeSymptoms.HEART_RATE,       HeartRate.TACHY);
-        data.setSymptom(BioForgeSymptoms.LUNG_SOUND,       LungSound.CRACKLE);
+        data.setSymptom(BioForgeSymptoms.HEART_RATE, HeartRate.TACHY);
+        data.setSymptom(BioForgeSymptoms.LUNG_SOUND, LungSound.CRACKLE);
         data.setSymptom(BioForgeSymptoms.TEMPERATURE_PLUS, true);
         data.setSymptom(BioForgeSymptoms.TEMPERATURE_MINUS, false);
+
+        if (pathogen != null) {
+            for (InfectionType t : pathogen.getAllowedTransmissions()) {
+                data.addInfectionType(t);
+            }
+        }
     }
 
     public static void syncToClient(ServerPlayer player, InfectionData data) {

@@ -18,13 +18,13 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.util.*;
 
 public class MicrobialMatBlockEntity extends BlockEntity {
 
     private String strainData = null;
     public PathogenType pathogen = null;
-    public InfectionType infectionType = null;
+    public Set<InfectionType> infectionTypes = EnumSet.noneOf(InfectionType.class);
     public UUID colonyId = null;
 
     private static final int SPOROCARP_RADIUS = 10;
@@ -48,10 +48,18 @@ public class MicrobialMatBlockEntity extends BlockEntity {
                 if (header.length >= 3) {
                     try { colonyId = UUID.fromString(header[0]); } catch (IllegalArgumentException ignored) {}
                     pathogen = PathogenType.fromName(header[1]);
-                    infectionType = InfectionType.fromName(header[2]);
+                    infectionTypes.clear();
+                    for (String typeName : header[2].split(",")) {
+                        InfectionType it = InfectionType.fromName(typeName.trim());
+                        if (it != null) infectionTypes.add(it);
+                    }
                 } else if (header.length >= 2) {
                     pathogen = PathogenType.fromName(header[0]);
-                    infectionType = InfectionType.fromName(header[1]);
+                    infectionTypes.clear();
+                    for (String typeName : header[1].split(",")) {
+                        InfectionType it = InfectionType.fromName(typeName.trim());
+                        if (it != null) infectionTypes.add(it);
+                    }
                 }
             }
             for (String p : parts) {

@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 
-import java.util.Collection;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class InfectCommand {
@@ -27,37 +27,32 @@ public class InfectCommand {
                                         .executes(ctx -> execute(ctx.getSource(),
                                                 toLiving(EntityArgument.getEntities(ctx, "targets")),
                                                 BoolArgumentType.getBool(ctx, "infected"),
-                                                PathogenType.UNIVERSAL, InfectionType.CONTACT_BASED, false))
+                                                PathogenType.UNIVERSAL, Set.of(InfectionType.CONTACT_BASED), false))
                                         .then(Commands.argument("pathogen", StringArgumentType.word())
                                                 .suggests((ctx, builder) -> {
                                                     for (PathogenType pt : PathogenType.values())
                                                         builder.suggest(pt.name().toLowerCase());
                                                     return builder.buildFuture();
                                                 })
-                                                .executes(ctx -> execute(ctx.getSource(),
-                                                        toLiving(EntityArgument.getEntities(ctx, "targets")),
-                                                        BoolArgumentType.getBool(ctx, "infected"),
-                                                        PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen")),
-                                                        InfectionType.CONTACT_BASED, false))
-                                                .then(Commands.argument("infectionType", StringArgumentType.word())
-                                                        .suggests((ctx, builder) -> {
-                                                            PathogenType pt = PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen"));
-                                                            for (InfectionType it : pt.getAllowedTransmissions())
-                                                                builder.suggest(it.name().toLowerCase());
-                                                            return builder.buildFuture();
-                                                        })
+                                                .then(Commands.argument("persistent", BoolArgumentType.bool())
                                                         .executes(ctx -> execute(ctx.getSource(),
                                                                 toLiving(EntityArgument.getEntities(ctx, "targets")),
                                                                 BoolArgumentType.getBool(ctx, "infected"),
                                                                 PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen")),
-                                                                InfectionType.fromName(StringArgumentType.getString(ctx, "infectionType")),
-                                                                false))
-                                                        .then(Commands.argument("persistent", BoolArgumentType.bool())
+                                                                Set.of(InfectionType.CONTACT_BASED),
+                                                                BoolArgumentType.getBool(ctx, "persistent")))
+                                                        .then(Commands.argument("infectionType", StringArgumentType.string())
+                                                                .suggests((ctx, builder) -> {
+                                                                    PathogenType pt = PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen"));
+                                                                    for (InfectionType it : pt.getAllowedTransmissions())
+                                                                        builder.suggest(it.name().toLowerCase());
+                                                                    return builder.buildFuture();
+                                                                })
                                                                 .executes(ctx -> execute(ctx.getSource(),
                                                                         toLiving(EntityArgument.getEntities(ctx, "targets")),
                                                                         BoolArgumentType.getBool(ctx, "infected"),
                                                                         PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen")),
-                                                                        InfectionType.fromName(StringArgumentType.getString(ctx, "infectionType")),
+                                                                        parseTypes(StringArgumentType.getString(ctx, "infectionType")),
                                                                         BoolArgumentType.getBool(ctx, "persistent")))
                                                                 .then(Commands.literal("symptoms")
                                                                         .then(Commands.argument("heartRate", StringArgumentType.word())
@@ -91,7 +86,7 @@ public class InfectCommand {
                                                                                                                                                                                                                 toLiving(EntityArgument.getEntities(ctx, "targets")),
                                                                                                                                                                                                                 BoolArgumentType.getBool(ctx, "infected"),
                                                                                                                                                                                                                 PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen")),
-                                                                                                                                                                                                                InfectionType.fromName(StringArgumentType.getString(ctx, "infectionType")),
+                                                                                                                                                                                                                parseTypes(StringArgumentType.getString(ctx, "infectionType")),
                                                                                                                                                                                                                 BoolArgumentType.getBool(ctx, "persistent"),
                                                                                                                                                                                                                 HeartRate.fromName(StringArgumentType.getString(ctx, "heartRate")),
                                                                                                                                                                                                                 LungSound.fromName(StringArgumentType.getString(ctx, "lungSound")),
@@ -147,13 +142,24 @@ public class InfectCommand {
                 .collect(Collectors.toList());
     }
 
+    private static Set<InfectionType> parseTypes(String raw) {
+        Set<InfectionType> set = EnumSet.noneOf(InfectionType.class);
+        for (String part : raw.split(",")) {
+            part = part.trim();
+            if (!part.isEmpty()) set.add(InfectionType.fromName(part));
+        }
+        return set;
+    }
+
     private static int execute(CommandSourceStack source, Collection<LivingEntity> targets,
-                               boolean infected, PathogenType pathogenType, InfectionType infectionType,
+                               boolean infected, PathogenType pathogenType, Set<InfectionType> types,
                                boolean persistent) {
-        if (!pathogenType.allows(infectionType)) {
-            source.sendFailure(Component.translatable("command.bioforge.infect.incompatible",
-                    pathogenType.name(), infectionType.name()));
-            return 0;
+        for (InfectionType t : types) {
+            if (!pathogenType.allows(t)) {
+                source.sendFailure(Component.translatable("command.bioforge.infect.incompatible",
+                        pathogenType.name(), t.name()));
+                return 0;
+            }
         }
         for (LivingEntity entity : targets) {
             InfectionData data = InfectionCapability.get(entity);
@@ -165,11 +171,11 @@ public class InfectCommand {
             if (infected) {
                 data.setInfected(true);
                 data.setPathogenType(pathogenType);
-                data.setInfectionType(infectionType);
+                for (InfectionType t : types) data.addInfectionType(t);
                 InfectionEventHandler.applyDefaultSymptoms(data);
                 if (persistent && entity instanceof ServerPlayer player) {
                     InfectionStore.get(player.serverLevel()).setInfection(player.getUUID(),
-                            new InfectionStore.InfectionRecord(true, true, pathogenType, infectionType,
+                            new InfectionStore.InfectionRecord(true, true, pathogenType, new ArrayList<>(types),
                                     data.getSymptom(BioForgeSymptoms.HEART_RATE),
                                     data.getSymptom(BioForgeSymptoms.LUNG_SOUND),
                                     data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS),
@@ -189,7 +195,7 @@ public class InfectCommand {
                 }
                 final String name = entity.getDisplayName().getString();
                 source.sendSuccess(() -> Component.translatable("command.bioforge.infect.success", name,
-                        pathogenType.name(), infectionType.name()), true);
+                        pathogenType.name(), types.toString()), true);
             } else {
                 final String name = entity.getDisplayName().getString();
                 source.sendSuccess(() -> Component.translatable("command.bioforge.infect.cleared", name), true);
@@ -202,7 +208,7 @@ public class InfectCommand {
     }
 
     private static int executeWithSymptoms(CommandSourceStack source, Collection<LivingEntity> targets,
-                                           boolean infected, PathogenType pathogenType, InfectionType infectionType,
+                                           boolean infected, PathogenType pathogenType, Set<InfectionType> types,
                                            boolean persistent,
                                            HeartRate heartRate, LungSound lungSound,
                                            boolean tempPlus, boolean tempMinus,
@@ -210,10 +216,12 @@ public class InfectCommand {
                                            float reflexDelay, float reflexStrength, float neuralDamage,
                                            float oxygenSaturation, float perfusionIndex, float infectionStrength,
                                            float colonyRadius, float maxInfestedBlocks) {
-        if (!pathogenType.allows(infectionType)) {
-            source.sendFailure(Component.translatable("command.bioforge.infect.incompatible",
-                    pathogenType.name(), infectionType.name()));
-            return 0;
+        for (InfectionType t : types) {
+            if (!pathogenType.allows(t)) {
+                source.sendFailure(Component.translatable("command.bioforge.infect.incompatible",
+                        pathogenType.name(), t.name()));
+                return 0;
+            }
         }
         for (LivingEntity entity : targets) {
             InfectionData data = InfectionCapability.get(entity);
@@ -225,7 +233,7 @@ public class InfectCommand {
             if (infected) {
                 data.setInfected(true);
                 data.setPathogenType(pathogenType);
-                data.setInfectionType(infectionType);
+                for (InfectionType t : types) data.addInfectionType(t);
                 data.setSymptom(BioForgeSymptoms.HEART_RATE, heartRate);
                 data.setSymptom(BioForgeSymptoms.LUNG_SOUND, lungSound);
                 data.setSymptom(BioForgeSymptoms.TEMPERATURE_PLUS, tempPlus);
@@ -244,7 +252,7 @@ public class InfectCommand {
                 data.setSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS, maxInfestedBlocks);
                 if (persistent && entity instanceof ServerPlayer player) {
                     InfectionStore.get(player.serverLevel()).setInfection(player.getUUID(),
-                            new InfectionStore.InfectionRecord(true, true, pathogenType, infectionType,
+                            new InfectionStore.InfectionRecord(true, true, pathogenType, new ArrayList<>(types),
                                     heartRate, lungSound, tempPlus, tempMinus,
                                     redness, lesions, secretion, swelling,
                                     reflexDelay, reflexStrength, neuralDamage,
@@ -253,7 +261,7 @@ public class InfectCommand {
                 }
                 final String name = entity.getDisplayName().getString();
                 source.sendSuccess(() -> Component.translatable("command.bioforge.infect.success", name,
-                        pathogenType.name(), infectionType.name()), true);
+                        pathogenType.name(), types.toString()), true);
             } else {
                 final String name = entity.getDisplayName().getString();
                 source.sendSuccess(() -> Component.translatable("command.bioforge.infect.cleared", name), true);

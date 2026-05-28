@@ -18,6 +18,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.*;
+
 public class PetriDishBlockEntity extends BlockEntity {
 
     private String strainData = null;
@@ -25,7 +27,7 @@ public class PetriDishBlockEntity extends BlockEntity {
 
     public int growthStage = 0;
     public PathogenType pathogen = null;
-    public InfectionType infectionType = null;
+    public Set<InfectionType> infectionTypes = EnumSet.noneOf(InfectionType.class);
 
     public PetriDishBlockEntity(BlockPos pos, BlockState state) {
         super(BioForge.PETRI_DISH_BE.get(), pos, state);
@@ -41,17 +43,22 @@ public class PetriDishBlockEntity extends BlockEntity {
             String[] parts = encrypted.split(";");
             if (parts.length > 0) {
                 String[] header = parts[0].split("\\|");
-                if (header.length >= 2) {
+                if (header.length >= 3) {
+                    pathogen = PathogenType.fromName(header[1]);
+                    infectionTypes.clear();
+                    parseTypes(header[2], infectionTypes);
+                } else if (header.length >= 2) {
                     pathogen = PathogenType.fromName(header[0]);
-                    infectionType = InfectionType.fromName(header[1]);
+                    infectionTypes.clear();
+                    parseTypes(header[1], infectionTypes);
                 } else {
                     pathogen = null;
-                    infectionType = null;
+                    infectionTypes.clear();
                 }
             }
         } else {
             pathogen = null;
-            infectionType = null;
+            infectionTypes.clear();
         }
         growthStage = 0;
         setChanged();
@@ -97,7 +104,7 @@ public class PetriDishBlockEntity extends BlockEntity {
         if (growthStage == 3) {
             strainData = null;
             pathogen = null;
-            infectionType = null;
+            infectionTypes.clear();
             growthStage = 0;
             setChanged();
             if (level != null && !level.isClientSide) {
@@ -167,20 +174,33 @@ public class PetriDishBlockEntity extends BlockEntity {
                     String[] parts = decrypted.split(";");
                     if (parts.length > 0) {
                         String[] header = parts[0].split("\\|");
-                        if (header.length >= 2) {
+                        if (header.length >= 3) {
+                            pathogen = PathogenType.fromName(header[1]);
+                            infectionTypes.clear();
+                            parseTypes(header[2], infectionTypes);
+                        } else if (header.length >= 2) {
                             pathogen = PathogenType.fromName(header[0]);
-                            infectionType = InfectionType.fromName(header[1]);
+                            infectionTypes.clear();
+                            parseTypes(header[1], infectionTypes);
                         } else {
                             pathogen = null;
-                            infectionType = null;
+                            infectionTypes.clear();
                         }
                     }
                 } else {
                     pathogen = null;
-                    infectionType = null;
+                    infectionTypes.clear();
                 }
             }
         }
         growthStage = tag.getInt("Growth");
+    }
+
+    private void parseTypes(String raw, Set<InfectionType> target) {
+        if (raw == null || raw.isEmpty()) return;
+        for (String part : raw.split(",")) {
+            InfectionType it = InfectionType.fromName(part.trim());
+            if (it != null) target.add(it);
+        }
     }
 }
