@@ -65,7 +65,7 @@ public class BloodCommand {
                                                                 EntityArgument.getEntities(ctx, "entities"),
                                                                 StringArgumentType.getString(ctx, "type")))))))
 
-                        .then(Commands.literal("reset")
+                        .then(Commands.literal("reset_blood")
                                 .requires(src -> src.hasPermission(2))
                                 .then(Commands.argument("entities", EntityArgument.entities())
                                         .executes(ctx -> executeReset(ctx,
