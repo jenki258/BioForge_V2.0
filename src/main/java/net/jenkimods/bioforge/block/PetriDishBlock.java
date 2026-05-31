@@ -175,24 +175,5 @@ public class PetriDishBlock extends BaseEntityBlock {
             }
         }
         level.removeBlockEntity(pos);
-        level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
-    }
-
-    @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-
-
-        if (state.getBlock() != newState.getBlock() && !level.isClientSide()) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof PetriDishBlockEntity dish) {
-
-
-
-                ItemStack drop = new ItemStack(BioForge.PETRI_DISH.get(), 1);
-                dish.saveToStack(drop);
-                popResource(level, pos, drop);
-            }
-        }
-        super.onRemove(state, level, pos, newState, isMoving);
     }
 }

@@ -33,14 +33,21 @@ public class SwabItem extends Item {
 
         if (!level.isClientSide()) {
             InfectionData data = InfectionCapability.get(player);
-            if (data == null || !data.isInfected()) {
-                player.sendSystemMessage(Component.translatable("item.bioforge.swab.not_infected"));
-                return InteractionResultHolder.fail(stack);
+            String payload;
+            if (data != null && data.isInfected()) {
+                payload = buildStrainPayload(data);
+            } else {
+                payload = "CLEAN";
             }
-            String payload = buildStrainPayload(data);
+
             NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
             player.setItemInHand(hand, stack);
-            player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected_self"));
+
+            if ("CLEAN".equals(payload)) {
+                player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected_clean_self"));
+            } else {
+                player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected_self"));
+            }
         }
         return InteractionResultHolder.success(stack);
     }
@@ -59,16 +66,23 @@ public class SwabItem extends Item {
         }
 
         InfectionData data = InfectionCapability.get(target);
-        if (data == null || !data.isInfected()) {
-            player.sendSystemMessage(Component.translatable("item.bioforge.swab.target_not_infected"));
-            return InteractionResult.FAIL;
+        String payload;
+        if (data != null && data.isInfected()) {
+            payload = buildStrainPayload(data);
+        } else {
+            payload = "CLEAN";
         }
 
-        String payload = buildStrainPayload(data);
         NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
         player.setItemInHand(hand, stack);
-        player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected",
-                target.getDisplayName()));
+
+        if ("CLEAN".equals(payload)) {
+            player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected",
+                    target.getDisplayName()));
+        } else {
+            player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected",
+                    target.getDisplayName()));
+        }
         return InteractionResult.CONSUME;
     }
 

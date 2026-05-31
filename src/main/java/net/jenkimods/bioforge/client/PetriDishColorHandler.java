@@ -84,7 +84,15 @@ public class PetriDishColorHandler {
                         if (data != null && !data.equals("CLEAN")) {
                             String[] parts = data.split(";");
                             String[] header = parts[0].split("\\|");
-                            PathogenType pathogen = PathogenType.fromName(header.length >= 2 ? header[0] : "");
+
+                            PathogenType pathogen;
+                            if (header.length >= 3) {
+                                pathogen = PathogenType.fromName(header[1]);
+                            }
+                            else {
+                                pathogen = null;
+                            }
+
                             return getBaseColor(pathogen);
                         }
                     }

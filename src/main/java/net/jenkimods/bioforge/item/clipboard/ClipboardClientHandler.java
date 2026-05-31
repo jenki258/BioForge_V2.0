@@ -284,32 +284,6 @@ public class ClipboardClientHandler {
         saveToClipboardNBT();
     }
 
-    public static void finalizeReportFromStack(Player player, ItemStack paper, ItemStack clipboardStack) {
-        CompoundTag tag = clipboardStack.getOrCreateTag();
-        String data = NbtObfuscator.readString(tag);
-        if (data == null) return;
-
-        ItemStack report = new ItemStack(BioForge.MEDICAL_REPORT.get());
-        CompoundTag reportTag = report.getOrCreateTag();
-        NbtObfuscator.writeString(reportTag, data);
-
-        NbtObfuscator.clear(tag);
-        tag.remove("SessionToken");
-
-        if (sessionToken != null && tag.contains("SessionToken")) {
-            UUID token = tag.getUUID("SessionToken");
-            if (token.equals(sessionToken)) {
-                clearInMemoryFields();
-                sessionToken = null;
-            }
-        }
-
-        paper.shrink(1);
-        if (!player.getInventory().add(report)) {
-            player.drop(report, false);
-        }
-    }
-
     private static void clearInMemoryFields() {
         patientId = Integer.MIN_VALUE;
         patientName = "";

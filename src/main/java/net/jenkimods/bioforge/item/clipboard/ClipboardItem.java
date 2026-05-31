@@ -46,7 +46,14 @@ public class ClipboardItem extends Item {
         InteractionHand other = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack otherStack = player.getItemInHand(other);
         if (otherStack.is(Items.PAPER)) {
-            ClipboardClientHandler.finalizeReportFromStack(player, otherStack, clipboard);
+            CompoundTag tag = clipboard.getOrCreateTag();
+            String data = NbtObfuscator.readString(tag);
+            if (data != null) {
+                ClipboardNetworkHandler.sendCreateReport(data);
+
+                NbtObfuscator.clear(tag);
+                tag.remove("SessionToken");
+            }
             return InteractionResultHolder.success(clipboard);
         }
 
