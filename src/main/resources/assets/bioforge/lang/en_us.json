@@ -191,6 +191,7 @@
   "item.bioforge.clipboard.hint_assign": "Right‑click on a mob (or air for self) to start recording.",
   "item.bioforge.clipboard.hint_resume": "Right‑click again to continue inspecting this patient.",
   "item.bioforge.clipboard.hint_print": "Hold paper in other hand and right‑click to print.",
+  "item.bioforge.clipboard.hint_print_book": "Hold a book & quill in other hand and right‑click to append.",
   "item.bioforge.clipboard.hint_clear": "Shift + right‑click to clear.",
   "item.bioforge.clipboard.now_inspecting": "Now inspecting: %s",
 

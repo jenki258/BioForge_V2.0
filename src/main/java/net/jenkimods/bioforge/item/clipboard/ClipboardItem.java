@@ -45,6 +45,18 @@ public class ClipboardItem extends Item {
 
         InteractionHand other = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack otherStack = player.getItemInHand(other);
+
+        if (otherStack.is(Items.WRITABLE_BOOK)) {
+            CompoundTag tag = clipboard.getOrCreateTag();
+            String data = NbtObfuscator.readString(tag);
+            if (data != null) {
+                ClipboardNetworkHandler.sendAppendToBook(data);
+                NbtObfuscator.clear(tag);
+                tag.remove("SessionToken");
+            }
+            return InteractionResultHolder.success(clipboard);
+        }
+
         if (otherStack.is(Items.PAPER)) {
             CompoundTag tag = clipboard.getOrCreateTag();
             String data = NbtObfuscator.readString(tag);
@@ -176,6 +188,7 @@ public class ClipboardItem extends Item {
 
         tooltip.add(Component.translatable("item.bioforge.clipboard.hint_resume").withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.clipboard.hint_print").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.clipboard.hint_print_book").withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.clipboard.hint_clear").withStyle(ChatFormatting.DARK_GRAY));
     }
 
