@@ -50,23 +50,18 @@ public class ClipboardAppendToBookPacket {
             CompoundTag bookTag = bookStack.getOrCreateTag();
             ListTag pages = bookTag.getList("pages", 8);
 
-            // Build the full report
             String reportText = buildPlainTextReport(msg.data, player);
-
-            // Combine with existing pages and re‑split strictly
             List<String> allPages = new ArrayList<>();
             if (!pages.isEmpty()) {
                 for (int i = 0; i < pages.size(); i++) {
                     allPages.add(pages.getString(i));
                 }
-                // Append the report to the last page (with a separator)
                 int last = allPages.size() - 1;
                 allPages.set(last, allPages.get(last) + "\n" + reportText);
             } else {
                 allPages.add(reportText);
             }
 
-            // Now split every page that exceeds the limit
             List<String> finalPages = new ArrayList<>();
             for (String full : allPages) {
                 finalPages.addAll(splitIntoPages(full, MAX_CHARS_PER_PAGE));
@@ -78,16 +73,12 @@ public class ClipboardAppendToBookPacket {
             }
             bookTag.put("pages", newPages);
 
-            // Clear the clipboard
             NbtObfuscator.clear(clipboard.getOrCreateTag());
             clipboard.getOrCreateTag().remove("SessionToken");
         });
         ctx.get().setPacketHandled(true);
     }
 
-    /** Splits a string into a list of strings, each at most maxChars long.
-     *  It prefers to break at newline characters, but if a line is too long
-     *  it will hard‑split at the exact limit. */
     private static List<String> splitIntoPages(String text, int maxChars) {
         List<String> pages = new ArrayList<>();
         if (text == null || text.isEmpty()) return pages;
@@ -96,7 +87,6 @@ public class ClipboardAppendToBookPacket {
         StringBuilder current = new StringBuilder();
 
         for (String line : lines) {
-            // If the line itself is too long, we need to split it further
             while (line.length() > maxChars) {
                 if (current.length() > 0) {
                     pages.add(current.toString());
@@ -106,8 +96,7 @@ public class ClipboardAppendToBookPacket {
                 line = line.substring(maxChars);
             }
 
-            // Check if adding this line (plus a newline if current not empty) would exceed the limit
-            int addLength = line.length() + (current.length() > 0 ? 1 : 0); // the \n
+            int addLength = line.length() + (current.length() > 0 ? 1 : 0);
             if (current.length() + addLength > maxChars && current.length() > 0) {
                 pages.add(current.toString());
                 current = new StringBuilder();
@@ -125,7 +114,6 @@ public class ClipboardAppendToBookPacket {
         return pages;
     }
 
-    /** Produces a human‑readable report string, with all translations resolved. */
     private static String buildPlainTextReport(String raw, ServerPlayer player) {
         Map<String, String> map = parseRawData(raw);
         StringBuilder sb = new StringBuilder();
@@ -133,7 +121,6 @@ public class ClipboardAppendToBookPacket {
         String patient = map.getOrDefault("PatientName", "???");
         sb.append("Patient: ").append(patient).append("\n\n");
 
-        // VITAL SIGNS
         sb.append(translate(player, "clipboard.section.vital")).append("\n");
         if (map.containsKey("TempC")) {
             float temp = Float.parseFloat(map.get("TempC"));
@@ -170,7 +157,6 @@ public class ClipboardAppendToBookPacket {
             sb.append("SpO₂: --").append("\n");
         }
 
-        // RESPIRATORY
         sb.append("\n").append(translate(player, "clipboard.section.respiratory")).append("\n");
         if (map.containsKey("LungSound")) {
             String soundKey = "clipboard.stethoscope." + map.get("LungSound").toLowerCase();
@@ -182,7 +168,6 @@ public class ClipboardAppendToBookPacket {
             sb.append("Lung Sounds: --").append("\n");
         }
 
-        // NEUROLOGICAL
         sb.append("\n").append(translate(player, "clipboard.section.neurological")).append("\n");
         if (map.containsKey("ReflexDelay")) {
             String delayKey = "clipboard.reflex." + map.get("ReflexDelay").toLowerCase();
@@ -196,7 +181,6 @@ public class ClipboardAppendToBookPacket {
             sb.append("Reflex: --").append("\n");
         }
 
-        // VISUAL INSPECTION
         sb.append("\n").append(translate(player, "clipboard.section.visual")).append("\n");
         if (map.containsKey("Redness")) {
             String unstable = map.getOrDefault("VisualUnstable", "false").equals("true") ? " (?)" : "";
@@ -211,7 +195,6 @@ public class ClipboardAppendToBookPacket {
             sb.append("Swelling: --").append("\n");
         }
 
-        // BLOOD ANALYSIS
         sb.append("\n").append(translate(player, "clipboard.section.blood")).append("\n");
         boolean reagentA = map.getOrDefault("ReagentA", "false").equals("true");
         boolean reagentB = map.getOrDefault("ReagentB", "false").equals("true");
