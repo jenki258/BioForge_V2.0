@@ -19,8 +19,10 @@ public class NeedleAttackHandler {
         LivingEntity target = event.getEntity();
 
         ItemStack mainHand = attacker.getMainHandItem();
-        if (!(mainHand.getItem() instanceof NeedleItem needle)) return;
-
-        needle.tryExtractBlood(mainHand, target, attacker);
+        if (mainHand.getItem() instanceof NeedleItem needle) {
+            needle.tryExtractBlood(mainHand, target, attacker);
+        } else if (mainHand.getItem() instanceof SyringeItem syringe) {
+            syringe.tryExtractBlood(mainHand, target, attacker);
+        }
     }
 }

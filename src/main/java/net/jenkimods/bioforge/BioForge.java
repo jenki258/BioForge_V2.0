@@ -16,6 +16,7 @@ import net.jenkimods.bioforge.item.clipboard.ClipboardNetworkHandler;
 import net.jenkimods.bioforge.item.clipboard.MedicalReportItem;
 import net.jenkimods.bioforge.item.infection.*;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
+import net.jenkimods.bioforge.item.needle.SyringeItem;
 import net.jenkimods.bioforge.item.otoscope.OtoscopeItem;
 import net.jenkimods.bioforge.item.otoscope.OtoscopeNetworkHandler;
 import net.jenkimods.bioforge.item.pulse_oximeter.PulseOximeterItem;
@@ -125,6 +126,8 @@ public class BioForge {
     public static final RegistryObject<Item> SWAB = ITEMS.register("swab", SwabItem::new);
     public static final RegistryObject<Item> PETRI_DISH = ITEMS.register("petri_dish", PetriDishItem::new);
 
+    public static final RegistryObject<Item> SYRINGE = ITEMS.register("syringe", SyringeItem::new);
+
     public BioForge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
         BLOCKS.register(modEventBus);
@@ -179,6 +182,8 @@ public class BioForge {
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.ANTI_D_VIAL.get(), reactedRL, (stack, level, entity, seed) -> ReagentVialItem.getReactedPredicate(stack));
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.CENTRIFUGE_MENU.get(), CentrifugeScreen::new);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.THERMOMETER_ITEM.get(), ResourceLocation.tryBuild(BioForge.MODID, "ready"), (stack, level, entity, seed) -> ThermometerItem.isReady(stack) ? 1.0f : 0.0f);
+                net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;}
+                );
             });
         }
     }

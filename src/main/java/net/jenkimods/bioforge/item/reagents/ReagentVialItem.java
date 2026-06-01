@@ -8,6 +8,7 @@ import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.item.bones.BoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.WitheredBoneMarrowItem;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
+import net.jenkimods.bioforge.item.needle.SyringeItem;
 import net.jenkimods.bioforge.world.data.ReagentType;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
 import net.minecraft.ChatFormatting;
@@ -132,7 +133,9 @@ public class ReagentVialItem extends Item {
             }
         }
 
-        if (otherStack.getItem() instanceof BoneMarrowItem || otherStack.getItem() instanceof WitheredBoneMarrowItem) {
+        if (otherStack.getItem() instanceof SyringeItem) {
+            SyringeItem.consumeUse(otherStack);
+        } else if (otherStack.getItem() instanceof BoneMarrowItem || otherStack.getItem() instanceof WitheredBoneMarrowItem) {
             otherStack.shrink(1);
         } else {
             BloodSampleUtil.clear(otherStack);
@@ -161,6 +164,7 @@ public class ReagentVialItem extends Item {
     private static boolean isAllowedSampleItem(ItemStack stack) {
         Item item = stack.getItem();
         return item instanceof NeedleItem
+                || item instanceof SyringeItem
                 || item instanceof BoneMarrowItem
                 || item instanceof WitheredBoneMarrowItem;
     }

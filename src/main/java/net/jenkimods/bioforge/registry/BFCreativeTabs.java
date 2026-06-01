@@ -32,6 +32,7 @@ public class BFCreativeTabs {
                         output.accept(BioForge.WOODEN_NEEDLE.get());
                         output.accept(BioForge.IRON_NEEDLE.get());
                         output.accept(BioForge.HARDENED_NEEDLE.get());
+                        output.accept(BioForge.SYRINGE.get());
                     })
                     .build());
 
