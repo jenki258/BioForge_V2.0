@@ -18,6 +18,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -57,6 +58,7 @@ public class NeedleItem extends Item {
     }
 
     private static final int BLOOD_DRAIN = 10;
+    private static final int BLOOD_TRANSFER = 2;
     private static final Random RNG = new Random();
     private static final String INFECTION_TAG = "InfectionStrain";
 
@@ -80,10 +82,14 @@ public class NeedleItem extends Item {
         if (!(player instanceof ServerPlayer sp)) return InteractionResultHolder.pass(stack);
 
         if (BloodSampleUtil.hasBlood(stack)) {
+            BloodData selfData = BloodCapability.get(sp);
+            if (selfData == null) return InteractionResultHolder.fail(stack);
+
+            selfData.addBlood(BLOOD_TRANSFER);
             applyStoredInfection(stack, player);
             clearBlood(stack);
+
             level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
-            sp.sendSystemMessage(Component.translatable("item.bioforge.needle.self_infect"));
             return InteractionResultHolder.success(stack);
         }
 
@@ -92,6 +98,7 @@ public class NeedleItem extends Item {
 
         BloodData selfData = BloodCapability.get(sp);
         if (selfData == null || selfData.getBlood() <= 0) return InteractionResultHolder.fail(stack);
+        applyStoredInfection(stack, player);
 
         player.hurt(level.damageSources().generic(), tier.selfDamage);
         damageNeedle(stack, sp);
@@ -112,6 +119,23 @@ public class NeedleItem extends Item {
         return InteractionResultHolder.success(stack);
     }
 
+    @Override
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
+        Level level = player.level();
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
+        if (!(player instanceof ServerPlayer sp)) return InteractionResult.FAIL;
+        if (!BloodSampleUtil.hasBlood(stack)) return InteractionResult.PASS;
+
+        BloodData targetData = BloodCapability.get(target);
+        if (targetData == null) return InteractionResult.FAIL;
+        targetData.addBlood(BLOOD_TRANSFER);
+        applyStoredInfection(stack, target);
+        clearBlood(stack);
+        player.setItemInHand(hand, stack);
+        level.playSound(null, target.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+        return InteractionResult.SUCCESS;
+    }
+
     public boolean tryExtractBlood(ItemStack stack, LivingEntity target, ServerPlayer attacker) {
         if (BloodSampleUtil.hasBlood(stack)) return false;
         if (attacker.getCooldowns().isOnCooldown(this)) return false;
@@ -120,7 +144,7 @@ public class NeedleItem extends Item {
 
         BloodData targetData = BloodCapability.get(target);
         if (targetData == null || targetData.getBlood() <= 0) return false;
-
+        applyStoredInfection(stack, target);
         damageNeedle(stack, attacker);
         attacker.getCooldowns().addCooldown(this, tier.cooldownTicks);
 
@@ -132,7 +156,6 @@ public class NeedleItem extends Item {
                     storeBlood(stack, targetData.getBlood(), targetData.getBloodType(),
                             target.getName().getString(), target.getUUID());
                     captureInfection(stack, target);
-                    applyStoredInfection(stack, target);
                     return true;
                 }
             }
@@ -231,6 +254,10 @@ public class NeedleItem extends Item {
         }
     }
 
+    public static void clearInfection(ItemStack stack) {
+        stack.getOrCreateTag().remove(INFECTION_TAG);
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level,
                                 List<Component> tooltip, TooltipFlag flag) {
@@ -242,61 +269,38 @@ public class NeedleItem extends Item {
                 "item.bioforge.needle.tooltip.source",
                 null
         );
-        if (stack.getOrCreateTag().contains(INFECTION_TAG)) {
-            tooltip.add(Component.translatable("item.bioforge.needle.infected").withStyle(ChatFormatting.DARK_PURPLE));
-        }
         tooltip.add(Component.literal(" "));
-        tooltip.add(Component.translatable("item.bioforge.needle.tooltip.use_self")
-                .withStyle(ChatFormatting.DARK_GRAY));
-        tooltip.add(Component.translatable("item.bioforge.needle.tooltip.use_other")
-                .withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.needle.tooltip.use_self").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.needle.tooltip.use_other").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.needle.tooltip.warning_blood").withStyle(ChatFormatting.DARK_RED));
     }
 
-    public static float getFilledPredicate(ItemStack stack) {
-        return hasBlood(stack) ? 1.0f : 0.0f;
-    }
-
-    public static boolean hasBlood(ItemStack stack) {
-        return BloodSampleUtil.hasBlood(stack);
-    }
-
+    public static float getFilledPredicate(ItemStack stack) { return hasBlood(stack) ? 1.0f : 0.0f; }
+    public static boolean hasBlood(ItemStack stack) { return BloodSampleUtil.hasBlood(stack); }
     public static int getBloodAmount(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? data.amount() : 0;
     }
-
-    @Nullable
-    public static BloodType getBloodType(ItemStack stack) {
+    @Nullable public static BloodType getBloodType(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? BloodType.fromName(data.typeName()) : null;
     }
-
-    @Nullable
-    public static String getSourceName(ItemStack stack) {
+    @Nullable public static String getSourceName(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? data.sourceName() : null;
     }
-
-    @Nullable
-    public static UUID getSubjectUUID(ItemStack stack) {
+    @Nullable public static UUID getSubjectUUID(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? data.subjectUUID() : null;
     }
-
     public static void clearBlood(ItemStack stack) {
         BloodSampleUtil.clear(stack);
-        stack.getOrCreateTag().remove(INFECTION_TAG);
     }
 
-    private boolean roll() {
-        return tier.chance >= 1.0f || RNG.nextFloat() < tier.chance;
-    }
-
-    private static void storeBlood(ItemStack stack, int amount, BloodType type,
-                                   String sourceName, UUID subjectUUID) {
+    private boolean roll() { return tier.chance >= 1.0f || RNG.nextFloat() < tier.chance; }
+    private static void storeBlood(ItemStack stack, int amount, BloodType type, String sourceName, UUID subjectUUID) {
         BloodSampleUtil.setData(stack, amount, type, sourceName, subjectUUID);
     }
-
     private static void damageNeedle(ItemStack stack, ServerPlayer player) {
         stack.hurtAndBreak(1, player, p -> p.broadcastBreakEvent(p.getUsedItemHand()));
     }

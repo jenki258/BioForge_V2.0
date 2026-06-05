@@ -27,8 +27,7 @@
   "item.bioforge.needle.tooltip.anti_a":      "Anti-A: %s",
   "item.bioforge.needle.tooltip.anti_b":      "Anti-B: %s",
   "item.bioforge.needle.tooltip.anti_d":      "Anti-D (Rh): %s",
-  "item.bioforge.needle.infected":            "☣ Contaminated",
-  "item.bioforge.needle.self_infect":         "You prick yourself with the contaminated needle.",
+  "item.bioforge.needle.tooltip.warning_blood": "⚠ Drawing blood from a mob with a Blood‑borne infection will contaminate the needle.",
 
   "item.bioforge.reagent_vial.anti_a.desc": "Detects antigen A in blood",
   "item.bioforge.reagent_vial.anti_b.desc": "Detects antigen B in blood",
@@ -57,8 +56,7 @@
   "item.bioforge.syringe.anti_d": "Anti-D (Rh): %s",
   "item.bioforge.syringe.tooltip.use_self": "Right-click to draw your own blood",
   "item.bioforge.syringe.tooltip.use_other": "Attack a mob to collect its blood",
-  "item.bioforge.syringe.injected": "Injected blood into %s",
-  "item.bioforge.syringe.infected": "☣ Contaminated",
+  "item.bioforge.syringe.tooltip.warning_blood": "⚠ Drawing blood from a mob with a Blood‑borne infection will contaminate the syringe.",
 
   "item.bioforge.bone_saw":         "Bone Saw",
   "item.bioforge.bone_saw.sampled": "Collected Split Bone sample",

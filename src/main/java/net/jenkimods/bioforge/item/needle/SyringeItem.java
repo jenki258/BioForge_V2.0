@@ -61,12 +61,12 @@ public class SyringeItem extends Item {
             consumeUse(stack);
 
             level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
-            sp.sendSystemMessage(Component.translatable("item.bioforge.syringe.injected_self"));
             return InteractionResultHolder.success(stack);
         }
 
         BloodData selfData = BloodCapability.get(sp);
         if (selfData == null || selfData.getBlood() <= 0) return InteractionResultHolder.fail(stack);
+        applyStoredInfection(stack, player);
 
         int newBlood = Math.max(0, selfData.getBlood() - BLOOD_DRAIN);
         selfData.setBlood(newBlood);
@@ -83,7 +83,8 @@ public class SyringeItem extends Item {
         Level level = player.level();
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.FAIL;
-        if (!BloodSampleUtil.hasBlood(stack)) return InteractionResult.FAIL;
+
+        if (!BloodSampleUtil.hasBlood(stack)) return InteractionResult.PASS;
 
         BloodData targetData = BloodCapability.get(target);
         if (targetData == null) return InteractionResult.FAIL;
@@ -91,9 +92,9 @@ public class SyringeItem extends Item {
         targetData.addBlood(BLOOD_TRANSFER);
         applyStoredInfection(stack, target);
         consumeUse(stack);
+        player.setItemInHand(hand, stack);
 
         level.playSound(null, target.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
-        sp.sendSystemMessage(Component.translatable("item.bioforge.syringe.injected", target.getDisplayName()));
         return InteractionResult.SUCCESS;
     }
 
@@ -103,7 +104,7 @@ public class SyringeItem extends Item {
 
         BloodData targetData = BloodCapability.get(target);
         if (targetData == null || targetData.getBlood() <= 0) return false;
-
+        applyStoredInfection(stack, target);
         int newBlood = Math.max(0, targetData.getBlood() - BLOOD_DRAIN);
         targetData.setBlood(newBlood);
         if (newBlood > 0) {
@@ -121,7 +122,6 @@ public class SyringeItem extends Item {
         int uses = data.amount() - 1;
         if (uses <= 0) {
             BloodSampleUtil.clear(stack);
-            clearInfection(stack);
         } else {
             BloodType type = BloodType.fromName(data.typeName());
             BloodSampleUtil.setData(stack, uses, type, data.sourceName(), data.subjectUUID());
@@ -223,29 +223,21 @@ public class SyringeItem extends Item {
         stack.getOrCreateTag().remove(INFECTION_TAG);
     }
 
-    public static boolean hasBlood(ItemStack stack) {
-        return BloodSampleUtil.hasBlood(stack);
-    }
-
+    public static boolean hasBlood(ItemStack stack) { return BloodSampleUtil.hasBlood(stack); }
     public static int getUses(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? data.amount() : 0;
     }
 
-    @Nullable
-    public static BloodType getBloodType(ItemStack stack) {
+    @Nullable public static BloodType getBloodType(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? BloodType.fromName(data.typeName()) : null;
     }
-
-    @Nullable
-    public static String getSourceName(ItemStack stack) {
+    @Nullable public static String getSourceName(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? data.sourceName() : null;
     }
-
-    @Nullable
-    public static UUID getSubjectUUID(ItemStack stack) {
+    @Nullable public static UUID getSubjectUUID(ItemStack stack) {
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         return data != null ? data.subjectUUID() : null;
     }
@@ -253,20 +245,24 @@ public class SyringeItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         if (!hasBlood(stack)) {
-            tooltip.add(Component.translatable("item.bioforge.syringe.empty").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.bioforge.syringe.empty").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.literal(" "));
             tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_self").withStyle(ChatFormatting.DARK_GRAY));
             tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_other").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.warning_blood").withStyle(ChatFormatting.DARK_RED));
             return;
         }
+
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         if (data == null) return;
         tooltip.add(Component.translatable("item.bioforge.syringe.filled").withStyle(ChatFormatting.DARK_RED));
         tooltip.add(Component.translatable("item.bioforge.syringe.source", data.sourceName()).withStyle(ChatFormatting.RED));
         tooltip.add(Component.translatable("item.bioforge.syringe.uses_left", data.amount()).withStyle(ChatFormatting.GOLD));
-        if (stack.getOrCreateTag().contains(INFECTION_TAG)) {
-            tooltip.add(Component.translatable("item.bioforge.syringe.infected").withStyle(ChatFormatting.DARK_PURPLE));
-        }
         appendKnowledgeLines(data, tooltip);
+        tooltip.add(Component.literal(" "));
+        tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_self").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_other").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.warning_blood").withStyle(ChatFormatting.DARK_RED));
     }
 
     private static void appendKnowledgeLines(ObfuscatedData data, List<Component> tooltip) {
