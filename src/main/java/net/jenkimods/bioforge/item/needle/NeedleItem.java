@@ -60,7 +60,6 @@ public class NeedleItem extends Item {
     private static final int BLOOD_DRAIN = 10;
     private static final int BLOOD_TRANSFER = 2;
     private static final Random RNG = new Random();
-    private static final String INFECTION_TAG = "InfectionStrain";
 
     public final Tier tier;
 
@@ -173,7 +172,7 @@ public class NeedleItem extends Item {
         Set<InfectionType> types = inf.getInfectionTypes();
         if (!types.contains(InfectionType.BLOOD)) return;
         String strain = buildStrainPayload(inf);
-        stack.getOrCreateTag().putString(INFECTION_TAG, strain);
+        NbtObfuscator.writeInfection(stack.getOrCreateTag(), strain);
     }
 
     private static String buildStrainPayload(InfectionData data) {
@@ -209,8 +208,8 @@ public class NeedleItem extends Item {
     }
 
     private static void applyStoredInfection(ItemStack stack, LivingEntity target) {
-        String strain = stack.getOrCreateTag().getString(INFECTION_TAG);
-        if (strain.isEmpty()) return;
+        String strain = NbtObfuscator.readInfection(stack.getOrCreateTag());
+        if (strain == null || strain.isEmpty()) return;
         InfectionData data = InfectionCapability.get(target);
         if (data == null || data.isInfected()) return;
         String[] parts = strain.split(";");
@@ -255,7 +254,7 @@ public class NeedleItem extends Item {
     }
 
     public static void clearInfection(ItemStack stack) {
-        stack.getOrCreateTag().remove(INFECTION_TAG);
+        NbtObfuscator.clearInfection(stack.getOrCreateTag());
     }
 
     @Override

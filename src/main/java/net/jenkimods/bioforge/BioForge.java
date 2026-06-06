@@ -6,6 +6,10 @@ import net.jenkimods.bioforge.client.CentrifugeScreen;
 import net.jenkimods.bioforge.blood.network.NetworkHandler;
 import net.jenkimods.bioforge.infection.command.InfectCommand;
 import net.jenkimods.bioforge.infection.network.InfectionNetworkHandler;
+import net.jenkimods.bioforge.item.BloodSlideItem;
+import net.jenkimods.bioforge.item.CellPelletItem;
+import net.jenkimods.bioforge.item.PlasmaSampleItem;
+import net.jenkimods.bioforge.item.TubeItem;
 import net.jenkimods.bioforge.item.bone_saw.BoneSawItem;
 import net.jenkimods.bioforge.item.bones.BoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.SplitBoneItem;
@@ -125,8 +129,11 @@ public class BioForge {
 
     public static final RegistryObject<Item> SWAB = ITEMS.register("swab", SwabItem::new);
     public static final RegistryObject<Item> PETRI_DISH = ITEMS.register("petri_dish", PetriDishItem::new);
-
     public static final RegistryObject<Item> SYRINGE = ITEMS.register("syringe", SyringeItem::new);
+    public static final RegistryObject<Item> BLOOD_SLIDE = ITEMS.register("blood_slide", BloodSlideItem::new);
+    public static final RegistryObject<Item> TUBE = ITEMS.register("tube", TubeItem::new);
+    public static final RegistryObject<Item> PLASMA_SAMPLE = ITEMS.register("plasma_sample", PlasmaSampleItem::new);
+    public static final RegistryObject<Item> CELL_PELLET = ITEMS.register("cell_pellet", CellPelletItem::new);
 
     public BioForge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
@@ -182,8 +189,9 @@ public class BioForge {
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.ANTI_D_VIAL.get(), reactedRL, (stack, level, entity, seed) -> ReagentVialItem.getReactedPredicate(stack));
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.CENTRIFUGE_MENU.get(), CentrifugeScreen::new);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.THERMOMETER_ITEM.get(), ResourceLocation.tryBuild(BioForge.MODID, "ready"), (stack, level, entity, seed) -> ThermometerItem.isReady(stack) ? 1.0f : 0.0f);
-                net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;}
-                );
+                net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;});
+                net.minecraft.client.renderer.item.ItemProperties.register(BioForge.BLOOD_SLIDE.get(), ResourceLocation.tryBuild(BioForge.MODID, "blood_slide_filled"), (stack, level, entity, seed) -> BloodSlideItem.hasBlood(stack) ? 1.0f : 0.0f);
+                net.minecraft.client.renderer.item.ItemProperties.register(BioForge.TUBE.get(), ResourceLocation.tryBuild(BioForge.MODID, "tube_filled_blood"), (stack, level, entity, seed) -> TubeItem.hasBlood(stack) ? 1.0f : 0.0f);
             });
         }
     }

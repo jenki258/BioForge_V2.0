@@ -33,6 +33,8 @@ public class BFCreativeTabs {
                         output.accept(BioForge.IRON_NEEDLE.get());
                         output.accept(BioForge.HARDENED_NEEDLE.get());
                         output.accept(BioForge.SYRINGE.get());
+                        output.accept(BioForge.BLOOD_SLIDE.get());
+                        output.accept(BioForge.TUBE.get());
                     })
                     .build());
 
@@ -66,6 +68,8 @@ public class BFCreativeTabs {
                         output.accept(BioForge.BONE_MARROW.get());
                         output.accept(BioForge.WITHERED_SPLIT_BONE.get());
                         output.accept(BioForge.WITHERED_BONE_MARROW.get());
+                        output.accept(BioForge.PLASMA_SAMPLE.get());
+                        output.accept(BioForge.CELL_PELLET.get());
                         output.accept(BioForge.MEDICAL_REPORT.get());
                     })
                     .build());

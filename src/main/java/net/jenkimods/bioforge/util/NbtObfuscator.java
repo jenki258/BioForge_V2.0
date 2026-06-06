@@ -17,6 +17,12 @@ public final class NbtObfuscator {
     private static final String KEY_PAYLOAD  = "bf_p";
     private static final String KEY_CHECKSUM = "bf_c";
 
+    private static final String KEY_INF_SALT_HI  = "bf_is0";
+    private static final String KEY_INF_SALT_LO  = "bf_is1";
+    private static final String KEY_INF_FLAG     = "bf_if";
+    private static final String KEY_INF_PAYLOAD  = "bf_ip";
+    private static final String KEY_INF_CHECKSUM = "bf_ic";
+
     private static final long XOR_MASK_A = 0x42694666F726765L;
     private static final long XOR_MASK_B = 0x426C6F6F64480000L;
 
@@ -24,26 +30,22 @@ public final class NbtObfuscator {
         UUID salt  = UUID.randomUUID();
         long rawHi = salt.getMostSignificantBits();
         long rawLo = salt.getLeastSignificantBits();
-        writeInternal(tag, amount + "|" + type + "|" + source + "|" + (subjectUUID != null ? subjectUUID : ""), rawHi, rawLo);
+        writeInternal(tag, amount + "|" + type + "|" + source + "|" + (subjectUUID != null ? subjectUUID : ""),
+                rawHi, rawLo, KEY_SALT_HI, KEY_SALT_LO, KEY_FLAG, KEY_PAYLOAD, KEY_CHECKSUM);
     }
 
     @Nullable
     public static ObfuscatedData read(CompoundTag tag) {
         if (!hasData(tag)) return null;
-
         long rawHi = tag.getLong(KEY_SALT_HI) ^ XOR_MASK_A;
         long rawLo = tag.getLong(KEY_SALT_LO) ^ XOR_MASK_B;
-
         byte[] payload = tag.getByteArray(KEY_PAYLOAD);
         if (payload.length == 0) return null;
-
         if (computeChecksum(payload, rawHi) != tag.getInt(KEY_CHECKSUM)) return null;
-
         byte[] decrypted = xorEncrypt(payload, rawHi, rawLo);
         String raw = new String(decrypted, StandardCharsets.UTF_8);
         String[] parts = raw.split("\\|", 4);
         if (parts.length < 3) return null;
-
         try {
             int amount = Integer.parseInt(parts[0]);
             String type = parts[1];
@@ -53,36 +55,6 @@ public final class NbtObfuscator {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    public static void writeString(CompoundTag tag, String payload) {
-        UUID salt = UUID.randomUUID();
-        long rawHi = salt.getMostSignificantBits();
-        long rawLo = salt.getLeastSignificantBits();
-        writeInternal(tag, payload, rawHi, rawLo);
-    }
-
-    public static void writeStringDeterministic(CompoundTag tag, String payload) {
-        UUID salt = deriveSalt(payload);
-        long rawHi = salt.getMostSignificantBits();
-        long rawLo = salt.getLeastSignificantBits();
-        writeInternal(tag, payload, rawHi, rawLo);
-    }
-
-    @Nullable
-    public static String readString(CompoundTag tag) {
-        if (!hasData(tag)) return null;
-
-        long rawHi = tag.getLong(KEY_SALT_HI) ^ XOR_MASK_A;
-        long rawLo = tag.getLong(KEY_SALT_LO) ^ XOR_MASK_B;
-
-        byte[] payload = tag.getByteArray(KEY_PAYLOAD);
-        if (payload.length == 0) return null;
-
-        if (computeChecksum(payload, rawHi) != tag.getInt(KEY_CHECKSUM)) return null;
-
-        byte[] decrypted = xorEncrypt(payload, rawHi, rawLo);
-        return new String(decrypted, StandardCharsets.UTF_8);
     }
 
     public static boolean hasData(CompoundTag tag) {
@@ -98,18 +70,76 @@ public final class NbtObfuscator {
 
     public record ObfuscatedData(int amount, String typeName, String sourceName, UUID subjectUUID) {}
 
-    private static void writeInternal(CompoundTag tag, String payload, long rawHi, long rawLo) {
+    public static void writeInfection(CompoundTag tag, String strain) {
+        UUID salt = UUID.randomUUID();
+        long rawHi = salt.getMostSignificantBits();
+        long rawLo = salt.getLeastSignificantBits();
+        writeInternal(tag, strain, rawHi, rawLo, KEY_INF_SALT_HI, KEY_INF_SALT_LO, KEY_INF_FLAG, KEY_INF_PAYLOAD, KEY_INF_CHECKSUM);
+    }
+
+    @Nullable
+    public static String readInfection(CompoundTag tag) {
+        if (!hasInfectionData(tag)) return null;
+        long rawHi = tag.getLong(KEY_INF_SALT_HI) ^ XOR_MASK_A;
+        long rawLo = tag.getLong(KEY_INF_SALT_LO) ^ XOR_MASK_B;
+        byte[] payload = tag.getByteArray(KEY_INF_PAYLOAD);
+        if (payload.length == 0) return null;
+        if (computeChecksum(payload, rawHi) != tag.getInt(KEY_INF_CHECKSUM)) return null;
+        byte[] decrypted = xorEncrypt(payload, rawHi, rawLo);
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    public static boolean hasInfectionData(CompoundTag tag) {
+        if (!tag.contains(KEY_INF_FLAG) || !tag.contains(KEY_INF_SALT_HI)) return false;
+        long rawHi = tag.getLong(KEY_INF_SALT_HI) ^ XOR_MASK_A;
+        return tag.getInt(KEY_INF_FLAG) == (int)(1L ^ (rawHi & 0xFFFFFFFFL));
+    }
+
+    public static void clearInfection(CompoundTag tag) {
+        tag.remove(KEY_INF_SALT_HI); tag.remove(KEY_INF_SALT_LO);
+        tag.remove(KEY_INF_PAYLOAD); tag.remove(KEY_INF_CHECKSUM); tag.remove(KEY_INF_FLAG);
+    }
+
+    public static void writeString(CompoundTag tag, String payload) {
+        UUID salt = UUID.randomUUID();
+        long rawHi = salt.getMostSignificantBits();
+        long rawLo = salt.getLeastSignificantBits();
+        writeInternal(tag, payload, rawHi, rawLo, KEY_SALT_HI, KEY_SALT_LO, KEY_FLAG, KEY_PAYLOAD, KEY_CHECKSUM);
+    }
+
+    public static void writeStringDeterministic(CompoundTag tag, String payload) {
+        UUID salt = deriveSalt(payload);
+        long rawHi = salt.getMostSignificantBits();
+        long rawLo = salt.getLeastSignificantBits();
+        writeInternal(tag, payload, rawHi, rawLo, KEY_SALT_HI, KEY_SALT_LO, KEY_FLAG, KEY_PAYLOAD, KEY_CHECKSUM);
+    }
+
+    @Nullable
+    public static String readString(CompoundTag tag) {
+        if (!hasData(tag)) return null;
+        long rawHi = tag.getLong(KEY_SALT_HI) ^ XOR_MASK_A;
+        long rawLo = tag.getLong(KEY_SALT_LO) ^ XOR_MASK_B;
+        byte[] payload = tag.getByteArray(KEY_PAYLOAD);
+        if (payload.length == 0) return null;
+        if (computeChecksum(payload, rawHi) != tag.getInt(KEY_CHECKSUM)) return null;
+        byte[] decrypted = xorEncrypt(payload, rawHi, rawLo);
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    private static void writeInternal(CompoundTag tag, String payload, long rawHi, long rawLo,
+                                      String keySaltHi, String keySaltLo, String keyFlag,
+                                      String keyPayload, String keyChecksum) {
         long saltHi = rawHi ^ XOR_MASK_A;
         long saltLo = rawLo ^ XOR_MASK_B;
         byte[] encrypted = xorEncrypt(payload.getBytes(StandardCharsets.UTF_8), rawHi, rawLo);
         int checksum = computeChecksum(encrypted, rawHi);
         int flag     = (int)(1L ^ (rawHi & 0xFFFFFFFFL));
 
-        tag.putLong(KEY_SALT_HI, saltHi);
-        tag.putLong(KEY_SALT_LO, saltLo);
-        tag.putByteArray(KEY_PAYLOAD, encrypted);
-        tag.putInt(KEY_CHECKSUM, checksum);
-        tag.putInt(KEY_FLAG, flag);
+        tag.putLong(keySaltHi, saltHi);
+        tag.putLong(keySaltLo, saltLo);
+        tag.putByteArray(keyPayload, encrypted);
+        tag.putInt(keyChecksum, checksum);
+        tag.putInt(keyFlag, flag);
     }
 
     private static UUID deriveSalt(String plaintext) {
