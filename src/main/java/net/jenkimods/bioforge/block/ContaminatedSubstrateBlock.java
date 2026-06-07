@@ -2,6 +2,7 @@ package net.jenkimods.bioforge.block;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.item.infection.ColonyCoreBlockEntity;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
@@ -50,22 +51,21 @@ public class ContaminatedSubstrateBlock extends Block {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.isClientSide()) return;
 
-        String strain = NbtObfuscator.readString(stack.getOrCreateTag());
-        if (strain == null || strain.isEmpty()) {
+        String strainRaw = NbtObfuscator.readString(stack.getOrCreateTag());
+        if (strainRaw == null || strainRaw.isEmpty()) {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             return;
         }
 
-        String[] parts = strain.split(";");
-        String[] header = parts[0].split("\\|");
-        PathogenType pathogen = PathogenType.fromName(header.length >= 3 ? header[1] : header[0]);
+        StrainData strain = StrainData.parse(strainRaw);
+        PathogenType pathogen = strain.getPathogen();
 
-        if (!pathogen.isEnvironmental()) {
+        if (pathogen == null || !pathogen.isEnvironmental()) {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             if (placer != null) {
                 placer.sendSystemMessage(
                         Component.translatable("item.bioforge.contaminated_substrate.incompatible_pathogen",
-                                pathogen.name())
+                                pathogen != null ? pathogen.name() : "unknown")
                 );
             }
             return;
@@ -73,7 +73,7 @@ public class ContaminatedSubstrateBlock extends Block {
 
         level.setBlock(pos, BioForge.COLONY_CORE.get().defaultBlockState(), 3);
         if (level.getBlockEntity(pos) instanceof ColonyCoreBlockEntity core) {
-            core.setStrainData(strain);
+            core.setStrainData(strainRaw);
         }
     }
 }

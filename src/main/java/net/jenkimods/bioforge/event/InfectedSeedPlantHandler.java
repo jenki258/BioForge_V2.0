@@ -29,15 +29,15 @@ public class InfectedSeedPlantHandler {
         if (!placedState.is(BioForgeTags.INFECTABLE_CROPS)) return;
 
         ItemStack stack = player.getMainHandItem();
-        String strain = NbtObfuscator.readString(stack.getOrCreateTag());
-        if (strain == null || strain.equals("CLEAN")) return;
+        String strainRaw = NbtObfuscator.readString(stack.getOrCreateTag());
+        if (strainRaw == null || strainRaw.equals("CLEAN")) return;
 
         ServerLevel level = (ServerLevel) levelAccessor;
         BlockPos pos = event.getPos();
         LevelChunk chunk = level.getChunkAt(pos);
         chunk.getCapability(CropInfectionCapability.CROP_INFECTION).ifPresent(storage -> {
             if (!storage.isInfected(pos)) {
-                storage.setInfection(pos, new CropInfection(strain));
+                storage.setInfection(pos, new CropInfection(strainRaw));
                 chunk.setUnsaved(true);
             }
         });

@@ -4,6 +4,7 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.block.PetriDishBlock;
 import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -40,22 +41,10 @@ public class PetriDishBlockEntity extends BlockEntity {
     public void setStrainData(String encrypted) {
         this.strainData = encrypted;
         if (encrypted != null && !encrypted.equals("CLEAN")) {
-            String[] parts = encrypted.split(";");
-            if (parts.length > 0) {
-                String[] header = parts[0].split("\\|");
-                if (header.length >= 3) {
-                    pathogen = PathogenType.fromName(header[1]);
-                    infectionTypes.clear();
-                    parseTypes(header[2], infectionTypes);
-                } else if (header.length >= 2) {
-                    pathogen = PathogenType.fromName(header[0]);
-                    infectionTypes.clear();
-                    parseTypes(header[1], infectionTypes);
-                } else {
-                    pathogen = null;
-                    infectionTypes.clear();
-                }
-            }
+            StrainData strain = StrainData.parse(encrypted);
+            this.pathogen = strain.getPathogen();
+            this.infectionTypes.clear();
+            this.infectionTypes.addAll(strain.getInfectionTypes());
         } else {
             pathogen = null;
             infectionTypes.clear();
@@ -171,22 +160,10 @@ public class PetriDishBlockEntity extends BlockEntity {
             if (decrypted != null) {
                 this.strainData = decrypted;
                 if (!decrypted.equals("CLEAN")) {
-                    String[] parts = decrypted.split(";");
-                    if (parts.length > 0) {
-                        String[] header = parts[0].split("\\|");
-                        if (header.length >= 3) {
-                            pathogen = PathogenType.fromName(header[1]);
-                            infectionTypes.clear();
-                            parseTypes(header[2], infectionTypes);
-                        } else if (header.length >= 2) {
-                            pathogen = PathogenType.fromName(header[0]);
-                            infectionTypes.clear();
-                            parseTypes(header[1], infectionTypes);
-                        } else {
-                            pathogen = null;
-                            infectionTypes.clear();
-                        }
-                    }
+                    StrainData strain = StrainData.parse(decrypted);
+                    this.pathogen = strain.getPathogen();
+                    this.infectionTypes.clear();
+                    this.infectionTypes.addAll(strain.getInfectionTypes());
                 } else {
                     pathogen = null;
                     infectionTypes.clear();
@@ -194,13 +171,5 @@ public class PetriDishBlockEntity extends BlockEntity {
             }
         }
         growthStage = tag.getInt("Growth");
-    }
-
-    private void parseTypes(String raw, Set<InfectionType> target) {
-        if (raw == null || raw.isEmpty()) return;
-        for (String part : raw.split(",")) {
-            InfectionType it = InfectionType.fromName(part.trim());
-            if (it != null) target.add(it);
-        }
     }
 }

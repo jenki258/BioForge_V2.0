@@ -88,32 +88,9 @@ public class SwabItem extends Item {
 
     private String buildStrainPayload(@Nullable InfectionData data) {
         if (data == null || !data.isInfected()) return "CLEAN";
-        String colonyId = "PLACEHOLDER";
-        StringBuilder sb = new StringBuilder();
-        sb.append(colonyId).append("|").append(data.getPathogenType().name()).append("|");
-        Iterator<InfectionType> iter = data.getInfectionTypes().iterator();
-        while (iter.hasNext()) {
-            sb.append(iter.next().name());
-            if (iter.hasNext()) sb.append(",");
-        }
-        sb.append(";");
-        sb.append("HeartRate=").append(data.getSymptom(BioForgeSymptoms.HEART_RATE).name()).append(";");
-        sb.append("LungSound=").append(data.getSymptom(BioForgeSymptoms.LUNG_SOUND).name()).append(";");
-        sb.append("TempPlus=").append(data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS)).append(";");
-        sb.append("TempMinus=").append(data.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS)).append(";");
-        sb.append("Redness=").append(data.getSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS)).append(";");
-        sb.append("Lesions=").append(data.getSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS)).append(";");
-        sb.append("Secretion=").append(data.getSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION)).append(";");
-        sb.append("Swelling=").append(data.getSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING)).append(";");
-        sb.append("ReflexDelay=").append(data.getSymptom(BioForgeSymptoms.REFLEX_DELAY)).append(";");
-        sb.append("ReflexStrength=").append(data.getSymptom(BioForgeSymptoms.REFLEX_STRENGTH)).append(";");
-        sb.append("NeuralDamage=").append(data.getSymptom(BioForgeSymptoms.NEURAL_DAMAGE)).append(";");
-        sb.append("OxygenSaturation=").append(data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION)).append(";");
-        sb.append("PerfusionIndex=").append(data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX)).append(";");
-        sb.append("InfectionStrength=").append(data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH)).append(";");
-        sb.append("ColonyRadius=").append(data.getSymptom(BioForgeSymptoms.COLONY_RADIUS)).append(";");
-        sb.append("MaxInfestedBlocks=").append(data.getSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS)).append(";");
-        return sb.toString();
+        StrainData strain = StrainData.buildFrom(data);
+        strain.setColonyId(null);
+        return strain.toPayload();
     }
 
     public static boolean isContaminated(ItemStack stack) {

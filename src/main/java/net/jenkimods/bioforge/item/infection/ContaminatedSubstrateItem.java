@@ -3,6 +3,7 @@ package net.jenkimods.bioforge.item.infection;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.BioForgeTags;
 import net.jenkimods.bioforge.infection.CropInfection;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.infection.capability.CropInfectionCapability;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.ChatFormatting;
@@ -147,11 +148,7 @@ public class ContaminatedSubstrateItem extends BlockItem {
     }
 
     private static String replaceColonyId(String payload, String newColonyId) {
-        int firstPipe = payload.indexOf('|');
-        if (firstPipe == -1) return payload;
-        int secondPipe = payload.indexOf('|', firstPipe + 1);
-        if (secondPipe == -1) return payload;
-        return newColonyId + payload.substring(firstPipe);
+        return StrainData.replaceColonyId(payload, newColonyId);
     }
 
     @Override

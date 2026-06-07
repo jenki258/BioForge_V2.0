@@ -1,18 +1,13 @@
 package net.jenkimods.bioforge.item.needle;
 
 import net.jenkimods.bioforge.blood.*;
-import net.jenkimods.bioforge.blood.knowledge.BloodKnowledge;
-import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
 import net.jenkimods.bioforge.infection.*;
-import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -176,80 +171,19 @@ public class NeedleItem extends Item {
     }
 
     private static String buildStrainPayload(InfectionData data) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("PLACEHOLDER|").append(data.getPathogenType().name()).append("|");
-        Iterator<InfectionType> iter = data.getInfectionTypes().iterator();
-        while (iter.hasNext()) {
-            sb.append(iter.next().name());
-            if (iter.hasNext()) sb.append(",");
-        }
-        sb.append(";");
-        appendSymptom(sb, "HeartRate", data.getSymptom(BioForgeSymptoms.HEART_RATE).name());
-        appendSymptom(sb, "LungSound", data.getSymptom(BioForgeSymptoms.LUNG_SOUND).name());
-        appendSymptom(sb, "TempPlus", String.valueOf(data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS)));
-        appendSymptom(sb, "TempMinus", String.valueOf(data.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS)));
-        appendSymptom(sb, "Redness", String.valueOf(data.getSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS)));
-        appendSymptom(sb, "Lesions", String.valueOf(data.getSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS)));
-        appendSymptom(sb, "Secretion", String.valueOf(data.getSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION)));
-        appendSymptom(sb, "Swelling", String.valueOf(data.getSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING)));
-        appendSymptom(sb, "ReflexDelay", String.valueOf(data.getSymptom(BioForgeSymptoms.REFLEX_DELAY)));
-        appendSymptom(sb, "ReflexStrength", String.valueOf(data.getSymptom(BioForgeSymptoms.REFLEX_STRENGTH)));
-        appendSymptom(sb, "NeuralDamage", String.valueOf(data.getSymptom(BioForgeSymptoms.NEURAL_DAMAGE)));
-        appendSymptom(sb, "OxygenSaturation", String.valueOf(data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION)));
-        appendSymptom(sb, "PerfusionIndex", String.valueOf(data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX)));
-        appendSymptom(sb, "InfectionStrength", String.valueOf(data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH)));
-        appendSymptom(sb, "ColonyRadius", String.valueOf(data.getSymptom(BioForgeSymptoms.COLONY_RADIUS)));
-        appendSymptom(sb, "MaxInfestedBlocks", String.valueOf(data.getSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS)));
-        return sb.toString();
-    }
-
-    private static void appendSymptom(StringBuilder sb, String key, String value) {
-        sb.append(key).append("=").append(value).append(";");
+        if (data == null || !data.isInfected()) return "";
+        StrainData strain = StrainData.buildFrom(data);
+        strain.setColonyId(null);
+        return strain.toPayload();
     }
 
     private static void applyStoredInfection(ItemStack stack, LivingEntity target) {
-        String strain = NbtObfuscator.readInfection(stack.getOrCreateTag());
-        if (strain == null || strain.isEmpty()) return;
+        String strainRaw = NbtObfuscator.readInfection(stack.getOrCreateTag());
+        if (strainRaw == null || strainRaw.isEmpty()) return;
+        StrainData strain = StrainData.parse(strainRaw);
         InfectionData data = InfectionCapability.get(target);
-        if (data == null || data.isInfected()) return;
-        String[] parts = strain.split(";");
-        if (parts.length == 0) return;
-        String[] header = parts[0].split("\\|");
-        if (header.length < 2) return;
-        PathogenType pt = PathogenType.fromName(header[1]);
-        if (pt == null) return;
-        data.setInfected(true);
-        data.setPathogenType(pt);
-        String typesRaw = header.length >= 3 ? header[2] : header[1];
-        for (String t : typesRaw.split(",")) {
-            InfectionType it = InfectionType.fromName(t.trim());
-            if (it != null) data.addInfectionType(it);
-        }
-        for (int i = 1; i < parts.length; i++) {
-            String[] kv = parts[i].split("=", 2);
-            if (kv.length == 2) {
-                switch (kv[0]) {
-                    case "HeartRate" -> data.setSymptom(BioForgeSymptoms.HEART_RATE, HeartRate.fromName(kv[1]));
-                    case "LungSound" -> data.setSymptom(BioForgeSymptoms.LUNG_SOUND, LungSound.fromName(kv[1]));
-                    case "TempPlus" -> data.setSymptom(BioForgeSymptoms.TEMPERATURE_PLUS, Boolean.parseBoolean(kv[1]));
-                    case "TempMinus" -> data.setSymptom(BioForgeSymptoms.TEMPERATURE_MINUS, Boolean.parseBoolean(kv[1]));
-                    case "Redness" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS, Float.parseFloat(kv[1]));
-                    case "Lesions" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS, Float.parseFloat(kv[1]));
-                    case "Secretion" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION, Float.parseFloat(kv[1]));
-                    case "Swelling" -> data.setSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING, Float.parseFloat(kv[1]));
-                    case "ReflexDelay" -> data.setSymptom(BioForgeSymptoms.REFLEX_DELAY, Float.parseFloat(kv[1]));
-                    case "ReflexStrength" -> data.setSymptom(BioForgeSymptoms.REFLEX_STRENGTH, Float.parseFloat(kv[1]));
-                    case "NeuralDamage" -> data.setSymptom(BioForgeSymptoms.NEURAL_DAMAGE, Float.parseFloat(kv[1]));
-                    case "OxygenSaturation" -> data.setSymptom(BioForgeSymptoms.OXYGEN_SATURATION, Float.parseFloat(kv[1]));
-                    case "PerfusionIndex" -> data.setSymptom(BioForgeSymptoms.PERFUSION_INDEX, Float.parseFloat(kv[1]));
-                    case "InfectionStrength" -> data.setSymptom(BioForgeSymptoms.INFECTION_STRENGTH, Float.parseFloat(kv[1]));
-                    case "ColonyRadius" -> data.setSymptom(BioForgeSymptoms.COLONY_RADIUS, Float.parseFloat(kv[1]));
-                    case "MaxInfestedBlocks" -> data.setSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS, Float.parseFloat(kv[1]));
-                }
-            }
-        }
-        if (target instanceof ServerPlayer sp) {
-            InfectionEventHandler.syncToClient(sp, data);
+        if (data != null) {
+            strain.applyToEntity(data, target);
         }
     }
 

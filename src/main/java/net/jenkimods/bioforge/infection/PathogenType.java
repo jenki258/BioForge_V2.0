@@ -46,7 +46,7 @@ public enum PathogenType {
     }
 
     public boolean isEnvironmental() {
-        return this == FUNGI || this == BACTERIA;
+        return this == FUNGI || this == BACTERIA || this == UNIVERSAL;
     }
 
     public static PathogenType fromName(String name) {

@@ -4,6 +4,7 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.block.MicrobialMatBlock;
 import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -39,32 +40,17 @@ public class ColonyCoreBlockEntity extends BlockEntity {
     public void setStrainData(String encrypted) {
         this.strainData = encrypted;
         if (encrypted != null && !encrypted.equals("CLEAN")) {
-            String[] parts = encrypted.split(";");
-            if (parts.length > 0) {
-                String[] header = parts[0].split("\\|");
-                if (header.length >= 3) {
-                    try { colonyId = UUID.fromString(header[0]); } catch (IllegalArgumentException ignored) {}
-                    pathogen = PathogenType.fromName(header[1]);
-                    infectionTypes.clear();
-                    for (String typeName : header[2].split(",")) {
-                        InfectionType it = InfectionType.fromName(typeName);
-                        if (it != null) infectionTypes.add(it);
-                    }
-                }
-            }
-            for (String p : parts) {
-                String[] kv = p.split("=");
-                if (kv.length == 2) {
-                    switch (kv[0]) {
-                        case "ColonyRadius":
-                            try { colonyRadius = Math.round(Float.parseFloat(kv[1])); } catch (Exception ignored) {}
-                            break;
-                        case "MaxInfestedBlocks":
-                            try { maxInfestedBlocks = Math.round(Float.parseFloat(kv[1])); } catch (Exception ignored) {}
-                            break;
-                    }
-                }
-            }
+            StrainData strain = StrainData.parse(encrypted);
+            this.colonyId = strain.getColonyId().orElse(null);
+            this.pathogen = strain.getPathogen();
+            this.infectionTypes.clear();
+            this.infectionTypes.addAll(strain.getInfectionTypes());
+            strain.getSymptom("ColonyRadius").ifPresent(val -> {
+                try { colonyRadius = Math.round(Float.parseFloat(val)); } catch (Exception ignored) {}
+            });
+            strain.getSymptom("MaxInfestedBlocks").ifPresent(val -> {
+                try { maxInfestedBlocks = Math.round(Float.parseFloat(val)); } catch (Exception ignored) {}
+            });
         }
         setChanged();
         if (level != null && !level.isClientSide) {

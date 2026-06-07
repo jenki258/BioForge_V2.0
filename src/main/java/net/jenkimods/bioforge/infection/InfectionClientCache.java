@@ -1,8 +1,10 @@
 package net.jenkimods.bioforge.infection;
 
+import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.*;
 
 public final class InfectionClientCache {
     private InfectionClientCache() {}
@@ -10,66 +12,26 @@ public final class InfectionClientCache {
     private static final AtomicBoolean infected = new AtomicBoolean(false);
     private static final AtomicReference<PathogenType> pathogenType = new AtomicReference<>(null);
     private static final AtomicReference<List<InfectionType>> infectionTypes = new AtomicReference<>(List.of());
-    private static final AtomicReference<HeartRate> heartRate = new AtomicReference<>(HeartRate.NORMAL);
-    private static final AtomicReference<LungSound> lungSound = new AtomicReference<>(LungSound.NORMAL);
-    private static final AtomicBoolean temperaturePlus = new AtomicBoolean(false);
-    private static final AtomicBoolean temperatureMinus = new AtomicBoolean(false);
-    private static final AtomicReference<Float> redness = new AtomicReference<>(0.0f);
-    private static final AtomicReference<Float> lesions = new AtomicReference<>(0.0f);
-    private static final AtomicReference<Float> secretion = new AtomicReference<>(0.0f);
-    private static final AtomicReference<Float> swelling = new AtomicReference<>(0.0f);
-    private static final AtomicReference<Float> reflexDelay = new AtomicReference<>(0.0f);
-    private static final AtomicReference<Float> reflexStrength = new AtomicReference<>(0.5f);
-    private static final AtomicReference<Float> neuralDamage = new AtomicReference<>(0.0f);
-    private static final AtomicReference<Float> oxygenSaturation = new AtomicReference<>(0.95f);
-    private static final AtomicReference<Float> perfusionIndex = new AtomicReference<>(0.7f);
-    private static final AtomicReference<Float> infectionStrength = new AtomicReference<>(0.5f);
-    private static final AtomicReference<Float> colonyRadius = new AtomicReference<>(20.0f);
-    private static final AtomicReference<Float> maxInfestedBlocks = new AtomicReference<>(100.0f);
+    private static final AtomicReference<Map<String, Object>> symptomMap = new AtomicReference<>(Map.of());
 
     public static void set(boolean isInfected, PathogenType pathogen, List<InfectionType> types,
-                           HeartRate hr, LungSound ls, boolean tempPlus, boolean tempMinus,
-                           float r, float l, float s, float w, float reflexDelay, float reflexStrength,
-                           float neuralDamage, float o2, float perf, float infStrength,
-                           float colonyRadius, float maxInfestedBlocks) {
+                           Map<String, Object> symptoms) {
         infected.set(isInfected);
         pathogenType.set(pathogen);
         infectionTypes.set(Collections.unmodifiableList(new ArrayList<>(types)));
-        heartRate.set(hr);
-        lungSound.set(ls);
-        temperaturePlus.set(tempPlus);
-        temperatureMinus.set(tempMinus);
-        redness.set(r);
-        lesions.set(l);
-        secretion.set(s);
-        swelling.set(w);
-        InfectionClientCache.reflexDelay.set(reflexDelay);
-        InfectionClientCache.reflexStrength.set(reflexStrength);
-        InfectionClientCache.neuralDamage.set(neuralDamage);
-        oxygenSaturation.set(o2);
-        perfusionIndex.set(perf);
-        infectionStrength.set(infStrength);
-        InfectionClientCache.colonyRadius.set(colonyRadius);
-        InfectionClientCache.maxInfestedBlocks.set(maxInfestedBlocks);
+        symptomMap.set(Collections.unmodifiableMap(new LinkedHashMap<>(symptoms)));
     }
 
     public static boolean isInfected() { return infected.get(); }
     public static PathogenType getPathogenType() { return pathogenType.get(); }
     public static List<InfectionType> getInfectionTypes() { return infectionTypes.get(); }
-    public static HeartRate getHeartRate() { return heartRate.get(); }
-    public static LungSound getLungSound() { return lungSound.get(); }
-    public static boolean isTemperaturePlus() { return temperaturePlus.get(); }
-    public static boolean isTemperatureMinus() { return temperatureMinus.get(); }
-    public static float getRedness() { return redness.get(); }
-    public static float getLesions() { return lesions.get(); }
-    public static float getSecretion() { return secretion.get(); }
-    public static float getSwelling() { return swelling.get(); }
-    public static float getReflexDelay() { return reflexDelay.get(); }
-    public static float getReflexStrength() { return reflexStrength.get(); }
-    public static float getNeuralDamage() { return neuralDamage.get(); }
-    public static float getOxygenSaturation() { return oxygenSaturation.get(); }
-    public static float getPerfusionIndex() { return perfusionIndex.get(); }
-    public static float getInfectionStrength() { return infectionStrength.get(); }
-    public static float getColonyRadius() { return colonyRadius.get(); }
-    public static float getMaxInfestedBlocks() { return maxInfestedBlocks.get(); }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getSymptom(SymptomKey<T> key) {
+        Object value = symptomMap.get().get(key.getId());
+        if (value != null && key.getType().isInstance(value)) {
+            return (T) value;
+        }
+        return key.getDefaultValue();
+    }
 }

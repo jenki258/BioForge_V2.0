@@ -4,6 +4,7 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.block.MicrobialMatBlock;
 import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -41,20 +42,11 @@ public class SporocarpBlockEntity extends BlockEntity {
     public void setStrainData(String encrypted) {
         this.strainData = encrypted;
         if (encrypted != null && !encrypted.equals("CLEAN")) {
-            String[] parts = encrypted.split(";");
-            if (parts.length > 0) {
-                String[] header = parts[0].split("\\|");
-                if (header.length >= 3) {
-                    try { colonyId = UUID.fromString(header[0]); } catch (IllegalArgumentException ignored) {}
-                    pathogen = PathogenType.fromName(header[1]);
-                    infectionTypes.clear();
-                    parseTypes(header[2], infectionTypes);
-                } else if (header.length >= 2) {
-                    pathogen = PathogenType.fromName(header[0]);
-                    infectionTypes.clear();
-                    parseTypes(header[1], infectionTypes);
-                }
-            }
+            StrainData strain = StrainData.parse(encrypted);
+            this.colonyId = strain.getColonyId().orElse(null);
+            this.pathogen = strain.getPathogen();
+            this.infectionTypes.clear();
+            this.infectionTypes.addAll(strain.getInfectionTypes());
         }
         setChanged();
         if (level != null && !level.isClientSide) {
@@ -160,20 +152,11 @@ public class SporocarpBlockEntity extends BlockEntity {
             if (decrypted != null) {
                 this.strainData = decrypted;
                 if (!decrypted.equals("CLEAN")) {
-                    String[] parts = decrypted.split(";");
-                    if (parts.length > 0) {
-                        String[] header = parts[0].split("\\|");
-                        if (header.length >= 3) {
-                            try { colonyId = UUID.fromString(header[0]); } catch (IllegalArgumentException ignored) {}
-                            pathogen = PathogenType.fromName(header[1]);
-                            infectionTypes.clear();
-                            parseTypes(header[2], infectionTypes);
-                        } else if (header.length >= 2) {
-                            pathogen = PathogenType.fromName(header[0]);
-                            infectionTypes.clear();
-                            parseTypes(header[1], infectionTypes);
-                        }
-                    }
+                    StrainData strain = StrainData.parse(decrypted);
+                    this.colonyId = strain.getColonyId().orElse(null);
+                    this.pathogen = strain.getPathogen();
+                    this.infectionTypes.clear();
+                    this.infectionTypes.addAll(strain.getInfectionTypes());
                 }
             }
         }

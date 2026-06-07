@@ -2,10 +2,10 @@ package net.jenkimods.bioforge.infection.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -55,71 +55,16 @@ public class InfectCommand {
                                                                         parseTypes(StringArgumentType.getString(ctx, "infectionType")),
                                                                         BoolArgumentType.getBool(ctx, "persistent")))
                                                                 .then(Commands.literal("symptoms")
-                                                                        .then(Commands.argument("heartRate", StringArgumentType.word())
-                                                                                .suggests((ctx, builder) -> {
-                                                                                    for (HeartRate hr : HeartRate.values())
-                                                                                        builder.suggest(hr.name().toLowerCase());
-                                                                                    return builder.buildFuture();
-                                                                                })
-                                                                                .then(Commands.argument("lungSound", StringArgumentType.word())
-                                                                                        .suggests((ctx, builder) -> {
-                                                                                            for (LungSound ls : LungSound.values())
-                                                                                                builder.suggest(ls.name().toLowerCase());
-                                                                                            return builder.buildFuture();
-                                                                                        })
-                                                                                        .then(Commands.argument("tempPlus", BoolArgumentType.bool())
-                                                                                                .then(Commands.argument("tempMinus", BoolArgumentType.bool())
-                                                                                                        .then(Commands.argument("redness", FloatArgumentType.floatArg(0, 1))
-                                                                                                                .then(Commands.argument("lesions", FloatArgumentType.floatArg(0, 1))
-                                                                                                                        .then(Commands.argument("secretion", FloatArgumentType.floatArg(0, 1))
-                                                                                                                                .then(Commands.argument("swelling", FloatArgumentType.floatArg(0, 1))
-                                                                                                                                        .then(Commands.argument("reflexDelay", FloatArgumentType.floatArg(0, 2))
-                                                                                                                                                .then(Commands.argument("reflexStrength", FloatArgumentType.floatArg(0, 1))
-                                                                                                                                                        .then(Commands.argument("neuralDamage", FloatArgumentType.floatArg(0, 1))
-                                                                                                                                                                .then(Commands.argument("oxygenSaturation", FloatArgumentType.floatArg(0, 1))
-                                                                                                                                                                        .then(Commands.argument("perfusionIndex", FloatArgumentType.floatArg(0, 1))
-                                                                                                                                                                                .then(Commands.argument("infectionStrength", FloatArgumentType.floatArg(0, 1))
-                                                                                                                                                                                        .then(Commands.argument("colonyRadius", FloatArgumentType.floatArg(1, 5000))
-                                                                                                                                                                                                .then(Commands.argument("maxInfestedBlocks", FloatArgumentType.floatArg(1, 10000))
-                                                                                                                                                                                                        .executes(ctx -> executeWithSymptoms(
-                                                                                                                                                                                                                ctx.getSource(),
-                                                                                                                                                                                                                toLiving(EntityArgument.getEntities(ctx, "targets")),
-                                                                                                                                                                                                                BoolArgumentType.getBool(ctx, "infected"),
-                                                                                                                                                                                                                PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen")),
-                                                                                                                                                                                                                parseTypes(StringArgumentType.getString(ctx, "infectionType")),
-                                                                                                                                                                                                                BoolArgumentType.getBool(ctx, "persistent"),
-                                                                                                                                                                                                                HeartRate.fromName(StringArgumentType.getString(ctx, "heartRate")),
-                                                                                                                                                                                                                LungSound.fromName(StringArgumentType.getString(ctx, "lungSound")),
-                                                                                                                                                                                                                BoolArgumentType.getBool(ctx, "tempPlus"),
-                                                                                                                                                                                                                BoolArgumentType.getBool(ctx, "tempMinus"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "redness"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "lesions"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "secretion"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "swelling"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "reflexDelay"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "reflexStrength"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "neuralDamage"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "oxygenSaturation"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "perfusionIndex"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "infectionStrength"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "colonyRadius"),
-                                                                                                                                                                                                                FloatArgumentType.getFloat(ctx, "maxInfestedBlocks")
-                                                                                                                                                                                                        ))
-                                                                                                                                                                                                )
-                                                                                                                                                                                        )
-                                                                                                                                                                                )
-                                                                                                                                                                        )
-                                                                                                                                                                )
-                                                                                                                                                        )
-                                                                                                                                                )
-                                                                                                                                        )
-                                                                                                                                )
-                                                                                                                        )
-                                                                                                                )
-                                                                                                        )
-                                                                                                )
-                                                                                        )
-                                                                                )
+                                                                        .then(Commands.argument("pairs", StringArgumentType.greedyString())
+                                                                                .executes(ctx -> executeWithSymptoms(
+                                                                                        ctx.getSource(),
+                                                                                        toLiving(EntityArgument.getEntities(ctx, "targets")),
+                                                                                        BoolArgumentType.getBool(ctx, "infected"),
+                                                                                        PathogenType.fromName(StringArgumentType.getString(ctx, "pathogen")),
+                                                                                        parseTypes(StringArgumentType.getString(ctx, "infectionType")),
+                                                                                        BoolArgumentType.getBool(ctx, "persistent"),
+                                                                                        StringArgumentType.getString(ctx, "pairs")
+                                                                                ))
                                                                         )
                                                                 )
                                                         )
@@ -151,6 +96,15 @@ public class InfectCommand {
         return set;
     }
 
+    private static Map<String, String> parseSymptomPairs(String greedy) {
+        Map<String, String> map = new LinkedHashMap<>();
+        for (String token : greedy.split("\\s+")) {
+            String[] kv = token.split("=", 2);
+            if (kv.length == 2) map.put(kv[0], kv[1]);
+        }
+        return map;
+    }
+
     private static int execute(CommandSourceStack source, Collection<LivingEntity> targets,
                                boolean infected, PathogenType pathogenType, Set<InfectionType> types,
                                boolean persistent) {
@@ -172,26 +126,15 @@ public class InfectCommand {
                 data.setInfected(true);
                 data.setPathogenType(pathogenType);
                 for (InfectionType t : types) data.addInfectionType(t);
-                InfectionEventHandler.applyDefaultSymptoms(data);
+                BioForgeSymptoms.applyDefaultSymptoms(data);
                 if (persistent && entity instanceof ServerPlayer player) {
+                    Map<String, Object> symptomMap = new LinkedHashMap<>();
+                    for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+                        symptomMap.put(e.getKey(), data.getSymptom(e.getValue()));
+                    }
                     InfectionStore.get(player.serverLevel()).setInfection(player.getUUID(),
                             new InfectionStore.InfectionRecord(true, true, pathogenType, new ArrayList<>(types),
-                                    data.getSymptom(BioForgeSymptoms.HEART_RATE),
-                                    data.getSymptom(BioForgeSymptoms.LUNG_SOUND),
-                                    data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS),
-                                    data.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS),
-                                    data.getSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS),
-                                    data.getSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS),
-                                    data.getSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION),
-                                    data.getSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING),
-                                    data.getSymptom(BioForgeSymptoms.REFLEX_DELAY),
-                                    data.getSymptom(BioForgeSymptoms.REFLEX_STRENGTH),
-                                    data.getSymptom(BioForgeSymptoms.NEURAL_DAMAGE),
-                                    data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION),
-                                    data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX),
-                                    data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH),
-                                    data.getSymptom(BioForgeSymptoms.COLONY_RADIUS),
-                                    data.getSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS)));
+                                    symptomMap));
                 }
                 final String name = entity.getDisplayName().getString();
                 source.sendSuccess(() -> Component.translatable("command.bioforge.infect.success", name,
@@ -209,13 +152,7 @@ public class InfectCommand {
 
     private static int executeWithSymptoms(CommandSourceStack source, Collection<LivingEntity> targets,
                                            boolean infected, PathogenType pathogenType, Set<InfectionType> types,
-                                           boolean persistent,
-                                           HeartRate heartRate, LungSound lungSound,
-                                           boolean tempPlus, boolean tempMinus,
-                                           float redness, float lesions, float secretion, float swelling,
-                                           float reflexDelay, float reflexStrength, float neuralDamage,
-                                           float oxygenSaturation, float perfusionIndex, float infectionStrength,
-                                           float colonyRadius, float maxInfestedBlocks) {
+                                           boolean persistent, String symptomsString) {
         for (InfectionType t : types) {
             if (!pathogenType.allows(t)) {
                 source.sendFailure(Component.translatable("command.bioforge.infect.incompatible",
@@ -223,6 +160,7 @@ public class InfectCommand {
                 return 0;
             }
         }
+        Map<String, String> symptomPairs = parseSymptomPairs(symptomsString);
         for (LivingEntity entity : targets) {
             InfectionData data = InfectionCapability.get(entity);
             if (data == null) continue;
@@ -234,30 +172,25 @@ public class InfectCommand {
                 data.setInfected(true);
                 data.setPathogenType(pathogenType);
                 for (InfectionType t : types) data.addInfectionType(t);
-                data.setSymptom(BioForgeSymptoms.HEART_RATE, heartRate);
-                data.setSymptom(BioForgeSymptoms.LUNG_SOUND, lungSound);
-                data.setSymptom(BioForgeSymptoms.TEMPERATURE_PLUS, tempPlus);
-                data.setSymptom(BioForgeSymptoms.TEMPERATURE_MINUS, tempMinus);
-                data.setSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS, redness);
-                data.setSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS, lesions);
-                data.setSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION, secretion);
-                data.setSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING, swelling);
-                data.setSymptom(BioForgeSymptoms.REFLEX_DELAY, reflexDelay);
-                data.setSymptom(BioForgeSymptoms.REFLEX_STRENGTH, reflexStrength);
-                data.setSymptom(BioForgeSymptoms.NEURAL_DAMAGE, neuralDamage);
-                data.setSymptom(BioForgeSymptoms.OXYGEN_SATURATION, oxygenSaturation);
-                data.setSymptom(BioForgeSymptoms.PERFUSION_INDEX, perfusionIndex);
-                data.setSymptom(BioForgeSymptoms.INFECTION_STRENGTH, infectionStrength);
-                data.setSymptom(BioForgeSymptoms.COLONY_RADIUS, colonyRadius);
-                data.setSymptom(BioForgeSymptoms.MAX_INFESTED_BLOCKS, maxInfestedBlocks);
+
+                for (Map.Entry<String, String> pair : symptomPairs.entrySet()) {
+                    SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(pair.getKey());
+                    if (key != null) {
+                        Object value = parseSymptomValue(pair.getValue(), key);
+                        if (value != null) {
+                            data.getSymptoms().set((SymptomKey) key, value);
+                        }
+                    }
+                }
+
                 if (persistent && entity instanceof ServerPlayer player) {
+                    Map<String, Object> symptomMap = new LinkedHashMap<>();
+                    for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+                        symptomMap.put(e.getKey(), data.getSymptom(e.getValue()));
+                    }
                     InfectionStore.get(player.serverLevel()).setInfection(player.getUUID(),
                             new InfectionStore.InfectionRecord(true, true, pathogenType, new ArrayList<>(types),
-                                    heartRate, lungSound, tempPlus, tempMinus,
-                                    redness, lesions, secretion, swelling,
-                                    reflexDelay, reflexStrength, neuralDamage,
-                                    oxygenSaturation, perfusionIndex, infectionStrength,
-                                    colonyRadius, maxInfestedBlocks));
+                                    symptomMap));
                 }
                 final String name = entity.getDisplayName().getString();
                 source.sendSuccess(() -> Component.translatable("command.bioforge.infect.success", name,
@@ -271,6 +204,20 @@ public class InfectCommand {
             }
         }
         return targets.size();
+    }
+
+    private static Object parseSymptomValue(String string, SymptomKey<?> key) {
+        Class<?> type = key.getType();
+        try {
+            if (type.isEnum()) {
+                return Enum.valueOf((Class<Enum>) type, string);
+            } else if (type == Boolean.class) {
+                return Boolean.valueOf(string);
+            } else if (type == Float.class) {
+                return Float.valueOf(string);
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     private static int cure(CommandSourceStack source, Collection<LivingEntity> targets) {

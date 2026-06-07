@@ -1,5 +1,7 @@
 package net.jenkimods.bioforge.infection;
 
+import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -61,29 +63,10 @@ public class InfectionStore extends SavedData {
             boolean persistent,
             @Nullable PathogenType pathogenType,
             List<InfectionType> infectionTypes,
-            HeartRate heartRate,
-            LungSound lungSound,
-            boolean temperaturePlus,
-            boolean temperatureMinus,
-            float redness,
-            float lesions,
-            float secretion,
-            float swelling,
-            float reflexDelay,
-            float reflexStrength,
-            float neuralDamage,
-            float oxygenSaturation,
-            float perfusionIndex,
-            float infectionStrength,
-            float colonyRadius,
-            float maxInfestedBlocks
+            Map<String, Object> symptoms
     ) {
         public static final InfectionRecord NONE = new InfectionRecord(
-                false, false, null, List.of(),
-                HeartRate.NORMAL, LungSound.NORMAL,
-                false, false, 0.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 0.5f, 0.0f, 0.95f, 0.7f, 0.5f,
-                20.0f, 100.0f
+                false, false, null, List.of(), Map.of()
         );
 
         public CompoundTag toNbt() {
@@ -94,23 +77,26 @@ public class InfectionStore extends SavedData {
             StringJoiner joiner = new StringJoiner(",");
             for (InfectionType t : infectionTypes) joiner.add(t.name());
             tag.putString("InfectionTypes", joiner.toString());
-            tag.putString("HeartRate", heartRate.name());
-            tag.putString("LungSound", lungSound.name());
-            tag.putBoolean("TempPlus", temperaturePlus);
-            tag.putBoolean("TempMinus", temperatureMinus);
-            tag.putFloat("Redness", redness);
-            tag.putFloat("Lesions", lesions);
-            tag.putFloat("Secretion", secretion);
-            tag.putFloat("Swelling", swelling);
-            tag.putFloat("ReflexDelay", reflexDelay);
-            tag.putFloat("ReflexStrength", reflexStrength);
-            tag.putFloat("NeuralDamage", neuralDamage);
-            tag.putFloat("OxygenSaturation", oxygenSaturation);
-            tag.putFloat("PerfusionIndex", perfusionIndex);
-            tag.putFloat("InfectionStrength", infectionStrength);
-            tag.putFloat("ColonyRadius", colonyRadius);
-            tag.putFloat("MaxInfestedBlocks", maxInfestedBlocks);
+
+            CompoundTag symptomTag = new CompoundTag();
+            for (Map.Entry<String, Object> entry : symptoms.entrySet()) {
+                SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(entry.getKey());
+                if (key != null) {
+                    writeSymptomToNbt(symptomTag, entry.getKey(), entry.getValue(), key);
+                }
+            }
+            tag.put("Symptoms", symptomTag);
             return tag;
+        }
+
+        private static void writeSymptomToNbt(CompoundTag tag, String keyId, Object value, SymptomKey<?> key) {
+            if (value instanceof Enum<?> e) {
+                tag.putString(keyId, e.name());
+            } else if (value instanceof Boolean b) {
+                tag.putBoolean(keyId, b);
+            } else if (value instanceof Float f) {
+                tag.putFloat(keyId, f);
+            }
         }
 
         public static InfectionRecord fromNbt(CompoundTag tag) {
@@ -124,28 +110,19 @@ public class InfectionStore extends SavedData {
                     if (!s.isEmpty()) types.add(InfectionType.fromName(s));
                 }
             }
-            HeartRate hr = tag.contains("HeartRate") ? HeartRate.fromName(tag.getString("HeartRate")) : HeartRate.NORMAL;
-            LungSound ls = tag.contains("LungSound") ? LungSound.fromName(tag.getString("LungSound")) : LungSound.NORMAL;
-            boolean tempPlus = tag.getBoolean("TempPlus");
-            boolean tempMinus = tag.getBoolean("TempMinus");
-            float redness = tag.getFloat("Redness");
-            float lesions = tag.getFloat("Lesions");
-            float secretion = tag.getFloat("Secretion");
-            float swelling = tag.getFloat("Swelling");
-            float reflexDelay = tag.contains("ReflexDelay") ? tag.getFloat("ReflexDelay") : 0.0f;
-            float reflexStrength = tag.contains("ReflexStrength") ? tag.getFloat("ReflexStrength") : 0.5f;
-            float neuralDamage = tag.contains("NeuralDamage") ? tag.getFloat("NeuralDamage") : 0.0f;
-            float oxygenSaturation = tag.contains("OxygenSaturation") ? tag.getFloat("OxygenSaturation") : 0.95f;
-            float perfusionIndex = tag.contains("PerfusionIndex") ? tag.getFloat("PerfusionIndex") : 0.7f;
-            float infectionStrength = tag.contains("InfectionStrength") ? tag.getFloat("InfectionStrength") : 0.5f;
-            float colonyRadius = tag.contains("ColonyRadius") ? tag.getFloat("ColonyRadius") : 20.0f;
-            float maxInfestedBlocks = tag.contains("MaxInfestedBlocks") ? tag.getFloat("MaxInfestedBlocks") : 100.0f;
-            return new InfectionRecord(infected, persistent, pt, types,
-                    hr, ls, tempPlus, tempMinus,
-                    redness, lesions, secretion, swelling,
-                    reflexDelay, reflexStrength, neuralDamage,
-                    oxygenSaturation, perfusionIndex, infectionStrength,
-                    colonyRadius, maxInfestedBlocks);
+
+            Map<String, Object> symptoms = new LinkedHashMap<>();
+            CompoundTag symptomTag = tag.getCompound("Symptoms");
+            for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+                String keyId = entry.getKey();
+                SymptomKey<?> key = entry.getValue();
+                if (symptomTag.contains(keyId)) {
+                    Object value = BioForgeSymptoms.deserializeSymptom(keyId, symptomTag);
+                    if (value != null) symptoms.put(keyId, value);
+                }
+            }
+
+            return new InfectionRecord(infected, persistent, pt, types, symptoms);
         }
     }
 }
