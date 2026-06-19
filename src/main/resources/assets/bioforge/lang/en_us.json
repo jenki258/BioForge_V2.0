@@ -73,6 +73,8 @@
   "block.bioforge.centrifuge.no_recipe":      "No centrifuge recipe for this item.",
   "block.bioforge.centrifuge.missing_sample": "Input has no blood data.",
   "jei.bioforge.centrifuge.processing_time":  "Processing time: %s ticks",
+  "jei.bioforge.centrifuge.transfers_blood": "Transfers blood data",
+  "jei.bioforge.centrifuge.transfers_infection": "Transfers infection",
 
   "item.bioforge.bone_marrow":                   "Bone Marrow",
   "item.bioforge.bone_marrow.tooltip.empty":     "No marrow data",

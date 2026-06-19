@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,8 +28,6 @@ public class CentrifugeRecipeCategory implements IRecipeCategory<CentrifugeRecip
     private static final ResourceLocation GUI_TEXTURE =
             Objects.requireNonNull(ResourceLocation.tryBuild("bioforge", "textures/gui/centrifuge.png"));
 
-    private static final int TEX_W = 256;
-    private static final int TEX_H = 256;
     private static final int GUI_W = 176;
     private static final int GUI_H = 110;
 
@@ -47,24 +46,16 @@ public class CentrifugeRecipeCategory implements IRecipeCategory<CentrifugeRecip
     }
 
     @Override
-    public RecipeType<CentrifugeRecipeWrapper> getRecipeType() {
-        return RECIPE_TYPE;
-    }
+    public RecipeType<CentrifugeRecipeWrapper> getRecipeType() { return RECIPE_TYPE; }
 
     @Override
-    public Component getTitle() {
-        return Component.translatable("jei.bioforge.category.centrifuge");
-    }
+    public Component getTitle() { return Component.translatable("jei.bioforge.category.centrifuge"); }
 
     @Override
-    public IDrawable getBackground() {
-        return background;
-    }
+    public IDrawable getBackground() { return background; }
 
     @Override
-    public IDrawable getIcon() {
-        return icon;
-    }
+    public IDrawable getIcon() { return icon; }
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, CentrifugeRecipeWrapper recipe, IFocusGroup focuses) {
@@ -82,18 +73,25 @@ public class CentrifugeRecipeCategory implements IRecipeCategory<CentrifugeRecip
     }
 
     @Override
-    public void draw(CentrifugeRecipeWrapper recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(CentrifugeRecipeWrapper recipe, IRecipeSlotsView recipeSlotsView,
+                     GuiGraphics guiGraphics, double mouseX, double mouseY) {
         progressSpinner.draw(guiGraphics, 73, 44);
     }
 
     @Override
-    public List<Component> getTooltipStrings(CentrifugeRecipeWrapper recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+    public List<Component> getTooltipStrings(CentrifugeRecipeWrapper recipe, IRecipeSlotsView recipeSlotsView,
+                                             double mouseX, double mouseY) {
+        List<Component> tips = new ArrayList<>();
         if (mouseX >= 73 && mouseX <= 105 && mouseY >= 44 && mouseY <= 76) {
-            return List.of(
-                    Component.translatable("jei.bioforge.centrifuge.processing_time",
-                            recipe.getProcessingTime())
-            );
+            tips.add(Component.translatable("jei.bioforge.centrifuge.processing_time",
+                    recipe.getProcessingTime()));
+            if (recipe.isCopyBloodData()) {
+                tips.add(Component.translatable("jei.bioforge.centrifuge.transfers_blood"));
+            }
+            if (recipe.isCopyInfection()) {
+                tips.add(Component.translatable("jei.bioforge.centrifuge.transfers_infection"));
+            }
         }
-        return List.of();
+        return tips;
     }
 }

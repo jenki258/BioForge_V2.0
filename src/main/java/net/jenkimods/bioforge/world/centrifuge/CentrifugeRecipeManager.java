@@ -32,32 +32,44 @@ public class CentrifugeRecipeManager extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager resourceManager, ProfilerFiller profiler) {
         recipes.clear();
-
-        elements.forEach((id, element) -> {
+        for (var entry : elements.entrySet()) {
+            ResourceLocation id = entry.getKey();
             try {
-                JsonObject json = GsonHelper.convertToJsonObject(element, "centrifuge recipe");
+                JsonObject json = GsonHelper.convertToJsonObject(entry.getValue(), "centrifuge recipe");
 
                 String inputStr = GsonHelper.getAsString(json, "input");
-                String outputStr = GsonHelper.getAsString(json, "output");
-
                 CentrifugeIngredient input = CentrifugeIngredient.parse(inputStr);
-                CentrifugeIngredient output = CentrifugeIngredient.parse(outputStr);
 
-                boolean copyBloodData = GsonHelper.getAsBoolean(json, "copy_blood_data", true);
+                List<CentrifugeOutput> outputList = new ArrayList<>();
+                CentrifugeIngredient singleOutput = null;
+                if (json.has("outputs")) {
+                    JsonArray outs = GsonHelper.getAsJsonArray(json, "outputs");
+                    for (JsonElement e : outs) {
+                        JsonObject outObj = e.getAsJsonObject();
+                        String outStr = GsonHelper.getAsString(outObj, "item");
+                        int weight = GsonHelper.getAsInt(outObj, "weight", 1);
+                        outputList.add(new CentrifugeOutput(CentrifugeIngredient.parse(outStr), weight));
+                    }
+                } else if (json.has("output")) {
+                    String outputStr = GsonHelper.getAsString(json, "output");
+                    singleOutput = CentrifugeIngredient.parse(outputStr);
+                } else {
+                    throw new JsonParseException("Recipe must have 'output' or 'outputs'");
+                }
+
+                boolean copyBloodData = GsonHelper.getAsBoolean(json, "copy_blood_data", false);
                 boolean copyNbt = GsonHelper.getAsBoolean(json, "copy_nbt", false);
-                int processingTime = Math.max(1, GsonHelper.getAsInt(json, "processing_time", 100));
-
+                int processingTime = GsonHelper.getAsInt(json, "processing_time", 100);
+                boolean copyInfection = GsonHelper.getAsBoolean(json, "copy_infection", false);
                 JsonArray keysArray = GsonHelper.getAsJsonArray(json, "copy_nbt_keys", new JsonArray());
-                List<String> keys = StreamSupport.stream(keysArray.spliterator(), false)
-                        .map(JsonElement::getAsString)
-                        .toList();
+                List<String> keys = new ArrayList<>();
+                for (JsonElement e : keysArray) keys.add(e.getAsString());
 
-                recipes.add(new CentrifugeRecipe(input, output, copyBloodData, copyNbt, keys, processingTime));
+                recipes.add(new CentrifugeRecipe(input, singleOutput, outputList, copyBloodData, copyNbt, keys, copyInfection, processingTime));
             } catch (Exception ex) {
                 BioForge.LOGGER.error("Failed to parse centrifuge recipe {}: {}", id, ex.getMessage());
             }
-        });
-
+        }
         BioForge.LOGGER.info("Loaded {} centrifuge recipes", recipes.size());
     }
 

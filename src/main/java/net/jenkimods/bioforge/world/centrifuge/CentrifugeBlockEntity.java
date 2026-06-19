@@ -2,6 +2,7 @@ package net.jenkimods.bioforge.world.centrifuge;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.item.BloodSampleUtil;
+import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -92,18 +93,43 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
                 continue;
             }
 
-            Item outputItem = recipe.output().resolveItem(level.random);
+            be.progress[slot] = 0;
 
+            CentrifugeIngredient chosenIngredient;
+            if (!recipe.outputs().isEmpty()) {
+                int totalWeight = recipe.outputs().stream().mapToInt(CentrifugeOutput::weight).sum();
+                int roll = level.random.nextInt(totalWeight);
+                int cumulative = 0;
+                CentrifugeOutput selected = recipe.outputs().get(0);
+                for (CentrifugeOutput out : recipe.outputs()) {
+                    cumulative += out.weight();
+                    if (roll < cumulative) {
+                        selected = out;
+                        break;
+                    }
+                }
+                chosenIngredient = selected.ingredient();
+            } else {
+                chosenIngredient = recipe.output();
+            }
+
+            Item outputItem = chosenIngredient.resolveItem(level.random);
             if (outputItem == null) {
-                be.progress[slot] = 0;
                 changed = true;
                 continue;
             }
 
             ItemStack output = new ItemStack(outputItem, input.getCount());
 
-            if (recipe.copyBloodData()) {
+            if (recipe.copyBloodData() && BloodSampleUtil.hasBlood(input)) {
                 BloodSampleUtil.copy(input, output);
+            }
+
+            if (recipe.copyInfection()) {
+                String inf = NbtObfuscator.readInfection(input.getOrCreateTag());
+                if (inf != null && !inf.isEmpty()) {
+                    NbtObfuscator.writeInfection(output.getOrCreateTag(), inf);
+                }
             }
 
             if (recipe.copyNbt() && input.hasTag()) {
@@ -119,7 +145,6 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
             }
 
             be.items.setStackInSlot(slot, output);
-            be.progress[slot] = 0;
             changed = true;
         }
 
