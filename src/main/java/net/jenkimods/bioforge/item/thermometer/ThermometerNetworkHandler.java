@@ -30,23 +30,9 @@ public class ThermometerNetworkHandler {
                 ThermometerShakePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
-        CHANNEL.registerMessage(1,
-                ThermometerReadingPacket.class,
-                ThermometerReadingPacket::encode,
-                ThermometerReadingPacket::decode,
-                ThermometerReadingPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
-        );
     }
 
     public static void sendShake(boolean mainHand) {
         CHANNEL.sendToServer(new ThermometerShakePacket(mainHand));
-    }
-
-    public static void sendReading(ServerPlayer player, boolean mainHand, boolean tempPlus,
-                                   boolean tempMinus, String targetName, long cooldownUntil,
-                                   UUID targetUUID) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new ThermometerReadingPacket(mainHand, tempPlus, tempMinus, targetName, cooldownUntil, targetUUID));
     }
 }

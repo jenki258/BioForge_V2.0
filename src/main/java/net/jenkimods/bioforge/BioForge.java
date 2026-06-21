@@ -16,7 +16,6 @@ import net.jenkimods.bioforge.item.bones.SplitBoneItem;
 import net.jenkimods.bioforge.item.bones.WitheredBoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.WitheredSplitBoneItem;
 import net.jenkimods.bioforge.item.clipboard.ClipboardItem;
-import net.jenkimods.bioforge.item.clipboard.ClipboardNetworkHandler;
 import net.jenkimods.bioforge.item.clipboard.MedicalReportItem;
 import net.jenkimods.bioforge.item.infection.*;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
@@ -156,7 +155,6 @@ public class BioForge {
             ReflexHammerNetworkHandler.register();
             PulseOximeterNetworkHandler.register();
             InfectionNetworkHandler.register();
-            ClipboardNetworkHandler.register();
         });
     }
 

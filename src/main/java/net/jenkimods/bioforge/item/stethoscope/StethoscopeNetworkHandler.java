@@ -64,6 +64,7 @@ public class StethoscopeNetworkHandler {
         public static StethoscopeRequestPacket decode(FriendlyByteBuf buf) {
             return new StethoscopeRequestPacket(buf.readInt(), buf.readBoolean());
         }
+
         public static void handle(StethoscopeRequestPacket msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
                 ServerPlayer player = ctx.get().getSender();
