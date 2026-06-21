@@ -2,15 +2,11 @@ package net.jenkimods.bioforge.item.stethoscope;
 
 import net.jenkimods.bioforge.infection.HeartRate;
 import net.jenkimods.bioforge.infection.LungSound;
-import net.jenkimods.bioforge.item.clipboard.ClipboardClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
-
-import java.util.UUID;
 
 public class StethoscopeClientHandler {
 
@@ -25,13 +21,11 @@ public class StethoscopeClientHandler {
     private static boolean hasReading = false;
     private static SoundInstance heartSoundInstance = null;
     private static SoundInstance lungSoundInstance = null;
-    private static long listeningStartTime = 0;
 
     public static void beginListening(int entityId) {
         if (listening && entityId == targetEntityId) return;
         stopSounds();
         listening = true;
-        listeningStartTime = System.currentTimeMillis();
         targetEntityId = entityId;
         hasReading = false;
         heartRate = HeartRate.NORMAL;
@@ -42,22 +36,6 @@ public class StethoscopeClientHandler {
     public static void applyReading(HeartRate hr, LungSound ls, String name) {
         stopSounds();
         hasReading = true;
-        if (System.currentTimeMillis() - listeningStartTime >= 5000) {
-            if (ClipboardClientHandler.hasPatient()) {
-                UUID clipboardUUID = ClipboardClientHandler.getSubjectUUID();
-                UUID targetUUID = null;
-                if (targetEntityId == -1) {
-                    targetUUID = Minecraft.getInstance().player.getUUID();
-                } else if (Minecraft.getInstance().level != null) {
-                    Entity e = Minecraft.getInstance().level.getEntity(targetEntityId);
-                    if (e != null) targetUUID = e.getUUID();
-                }
-                if (clipboardUUID != null && clipboardUUID.equals(targetUUID)) {
-                    ClipboardClientHandler.recordHeart(hr.name(), false);
-                    ClipboardClientHandler.recordLungs(ls.name(), false);
-                }
-            }
-        }
         heartRate = hr;
         lungSound = ls;
         if (!name.isEmpty()) {

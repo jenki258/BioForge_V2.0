@@ -3,7 +3,6 @@ package net.jenkimods.bioforge.item;
 import net.jenkimods.bioforge.blood.BloodType;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledge;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
-import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -13,11 +12,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public class CellPelletItem extends Item {
 
@@ -30,6 +30,7 @@ public class CellPelletItem extends Item {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         if (!hasBlood(stack)) {
             tooltip.add(Component.translatable("item.bioforge.cell_pellet.empty").withStyle(ChatFormatting.GRAY));
@@ -47,6 +48,7 @@ public class CellPelletItem extends Item {
         appendKnowledgeLines(data, tooltip);
     }
 
+    @OnlyIn(Dist.CLIENT)
     private static void appendKnowledgeLines(ObfuscatedData data, List<Component> tooltip) {
         if (data.subjectUUID() == null) return;
         Minecraft mc = Minecraft.getInstance();

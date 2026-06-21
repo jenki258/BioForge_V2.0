@@ -1,6 +1,13 @@
 package net.jenkimods.bioforge.item.stethoscope;
 
 import net.jenkimods.bioforge.BioForgeTags;
+import net.jenkimods.bioforge.infection.HeartRate;
+import net.jenkimods.bioforge.infection.InfectionCapability;
+import net.jenkimods.bioforge.infection.InfectionData;
+import net.jenkimods.bioforge.infection.LungSound;
+import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.item.clipboard.ClipboardHelper;
+import net.jenkimods.bioforge.util.HitResultUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -78,6 +85,17 @@ public class StethoscopeItem extends Item {
                 StethoscopeClientHandler.beginListening(targetId);
             }
             StethoscopeNetworkHandler.sendRequest(targetId, player.getUsedItemHand() == InteractionHand.MAIN_HAND);
+        } else if (usedTicks >= 100) {
+            EntityHitResult hitResult = HitResultUtil.getHitResult(player);
+            Entity target = hitResult == null ? null : hitResult.getEntity();
+            LivingEntity subject = target instanceof LivingEntity living ? living : player;
+            InfectionData data = InfectionCapability.get(target);
+            HeartRate heartRate = data != null
+                    ? data.getSymptom(BioForgeSymptoms.HEART_RATE) : HeartRate.NORMAL;
+            LungSound lungSound = data != null
+                    ? data.getSymptom(BioForgeSymptoms.LUNG_SOUND) : LungSound.NORMAL;
+            ClipboardHelper.recordHeart(heartRate.name(), false, player, subject.getUUID());
+            ClipboardHelper.recordLungs(lungSound.name(), false, player, subject.getUUID());
         }
     }
 

@@ -33,24 +33,11 @@ public class NetworkHandler {
                 BloodSyncPacket::handle,
                 java.util.Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
-
-        CHANNEL.registerMessage(
-                id++,
-                BloodReagentResultPacket.class,
-                BloodReagentResultPacket::encode,
-                BloodReagentResultPacket::decode,
-                BloodReagentResultPacket::handle,
-                java.util.Optional.of(NetworkDirection.PLAY_TO_CLIENT)
-        );
     }
 
     public static <MSG> void sendToPlayer(MSG message, ServerPlayer player) {
 
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
-    }
-
-    public static void sendReagentResult(ServerPlayer player, BloodReagentResultPacket packet) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
     }
 
     public static <MSG> void sendToAll(MSG message) {

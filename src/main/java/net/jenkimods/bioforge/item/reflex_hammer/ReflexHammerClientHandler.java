@@ -2,7 +2,6 @@ package net.jenkimods.bioforge.item.reflex_hammer;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.client.BioForgeKeyBindings;
-import net.jenkimods.bioforge.item.clipboard.ClipboardClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,7 +11,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Random;
-import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = BioForge.MODID, value = net.minecraftforge.api.distmarker.Dist.CLIENT)
 public class ReflexHammerClientHandler {
@@ -144,20 +142,6 @@ public class ReflexHammerClientHandler {
         summaryVisible = true;
         summaryShowTime = System.currentTimeMillis();
         charging = false;
-        if (ClipboardClientHandler.hasPatient()) {
-            UUID clipboardUUID = ClipboardClientHandler.getSubjectUUID();
-            UUID targetUUID = null;
-            if (isSelfMode()) targetUUID = Minecraft.getInstance().player.getUUID();
-            else if (targetEntityId >= 0 && Minecraft.getInstance().level != null) {
-                Entity e = Minecraft.getInstance().level.getEntity(targetEntityId);
-                if (e != null) targetUUID = e.getUUID();
-            }
-            if (clipboardUUID != null && clipboardUUID.equals(targetUUID)) {
-                String delayStr = delay > 0.3f ? "High" : (delay > 0.15f ? "Moderate" : "Low");
-                String strengthStr = strength > 0.7f ? "High" : (strength > 0.3f ? "Moderate" : "Low");
-                ClipboardClientHandler.recordReflex(delayStr, strengthStr, false);
-            }
-        }
     }
 
     @SubscribeEvent

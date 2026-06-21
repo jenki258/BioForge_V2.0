@@ -10,6 +10,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -66,6 +68,7 @@ public final class BloodSampleUtil {
         appendKnowledgeLines(raw, tooltip);
     }
 
+    @OnlyIn(Dist.CLIENT)
     private static void appendKnowledgeLines(ObfuscatedData raw, List<Component> tooltip) {
         if (raw.subjectUUID() == null) return;
 

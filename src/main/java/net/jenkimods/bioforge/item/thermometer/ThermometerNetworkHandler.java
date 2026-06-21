@@ -2,14 +2,11 @@ package net.jenkimods.bioforge.item.thermometer;
 
 import net.jenkimods.bioforge.BioForge;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class ThermometerNetworkHandler {
 
@@ -30,23 +27,9 @@ public class ThermometerNetworkHandler {
                 ThermometerShakePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
-        CHANNEL.registerMessage(1,
-                ThermometerReadingPacket.class,
-                ThermometerReadingPacket::encode,
-                ThermometerReadingPacket::decode,
-                ThermometerReadingPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
-        );
     }
 
     public static void sendShake(boolean mainHand) {
         CHANNEL.sendToServer(new ThermometerShakePacket(mainHand));
-    }
-
-    public static void sendReading(ServerPlayer player, boolean mainHand, boolean tempPlus,
-                                   boolean tempMinus, String targetName, long cooldownUntil,
-                                   UUID targetUUID) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new ThermometerReadingPacket(mainHand, tempPlus, tempMinus, targetName, cooldownUntil, targetUUID));
     }
 }

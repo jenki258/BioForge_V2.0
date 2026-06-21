@@ -1,6 +1,11 @@
 package net.jenkimods.bioforge.item.pulse_oximeter;
 
 import net.jenkimods.bioforge.BioForgeTags;
+import net.jenkimods.bioforge.infection.InfectionCapability;
+import net.jenkimods.bioforge.infection.InfectionData;
+import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.item.clipboard.ClipboardHelper;
+import net.jenkimods.bioforge.util.HitResultUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -55,6 +60,14 @@ public class PulseOximeterItem extends Item {
                 targetId = target.getId();
             }
             PulseOximeterNetworkHandler.sendRequest(targetId);
+        } else if (usedTicks >= 50) {
+            EntityHitResult hitResult = HitResultUtil.getHitResult(player);
+            Entity target = hitResult == null ? null : hitResult.getEntity();
+            LivingEntity subject = target instanceof LivingEntity living ? living : player;
+            InfectionData data = InfectionCapability.get(subject);
+            float o2 = data != null ? data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION) : 0.95f;
+            float perf = data != null ? data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX) : 0.7f;
+            ClipboardHelper.recordOxygenSat(o2, perf, false, player, subject.getUUID());
         }
     }
 

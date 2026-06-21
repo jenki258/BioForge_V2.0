@@ -4,6 +4,7 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.InfectionCapability;
 import net.jenkimods.bioforge.infection.InfectionData;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.item.clipboard.ClipboardHelper;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -125,6 +126,9 @@ public class ReflexHammerNetworkHandler {
                     strengths.add(effectiveStrength);
                     if (strengths.size() >= 5) {
                         sendSummary(player, reflexDelay, reflexStrength, neuralDamage);
+                        String delayStr = reflexDelay > 0.3f ? "High" : (reflexDelay > 0.15f ? "Moderate" : "Low");
+                        String strengthStr = reflexStrength > 0.7f ? "High" : (reflexStrength > 0.3f ? "Moderate" : "Low");
+                        ClipboardHelper.recordReflex(delayStr, strengthStr, false, player, target.getUUID());
                         strengths.clear();
                     }
                 } else {
