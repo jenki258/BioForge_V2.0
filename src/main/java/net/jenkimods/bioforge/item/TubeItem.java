@@ -57,11 +57,15 @@ public class TubeItem extends Item {
 
         ObfuscatedData data = BloodSampleUtil.getData(tool);
         if (data == null) return InteractionResultHolder.fail(slide);
-        BloodSampleUtil.setData(ItemStack.of(slide.getOrCreateTag()), data.amount(), BloodType.fromName(data.typeName()), data.sourceName(), data.subjectUUID());
+        BloodSampleUtil.setData(slide, data.amount(),
+                BloodType.fromName(data.typeName()), data.sourceName(), data.subjectUUID());
 
-        String infectionStrain = NbtObfuscator.readString(tool.getOrCreateTag());
+        String infectionStrain = NbtObfuscator.readInfection(tool.getOrCreateTag());
+        if (infectionStrain == null || infectionStrain.isEmpty()) {
+            infectionStrain = NbtObfuscator.readString(tool.getOrCreateTag());
+        }
         if (infectionStrain != null && !infectionStrain.isEmpty()) {
-            NbtObfuscator.writeStringDeterministic(slide.getOrCreateTag(), infectionStrain);
+            NbtObfuscator.writeInfection(slide.getOrCreateTag(), infectionStrain);
         }
 
         if (tool.getItem() instanceof SyringeItem) {

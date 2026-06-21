@@ -56,6 +56,7 @@ public class BFCreativeTabs {
                     .icon(() -> new ItemStack(BioForge.CENTRIFUGE_ITEM.get()))
                     .displayItems((params, output) -> {
                         output.accept(BioForge.CENTRIFUGE_ITEM.get());
+                        output.accept(BioForge.MICROSCOPE_ITEM.get());
                     })
                     .build());
 

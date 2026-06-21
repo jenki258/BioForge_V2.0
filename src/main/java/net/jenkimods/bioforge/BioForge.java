@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.jenkimods.bioforge.block.*;
 import net.jenkimods.bioforge.client.CentrifugeScreen;
 import net.jenkimods.bioforge.blood.network.NetworkHandler;
+import net.jenkimods.bioforge.client.MicroscopeScreen;
 import net.jenkimods.bioforge.infection.command.InfectCommand;
 import net.jenkimods.bioforge.infection.network.InfectionNetworkHandler;
 import net.jenkimods.bioforge.item.BloodSlideItem;
@@ -37,7 +38,12 @@ import net.jenkimods.bioforge.item.thermometer.ThermometerNetworkHandler;
 import net.jenkimods.bioforge.registry.BFCreativeTabs;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeBlockEntity;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeMenu;
+import net.jenkimods.bioforge.world.microscope.MicroscopeBlockEntity;
+import net.jenkimods.bioforge.world.microscope.MicroscopeMenu;
+import net.jenkimods.bioforge.world.microscope.MicroscopeNetwork;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.inventory.MenuType;
@@ -60,6 +66,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
+import static net.minecraftforge.registries.ForgeRegistries.MENU_TYPES;
+
 @Mod(BioForge.MODID)
 public class BioForge {
     public static final String MODID = "bioforge";
@@ -70,7 +78,7 @@ public class BioForge {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
-    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(MENU_TYPES, MODID);
 
     public static final RegistryObject<Item> WOODEN_NEEDLE = ITEMS.register("wooden_needle", () -> new NeedleItem(NeedleItem.Tier.WOODEN));
     public static final RegistryObject<Item> IRON_NEEDLE = ITEMS.register("iron_needle", () -> new NeedleItem(NeedleItem.Tier.IRON));
@@ -135,6 +143,14 @@ public class BioForge {
     public static final RegistryObject<Item> PLASMA_SAMPLE = ITEMS.register("plasma_sample", PlasmaSampleItem::new);
     public static final RegistryObject<Item> CELL_PELLET = ITEMS.register("cell_pellet", CellPelletItem::new);
 
+    public static final RegistryObject<Block> MICROSCOPE = BLOCKS.register("microscope", MicroscopeBlock::new);
+    public static final RegistryObject<BlockEntityType<MicroscopeBlockEntity>> MICROSCOPE_BE =
+            BLOCK_ENTITIES.register("microscope", () ->
+                    BlockEntityType.Builder.of(MicroscopeBlockEntity::new, MICROSCOPE.get()).build(null));
+    public static final RegistryObject<MenuType<MicroscopeMenu>> MICROSCOPE_MENU  = MENUS.register("microscope", () -> net.minecraftforge.common.extensions.IForgeMenuType.create(MicroscopeMenu::new));
+    public static final RegistryObject<BlockItem> MICROSCOPE_ITEM = ITEMS.register("microscope",
+            () -> new BlockItem(MICROSCOPE.get(), new Item.Properties()));
+
     public BioForge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
         BLOCKS.register(modEventBus);
@@ -157,6 +173,7 @@ public class BioForge {
             PulseOximeterNetworkHandler.register();
             InfectionNetworkHandler.register();
             ClipboardNetworkHandler.register();
+            MicroscopeNetwork.register();
         });
     }
 
@@ -188,6 +205,7 @@ public class BioForge {
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.ANTI_B_VIAL.get(), reactedRL, (stack, level, entity, seed) -> ReagentVialItem.getReactedPredicate(stack));
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.ANTI_D_VIAL.get(), reactedRL, (stack, level, entity, seed) -> ReagentVialItem.getReactedPredicate(stack));
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.CENTRIFUGE_MENU.get(), CentrifugeScreen::new);
+                net.minecraft.client.gui.screens.MenuScreens.register(BioForge.MICROSCOPE_MENU.get(), MicroscopeScreen::new);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.THERMOMETER_ITEM.get(), ResourceLocation.tryBuild(BioForge.MODID, "ready"), (stack, level, entity, seed) -> ThermometerItem.isReady(stack) ? 1.0f : 0.0f);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;});
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.BLOOD_SLIDE.get(), ResourceLocation.tryBuild(BioForge.MODID, "blood_slide_filled"), (stack, level, entity, seed) -> BloodSlideItem.hasBlood(stack) ? 1.0f : 0.0f);
