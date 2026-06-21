@@ -2,11 +2,10 @@ package net.jenkimods.bioforge.item.reagents;
 
 import net.jenkimods.bioforge.blood.BloodType;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
-import net.jenkimods.bioforge.blood.network.BloodReagentResultPacket;
-import net.jenkimods.bioforge.blood.network.NetworkHandler;
 import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.item.bones.BoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.WitheredBoneMarrowItem;
+import net.jenkimods.bioforge.item.clipboard.ClipboardHelper;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
 import net.jenkimods.bioforge.item.needle.SyringeItem;
 import net.jenkimods.bioforge.world.data.ReagentType;
@@ -118,18 +117,14 @@ public class ReagentVialItem extends Item {
                         reacted
                 );
 
-                if (sp instanceof ServerPlayer) {
-                    ServerPlayer serverPlayer = sp;
-                    NetworkHandler.sendReagentResult(sp,
-                            new BloodReagentResultPacket(
-                                    sourceName,
-                                    bloodType.getDisplayName(),
-                                    type == Type.ANTI_A ? reacted : null,
-                                    type == Type.ANTI_B ? reacted : null,
-                                    type == Type.ANTI_D ? reacted : null,
-                                    needleData.subjectUUID()
-                            ));
-                }
+                ClipboardHelper.recordBloodData(
+                        bloodType.getDisplayName(),
+                        type == Type.ANTI_A ? reacted : null,
+                        type == Type.ANTI_B ? reacted : null,
+                        type == Type.ANTI_D ? reacted : null,
+                        player,
+                        needleData.subjectUUID()
+                );
             }
         }
 

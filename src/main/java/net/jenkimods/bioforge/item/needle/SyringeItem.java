@@ -8,7 +8,6 @@ import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +23,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -47,7 +48,7 @@ public class SyringeItem extends Item {
             return InteractionResultHolder.pass(stack);
         }
 
-        if (level.isClientSide()) return InteractionResultHolder.pass(stack);
+        if (level.isClientSide()) return super.use(level, player, hand);
         if (!(player instanceof ServerPlayer sp)) return InteractionResultHolder.pass(stack);
 
         if (BloodSampleUtil.hasBlood(stack)) {
@@ -77,22 +78,22 @@ public class SyringeItem extends Item {
     }
 
     @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity living, InteractionHand hand) {
         Level level = player.level();
-        if (level.isClientSide()) return InteractionResult.SUCCESS;
+        if (level.isClientSide()) return super.interactLivingEntity(stack, player, living, hand);
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.FAIL;
 
         if (!BloodSampleUtil.hasBlood(stack)) return InteractionResult.PASS;
 
-        BloodData targetData = BloodCapability.get(target);
+        BloodData targetData = BloodCapability.get(living);
         if (targetData == null) return InteractionResult.FAIL;
 
         targetData.addBlood(BLOOD_TRANSFER);
-        applyStoredInfection(stack, target);
+        applyStoredInfection(stack, living);
         consumeUse(stack);
         player.setItemInHand(hand, stack);
 
-        level.playSound(null, target.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+        level.playSound(null, living.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
         return InteractionResult.SUCCESS;
     }
 
@@ -180,6 +181,7 @@ public class SyringeItem extends Item {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         if (!hasBlood(stack)) {
             tooltip.add(Component.translatable("item.bioforge.syringe.empty").withStyle(ChatFormatting.DARK_GRAY));
@@ -202,9 +204,10 @@ public class SyringeItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.warning_blood").withStyle(ChatFormatting.DARK_RED));
     }
 
+    @OnlyIn(Dist.CLIENT)
     private static void appendKnowledgeLines(ObfuscatedData data, List<Component> tooltip) {
         if (data.subjectUUID() == null) return;
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
         MinecraftServer server = mc.getSingleplayerServer();
         if (server == null) return;

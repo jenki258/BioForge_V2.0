@@ -1,15 +1,12 @@
 package net.jenkimods.bioforge.item.pulse_oximeter;
 
 import net.jenkimods.bioforge.BioForge;
-import net.jenkimods.bioforge.item.clipboard.ClipboardClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-
-import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = BioForge.MODID, value = net.minecraftforge.api.distmarker.Dist.CLIENT)
 public class PulseOximeterClientHandler {
@@ -55,19 +52,6 @@ public class PulseOximeterClientHandler {
         selfMode = self;
         targetEntityId = entityId;
         targetName = name;
-
-        if (ClipboardClientHandler.hasPatient() && System.currentTimeMillis() - startTime >= 2500) {
-            UUID clipboardUUID = ClipboardClientHandler.getSubjectUUID();
-            UUID targetUUID = null;
-            if (self) targetUUID = Minecraft.getInstance().player.getUUID();
-            else if (entityId >= 0 && Minecraft.getInstance().level != null) {
-                Entity e = Minecraft.getInstance().level.getEntity(entityId);
-                if (e != null) targetUUID = e.getUUID();
-            }
-            if (clipboardUUID != null && clipboardUUID.equals(targetUUID)) {
-                ClipboardClientHandler.recordOxygenSat(o2, perf, false);
-            }
-        }
     }
 
     public static void stopInspection() {

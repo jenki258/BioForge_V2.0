@@ -5,6 +5,8 @@ import net.jenkimods.bioforge.infection.LungSound;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -41,10 +43,26 @@ public class StethoscopeReadingPacket {
 
     public static void handle(StethoscopeReadingPacket msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
-            Player player = Minecraft.getInstance().player;
-            if (player == null) return;
-            StethoscopeClientHandler.applyReading(msg.heartRate, msg.lungSound, msg.targetName);
+            net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                    net.minecraftforge.api.distmarker.Dist.CLIENT,
+                    () -> () -> ClientHandler.handle(msg)
+            );
         });
         ctx.get().setPacketHandled(true);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public class ClientHandler {
+
+        public static void handle(StethoscopeReadingPacket msg) {
+            Player player = Minecraft.getInstance().player;
+            if (player == null) return;
+
+            StethoscopeClientHandler.applyReading(
+                    msg.heartRate,
+                    msg.lungSound,
+                    msg.targetName
+            );
+        }
     }
 }

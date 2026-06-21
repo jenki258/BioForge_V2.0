@@ -4,6 +4,8 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.InfectionCapability;
 import net.jenkimods.bioforge.infection.InfectionData;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.item.clipboard.ClipboardHelper;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,6 +17,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class PulseOximeterNetworkHandler {
@@ -56,18 +59,21 @@ public class PulseOximeterNetworkHandler {
             ctx.get().enqueueWork(() -> {
                 ServerPlayer sender = ctx.get().getSender();
                 if (sender == null) return;
-                LivingEntity target = null;
-                if (msg.entityId == -1) target = sender;
-                else {
+                LivingEntity subject = null;
+                if (msg.entityId == -1) {
+                    subject = sender;
+                } else {
                     Entity e = sender.level().getEntity(msg.entityId);
-                    if (e instanceof LivingEntity le) target = le;
+                    if (e instanceof LivingEntity le) subject = le;
                 }
-                if (target == null) return;
+                if (subject == null) {
+                    return;
+                }
 
-                InfectionData data = InfectionCapability.get(target);
+                InfectionData data = InfectionCapability.get(subject);
                 float o2 = data != null ? data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION) : 0.95f;
                 float perf = data != null ? data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX) : 0.7f;
-                String name = (msg.entityId != -1) ? target.getDisplayName().getString() : "";
+                String name = (msg.entityId != -1) ? subject.getDisplayName().getString() : "";
                 sendData(sender, o2, perf, msg.entityId == -1, msg.entityId, name);
             });
             ctx.get().setPacketHandled(true);

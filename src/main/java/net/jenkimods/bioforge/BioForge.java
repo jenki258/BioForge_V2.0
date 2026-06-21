@@ -17,7 +17,6 @@ import net.jenkimods.bioforge.item.bones.SplitBoneItem;
 import net.jenkimods.bioforge.item.bones.WitheredBoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.WitheredSplitBoneItem;
 import net.jenkimods.bioforge.item.clipboard.ClipboardItem;
-import net.jenkimods.bioforge.item.clipboard.ClipboardNetworkHandler;
 import net.jenkimods.bioforge.item.clipboard.MedicalReportItem;
 import net.jenkimods.bioforge.item.infection.*;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
@@ -50,7 +49,6 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -172,7 +170,6 @@ public class BioForge {
             ReflexHammerNetworkHandler.register();
             PulseOximeterNetworkHandler.register();
             InfectionNetworkHandler.register();
-            ClipboardNetworkHandler.register();
             MicroscopeNetwork.register();
         });
     }

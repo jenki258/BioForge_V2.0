@@ -70,29 +70,29 @@ public class OtoscopeNetworkHandler {
                 if (sender == null) return;
                 Level level = sender.level();
                 float redness = 0, lesions = 0, secretion = 0, swelling = 0;
-                boolean self = false;
+                LivingEntity subject;
                 if (msg.entityId == -1) {
-                    self = true;
-                    InfectionData data = InfectionCapability.get(sender);
-                    if (data != null) {
-                        redness = data.getSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS);
-                        lesions = data.getSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS);
-                        secretion = data.getSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION);
-                        swelling = data.getSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING);
-                    }
+                    subject = sender;
                 } else {
                     Entity entity = level.getEntity(msg.entityId);
                     if (entity instanceof LivingEntity living && !living.getType().is(OtoscopeItem.NO_OTOSCOPE_TAG)) {
-                        InfectionData data = InfectionCapability.get(living);
-                        if (data != null) {
-                            redness = data.getSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS);
-                            lesions = data.getSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS);
-                            secretion = data.getSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION);
-                            swelling = data.getSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING);
-                        }
+                        subject = living;
+                    } else {
+                        subject = null;
                     }
                 }
-                sendData(sender, redness, lesions, secretion, swelling, self, msg.entityId);
+                if (subject == null) {
+                    return;
+                }
+                InfectionData data = InfectionCapability.get(subject);
+                if (data != null) {
+                    redness = data.getSymptom(BioForgeSymptoms.OTOSCOPE_REDNESS);
+                    lesions = data.getSymptom(BioForgeSymptoms.OTOSCOPE_LESIONS);
+                    secretion = data.getSymptom(BioForgeSymptoms.OTOSCOPE_SECRETION);
+                    swelling = data.getSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING);
+                }
+
+                sendData(sender, redness, lesions, secretion, swelling, subject == sender, msg.entityId);
             });
             ctx.get().setPacketHandled(true);
         }
