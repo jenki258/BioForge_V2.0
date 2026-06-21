@@ -1,0 +1,30 @@
+package net.jenkimods.bioforge.world.microscope;
+
+import net.jenkimods.bioforge.BioForge;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraft.server.level.ServerPlayer;
+import java.util.Optional;
+
+public class MicroscopeNetwork {
+    private static final String PROTOCOL = "1";
+    private static SimpleChannel CHANNEL;
+
+    public static void register() {
+        CHANNEL = NetworkRegistry.newSimpleChannel(
+                ResourceLocation.tryBuild(BioForge.MODID, "microscope"),
+                () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals
+        );
+        CHANNEL.registerMessage(0, MicroscopeSyncPacket.class,
+                MicroscopeSyncPacket::encode, MicroscopeSyncPacket::decode,
+                MicroscopeSyncPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+    }
+
+    public static void sendToPlayer(MicroscopeSyncPacket packet, ServerPlayer player) {
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
+    }
+}

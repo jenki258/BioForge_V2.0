@@ -73,6 +73,8 @@
   "block.bioforge.centrifuge.no_recipe":      "No centrifuge recipe for this item.",
   "block.bioforge.centrifuge.missing_sample": "Input has no blood data.",
   "jei.bioforge.centrifuge.processing_time":  "Processing time: %s ticks",
+  "jei.bioforge.centrifuge.transfers_blood": "Transfers blood data",
+  "jei.bioforge.centrifuge.transfers_infection": "Transfers infection",
 
   "item.bioforge.bone_marrow":                   "Bone Marrow",
   "item.bioforge.bone_marrow.tooltip.empty":     "No marrow data",
@@ -331,5 +333,16 @@
   "item.bioforge.cell_pellet.reactions": "Reagent results:",
   "item.bioforge.cell_pellet.anti_a": "Anti-A: %s",
   "item.bioforge.cell_pellet.anti_b": "Anti-B: %s",
-  "item.bioforge.cell_pellet.anti_d": "Anti-D (Rh): %s"
+  "item.bioforge.cell_pellet.anti_d": "Anti-D (Rh): %s",
+
+  "microscope.symptom.heart_rate": "Heart Rate",
+  "microscope.symptom.heart_rate.normal": "Normal",
+  "microscope.symptom.heart_rate.tachy": "Tachycardia",
+  "microscope.symptom.heart_rate.brady": "Bradycardia",
+  "microscope.symptom.temperature_plus": "Fever",
+  "microscope.symptom.temperature_minus": "Hypothermia",
+  "microscope.symptom.infection_strength": "Infection Strength",
+  "microscope.symptom.lung_sound": "Lung Sound",
+  "microscope.symptom.lung_sound.normal": "Clear",
+  "microscope.symptom.lung_sound.crackle": "Crackles"
 }

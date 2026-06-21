@@ -1,6 +1,7 @@
 package net.jenkimods.bioforge.compat.jei;
 
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeIngredient;
+import net.jenkimods.bioforge.world.centrifuge.CentrifugeOutput;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeRecipe;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +19,15 @@ public class CentrifugeRecipeWrapper {
     public CentrifugeRecipeWrapper(CentrifugeRecipe recipe) {
         this.recipe = recipe;
         this.inputs = resolveIngredient(recipe.input());
-        this.outputs = resolveIngredient(recipe.output());
+        this.outputs = new ArrayList<>();
+
+        if (!recipe.outputs().isEmpty()) {
+            for (CentrifugeOutput out : recipe.outputs()) {
+                outputs.addAll(resolveIngredient(out.ingredient()));
+            }
+        } else if (recipe.output() != null) {
+            outputs.addAll(resolveIngredient(recipe.output()));
+        }
     }
 
     private static List<ItemStack> resolveIngredient(CentrifugeIngredient ingredient) {
@@ -38,23 +47,10 @@ public class CentrifugeRecipeWrapper {
         return result;
     }
 
-    public List<ItemStack> getInputs() {
-        return inputs;
-    }
-
-    public List<ItemStack> getOutputs() {
-        return outputs;
-    }
-
-    public int getProcessingTime() {
-        return recipe.processingTime();
-    }
-
-    public boolean isCopyBloodData() {
-        return recipe.copyBloodData();
-    }
-
-    public CentrifugeRecipe getRecipe() {
-        return recipe;
-    }
+    public List<ItemStack> getInputs() { return inputs; }
+    public List<ItemStack> getOutputs() { return outputs; }
+    public int getProcessingTime() { return recipe.processingTime(); }
+    public boolean isCopyBloodData() { return recipe.copyBloodData(); }
+    public boolean isCopyInfection() { return recipe.copyInfection(); }
+    public CentrifugeRecipe getRecipe() { return recipe; }
 }

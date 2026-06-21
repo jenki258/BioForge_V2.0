@@ -43,6 +43,8 @@ public final class BioForgeSymptoms {
             SymptomKey.create("colony_radius", Float.class, 20.0f);
     public static final SymptomKey<Float> MAX_INFESTED_BLOCKS =
             SymptomKey.create("max_infested_blocks", Float.class, 100.0f);
+    public static final SymptomKey<MicroscopeVisibility> MICROSCOPE_VISIBILITY =
+            SymptomKey.create("microscope_visibility", MicroscopeVisibility.class, MicroscopeVisibility.NONE);
 
     private static final Map<PathogenType, Map<SymptomKey<?>, float[]>> DEFAULT_RANGES = new EnumMap<>(PathogenType.class);
 
@@ -205,8 +207,19 @@ public final class BioForgeSymptoms {
             case BACTERIA -> 80.0f;
             default -> 100.0f;
         };
+
         data.setSymptom(COLONY_RADIUS, radius);
         data.setSymptom(MAX_INFESTED_BLOCKS, maxBlocks);
+
+        MicroscopeVisibility visibility = switch (pathogen) {
+            case VIRUS -> MicroscopeVisibility.LOW;
+            case BACTERIA -> MicroscopeVisibility.MEDIUM;
+            case FUNGI -> MicroscopeVisibility.HIGH;
+            case PARASITE -> MicroscopeVisibility.VERY_LOW;
+            case PRION -> MicroscopeVisibility.EXTREME;
+            default -> MicroscopeVisibility.NONE;
+        };
+        data.setSymptom(MICROSCOPE_VISIBILITY, visibility);
 
         if (pathogen != null) {
             for (InfectionType t : pathogen.getAllowedTransmissions()) {
