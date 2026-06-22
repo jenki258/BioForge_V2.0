@@ -27,6 +27,7 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     private static final int GRID_W = COLS * CELL_W, GRID_H = 2 * CELL_H;
 
     private int scrollOffset = 0;
+    private boolean isScrolling = false;
 
     public MicroscopeScreen(MicroscopeMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -35,7 +36,27 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     }
 
     @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0 && isMouseOverScrollbar(mouseX, mouseY)) {
+            isScrolling = true;
+            updateScrollFromMouse(mouseY);
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0 && isScrolling) {
+            isScrolling = false;
+            return true;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
     public boolean mouseScrolled(double mx, double my, double delta) {
+        if (isScrolling) return true;
         if (isMouseInGrid(mx, my)) {
             List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntries();
             int totalRows = (int) Math.ceil((double) entries.size() / COLS);
@@ -45,6 +66,28 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
             return true;
         }
         return super.mouseScrolled(mx, my, delta);
+    }
+
+    private boolean isMouseOverScrollbar(double mx, double my) {
+        int totalRows = (int) Math.ceil((double) MicroscopeSymptomConfig.INSTANCE.getEntries().size() / COLS);
+        int visibleRows = GRID_H / CELL_H;
+        if (totalRows <= visibleRows) return false;
+        int sx = leftPos + GRID_X;
+        int sy = topPos + GRID_Y;
+        int sbx = sx + GRID_W + 4;
+        int sbw = 2;
+        return mx >= sbx && mx <= sbx + sbw && my >= sy && my <= sy + GRID_H;
+    }
+
+    private void updateScrollFromMouse(double mouseY) {
+        int totalRows = (int) Math.ceil((double) MicroscopeSymptomConfig.INSTANCE.getEntries().size() / COLS);
+        int visibleRows = GRID_H / CELL_H;
+        int maxScroll = Math.max(0, totalRows - visibleRows);
+        int sy = topPos + GRID_Y;
+        int sbh = GRID_H;
+        double fraction = (mouseY - sy) / (double) sbh;
+        fraction = Math.min(1.0, Math.max(0.0, fraction));
+        scrollOffset = (int) Math.round(fraction * maxScroll);
     }
 
     private boolean isMouseInGrid(double mx, double my) {
@@ -58,6 +101,10 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
         super.render(g, mx, my, pt);
         renderSymptomGrid(g, mx, my);
         renderTooltip(g, mx, my);
+
+        if (isScrolling) {
+            updateScrollFromMouse(my);
+        }
     }
 
     private void renderSymptomGrid(GuiGraphics g, int mouseX, int mouseY) {
@@ -105,7 +152,8 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
 
         int totalRows = (int) Math.ceil((double) entries.size() / COLS);
         if (totalRows > visibleRows) {
-            int sbx = sx + GRID_W - 3, sbh = GRID_H;
+            int sbx = sx + GRID_W + 4;
+            int sbh = GRID_H;
             int hh = Math.max(6, sbh * visibleRows / totalRows);
             int hy = sy + (sbh - hh) * scrollOffset / (totalRows - visibleRows);
             g.fill(sbx, sy, sbx + 2, sy + sbh, 0x44FFFFFF);

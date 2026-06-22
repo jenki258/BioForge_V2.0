@@ -289,7 +289,7 @@
   "item.bioforge.contaminated_substrate.tooltip.usage": "Hold a contaminated swab in your off-hand",
   "item.bioforge.contaminated_substrate.tooltip.inoculated": "Inoculated – ready to place",
 
-  "item.bioforge.blood_slide": "Blood Slide",
+  "item.bioforge.blood_slide": "Glass Slide",
   "item.bioforge.blood_slide.empty": "Empty slide",
   "item.bioforge.blood_slide.filled": "Contains blood sample",
   "item.bioforge.blood_slide.source": "Source: %s",
