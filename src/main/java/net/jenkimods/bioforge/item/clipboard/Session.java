@@ -42,7 +42,7 @@ public class Session {
             CapabilityManager.get(new CapabilityToken<>() {});
 
     public static final ResourceLocation SESSION_ID =
-            new ResourceLocation(BioForge.MODID, "session");
+            ResourceLocation.tryBuild(BioForge.MODID, "session");
 
     @Mod.EventBusSubscriber(modid = BioForge.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class ModBusEvents {

@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
@@ -34,11 +35,13 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
-            if (level != null && !level.isClientSide()) syncToViewers();
+            if (level != null && !level.isClientSide()) {
+                syncToViewers();
+            }
         }
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            return stack.getItem() == BioForge.BLOOD_SLIDE.get() && BloodSlideItem.hasBlood(stack);
+            return !MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack).isEmpty();
         }
     };
 
@@ -50,9 +53,11 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
 
     private void syncToViewers() {
         if (level == null) return;
-        Map<String, Object> symptoms = getCurrentSymptoms();
+        ItemStack stack = itemHandler.getStackInSlot(0);
+        List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack);
+        Map<String, Object> symptoms = getCurrentSymptoms(entries);
         String visibility = getCurrentVisibility();
-        MicroscopeSyncPacket packet = new MicroscopeSyncPacket(symptoms, visibility);
+        MicroscopeSyncPacket packet = new MicroscopeSyncPacket(symptoms, visibility, entries);
         for (Player player : level.players()) {
             if (player.containerMenu instanceof MicroscopeMenu menu && menu.getBlockEntity() == this) {
                 MicroscopeNetwork.sendToPlayer(packet, (ServerPlayer) player);
@@ -60,21 +65,22 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    private Map<String, Object> getCurrentSymptoms() {
+    private Map<String, Object> getCurrentSymptoms(List<MicroscopeSymptomEntry> entries) {
         Map<String, Object> symptoms = new LinkedHashMap<>();
         ItemStack slide = itemHandler.getStackInSlot(0);
         if (!slide.isEmpty()) {
             String strainRaw = NbtObfuscator.readInfection(slide.getOrCreateTag());
             if (strainRaw != null && !strainRaw.isEmpty()) {
                 StrainData strain = StrainData.parse(strainRaw);
-                for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
-                    SymptomKey<?> key = entry.getValue();
-                    String raw = strain.getSymptom(entry.getKey()).orElse(null);
+                for (MicroscopeSymptomEntry entry : entries) {
+                    SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(entry.symptomKey());
+                    if (key == null) continue;
+                    String raw = strain.getSymptom(entry.symptomKey()).orElse(null);
                     if (raw == null) continue;
-                    if (key.getType().isEnum()) symptoms.put(entry.getKey(), raw.toUpperCase());
-                    else if (key.getType() == Boolean.class) symptoms.put(entry.getKey(), Boolean.valueOf(raw));
+                    if (key.getType().isEnum()) symptoms.put(entry.symptomKey(), raw.toUpperCase());
+                    else if (key.getType() == Boolean.class) symptoms.put(entry.symptomKey(), Boolean.valueOf(raw));
                     else if (key.getType() == Float.class) {
-                        try { symptoms.put(entry.getKey(), Float.valueOf(raw)); } catch (Exception ignored) {}
+                        try { symptoms.put(entry.symptomKey(), Float.valueOf(raw)); } catch (Exception ignored) {}
                     }
                 }
             }
@@ -101,7 +107,10 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         if (player instanceof ServerPlayer sp) {
-            MicroscopeNetwork.sendToPlayer(new MicroscopeSyncPacket(getCurrentSymptoms(), getCurrentVisibility()), sp);
+            ItemStack stack = itemHandler.getStackInSlot(0);
+            List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack);
+            MicroscopeNetwork.sendToPlayer(
+                    new MicroscopeSyncPacket(getCurrentSymptoms(entries), getCurrentVisibility(), entries), sp);
         }
         return new MicroscopeMenu(containerId, playerInventory, this);
     }

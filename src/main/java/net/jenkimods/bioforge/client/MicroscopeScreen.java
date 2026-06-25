@@ -58,7 +58,7 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     public boolean mouseScrolled(double mx, double my, double delta) {
         if (isScrolling) return true;
         if (isMouseInGrid(mx, my)) {
-            List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntries();
+            List<MicroscopeSymptomEntry> entries = MicroscopeClientData.getEntries();
             int totalRows = (int) Math.ceil((double) entries.size() / COLS);
             int visibleRows = GRID_H / CELL_H;
             int maxScroll = Math.max(0, totalRows - visibleRows);
@@ -69,7 +69,7 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     }
 
     private boolean isMouseOverScrollbar(double mx, double my) {
-        int totalRows = (int) Math.ceil((double) MicroscopeSymptomConfig.INSTANCE.getEntries().size() / COLS);
+        int totalRows = (int) Math.ceil((double) MicroscopeClientData.getEntries().size() / COLS);
         int visibleRows = GRID_H / CELL_H;
         if (totalRows <= visibleRows) return false;
         int sx = leftPos + GRID_X;
@@ -80,7 +80,7 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     }
 
     private void updateScrollFromMouse(double mouseY) {
-        int totalRows = (int) Math.ceil((double) MicroscopeSymptomConfig.INSTANCE.getEntries().size() / COLS);
+        int totalRows = (int) Math.ceil((double) MicroscopeClientData.getEntries().size() / COLS);
         int visibleRows = GRID_H / CELL_H;
         int maxScroll = Math.max(0, totalRows - visibleRows);
         int sy = topPos + GRID_Y;
@@ -108,8 +108,8 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     }
 
     private void renderSymptomGrid(GuiGraphics g, int mouseX, int mouseY) {
-        List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntries();
-        Map<String, Object> values = MicroscopeClientData.get();
+        List<MicroscopeSymptomEntry> entries = MicroscopeClientData.getEntries();
+        Map<String, Object> values = MicroscopeClientData.getSymptoms();
         MicroscopeVisibility slideVis = MicroscopeVisibility.fromName(MicroscopeClientData.getVisibility());
 
         int visibleRows = GRID_H / CELL_H;
