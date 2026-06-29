@@ -181,7 +181,7 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                         if (translatedName.equals(nameKey)) {
                             translatedName = entry.symptomKey();
                         }
-                        String stateText;
+                        String stateText = "";
                         if (entry.isEnum()) {
                             String state = value.toString().toLowerCase();
                             String stateKey = "microscope.symptom." + entry.symptomKey() + "." + state;
@@ -190,9 +190,11 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                                 stateText = state;
                             }
                         } else if (value instanceof Float f) {
-                            stateText = String.format("%.0f%%", f * 100);
-                        } else {
-                            stateText = value.toString();
+                            if (entry.displayPercentage()) {
+                                stateText = String.format("%.0f%%", f * 100);
+                            } else {
+                                stateText = String.format("%.0f", f);
+                            }
                         }
                         tipText = translatedName + ": " + stateText;
                     }

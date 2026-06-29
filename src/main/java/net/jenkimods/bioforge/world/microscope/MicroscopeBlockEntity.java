@@ -67,21 +67,33 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
 
     private Map<String, Object> getCurrentSymptoms(List<MicroscopeSymptomEntry> entries) {
         Map<String, Object> symptoms = new LinkedHashMap<>();
-        ItemStack slide = itemHandler.getStackInSlot(0);
-        if (!slide.isEmpty()) {
-            String strainRaw = NbtObfuscator.readInfection(slide.getOrCreateTag());
-            if (strainRaw != null && !strainRaw.isEmpty()) {
-                StrainData strain = StrainData.parse(strainRaw);
-                for (MicroscopeSymptomEntry entry : entries) {
-                    SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(entry.symptomKey());
-                    if (key == null) continue;
-                    String raw = strain.getSymptom(entry.symptomKey()).orElse(null);
-                    if (raw == null) continue;
-                    if (key.getType().isEnum()) symptoms.put(entry.symptomKey(), raw.toUpperCase());
-                    else if (key.getType() == Boolean.class) symptoms.put(entry.symptomKey(), Boolean.valueOf(raw));
-                    else if (key.getType() == Float.class) {
-                        try { symptoms.put(entry.symptomKey(), Float.valueOf(raw)); } catch (Exception ignored) {}
+        ItemStack stack = itemHandler.getStackInSlot(0);
+        if (!stack.isEmpty()) {
+            CompoundTag tag = stack.getOrCreateTag();
+            for (MicroscopeSymptomEntry entry : entries) {
+                if ("nbt".equals(entry.source())) {
+                    if (entry.nbtKey() == null) continue;
+                    if (tag.contains(entry.nbtKey())) {
+                        int value = tag.getInt(entry.nbtKey());
+                        if (entry.matchesCondition(value)) {
+                            symptoms.put(entry.symptomKey(), (float) value);
+                        } else {
+                        }
                     }
+                    continue;
+                }
+                String strainRaw = NbtObfuscator.readInfection(tag);
+                if (strainRaw == null || strainRaw.isEmpty()) strainRaw = NbtObfuscator.readString(tag);
+                if (strainRaw == null || strainRaw.isEmpty()) continue;
+                StrainData strain = StrainData.parse(strainRaw);
+                SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(entry.symptomKey());
+                if (key == null) continue;
+                String raw = strain.getSymptom(entry.symptomKey()).orElse(null);
+                if (raw == null) continue;
+                if (key.getType().isEnum()) symptoms.put(entry.symptomKey(), raw.toUpperCase());
+                else if (key.getType() == Boolean.class) symptoms.put(entry.symptomKey(), Boolean.valueOf(raw));
+                else if (key.getType() == Float.class) {
+                    try { symptoms.put(entry.symptomKey(), Float.valueOf(raw)); } catch (Exception ignored) {}
                 }
             }
         }

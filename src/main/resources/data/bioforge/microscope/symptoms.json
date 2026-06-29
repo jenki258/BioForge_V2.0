@@ -38,6 +38,15 @@
           "symptom": "max_infested_blocks",
           "type": "float",
           "icon": "bioforge:textures/gui/microscope/strength.png"
+        },
+        {
+          "symptom": "growth_stage",
+          "type": "float",
+          "source": "nbt",
+          "nbt_key": "Growth",
+          "condition": ">=1",
+          "icon": "bioforge:textures/gui/microscope/stage.png",
+          "display_percentage": false
         }
       ]
     },

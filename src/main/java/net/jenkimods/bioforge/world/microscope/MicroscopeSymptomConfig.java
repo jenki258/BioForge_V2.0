@@ -87,7 +87,15 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
         String type = json.get("type").getAsString();
         MicroscopeVisibility minVis = parseVisibility(json);
 
-        if ("enum".equals(type)) {
+        boolean isBool = type.equals("boolean");
+        boolean isEnum = type.equals("enum");
+
+        String source = json.has("source") ? json.get("source").getAsString() : "strain";
+        String nbtKey = json.has("nbt_key") ? json.get("nbt_key").getAsString() : null;
+        String condition = json.has("condition") ? json.get("condition").getAsString() : null;
+        boolean displayPercentage = json.has("display_percentage") ? json.get("display_percentage").getAsBoolean() : true;
+
+        if (isEnum) {
             Map<String, ResourceLocation> stateIcons = new LinkedHashMap<>();
             if (json.has("states")) {
                 JsonObject states = json.getAsJsonObject("states");
@@ -95,10 +103,11 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
                     stateIcons.put(stateName, ResourceLocation.tryParse(states.get(stateName).getAsString()));
                 }
             }
-            return new MicroscopeSymptomEntry(key, ResourceLocation.tryParse(icon), stateIcons, minVis);
+            return new MicroscopeSymptomEntry(key, ResourceLocation.tryParse(icon), stateIcons, minVis,
+                    source, nbtKey, condition, displayPercentage);
         } else {
-            boolean bool = type.equals("boolean");
-            return new MicroscopeSymptomEntry(key, ResourceLocation.tryParse(icon), bool, minVis);
+            return new MicroscopeSymptomEntry(key, ResourceLocation.tryParse(icon), isBool, minVis,
+                    source, nbtKey, condition, displayPercentage);
         }
     }
 
