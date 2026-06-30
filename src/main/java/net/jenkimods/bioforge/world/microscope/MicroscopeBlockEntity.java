@@ -4,7 +4,6 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
-import net.jenkimods.bioforge.item.BloodSlideItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -25,6 +24,7 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,9 +55,20 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         if (level == null) return;
         ItemStack stack = itemHandler.getStackInSlot(0);
         List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack);
+        List<CalibrationSlider> calib = MicroscopeSymptomConfig.INSTANCE.getCalibrationFor(stack);
+        List<CalibrationSlider> randomised = new ArrayList<>();
+        for (CalibrationSlider slider : calib) {
+            if (slider.randomTarget()) {
+                net.minecraft.util.RandomSource rand = level != null ? level.random : net.minecraft.util.RandomSource.create();
+                float randomTarget = slider.rangeMin() + rand.nextFloat() * (slider.rangeMax() - slider.rangeMin());
+                randomised.add(new CalibrationSlider(slider.nameKey(), randomTarget, slider.rangeMin(), slider.rangeMax(), true));
+            } else {
+                randomised.add(slider);
+            }
+        }
         Map<String, Object> symptoms = getCurrentSymptoms(entries);
         String visibility = getCurrentVisibility();
-        MicroscopeSyncPacket packet = new MicroscopeSyncPacket(symptoms, visibility, entries);
+        MicroscopeSyncPacket packet = new MicroscopeSyncPacket(symptoms, visibility, entries, randomised);
         for (Player player : level.players()) {
             if (player.containerMenu instanceof MicroscopeMenu menu && menu.getBlockEntity() == this) {
                 MicroscopeNetwork.sendToPlayer(packet, (ServerPlayer) player);
@@ -77,7 +88,6 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
                         int value = tag.getInt(entry.nbtKey());
                         if (entry.matchesCondition(value)) {
                             symptoms.put(entry.symptomKey(), (float) value);
-                        } else {
                         }
                     }
                     continue;
@@ -101,9 +111,9 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     private String getCurrentVisibility() {
-        ItemStack slide = itemHandler.getStackInSlot(0);
-        if (!slide.isEmpty()) {
-            String strainRaw = NbtObfuscator.readInfection(slide.getOrCreateTag());
+        ItemStack stack = itemHandler.getStackInSlot(0);
+        if (!stack.isEmpty()) {
+            String strainRaw = NbtObfuscator.readInfection(stack.getOrCreateTag());
             if (strainRaw != null && !strainRaw.isEmpty()) {
                 StrainData strain = StrainData.parse(strainRaw);
                 return strain.getSymptom("microscope_visibility").orElse("NONE");
@@ -121,8 +131,19 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         if (player instanceof ServerPlayer sp) {
             ItemStack stack = itemHandler.getStackInSlot(0);
             List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack);
+            List<CalibrationSlider> calib = MicroscopeSymptomConfig.INSTANCE.getCalibrationFor(stack);
+            List<CalibrationSlider> randomised = new ArrayList<>();
+            for (CalibrationSlider slider : calib) {
+                if (slider.randomTarget()) {
+                    net.minecraft.util.RandomSource rand = level != null ? level.random : net.minecraft.util.RandomSource.create();
+                    float randomTarget = slider.rangeMin() + rand.nextFloat() * (slider.rangeMax() - slider.rangeMin());
+                    randomised.add(new CalibrationSlider(slider.nameKey(), randomTarget, slider.rangeMin(), slider.rangeMax(), true));
+                } else {
+                    randomised.add(slider);
+                }
+            }
             MicroscopeNetwork.sendToPlayer(
-                    new MicroscopeSyncPacket(getCurrentSymptoms(entries), getCurrentVisibility(), entries), sp);
+                    new MicroscopeSyncPacket(getCurrentSymptoms(entries), getCurrentVisibility(), entries, randomised), sp);
         }
         return new MicroscopeMenu(containerId, playerInventory, this);
     }

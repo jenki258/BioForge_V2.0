@@ -21,6 +21,7 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
 
     public static final MicroscopeSymptomConfig INSTANCE = new MicroscopeSymptomConfig();
     private Map<Item, List<MicroscopeSymptomEntry>> itemEntries = new HashMap<>();
+    private Map<Item, List<CalibrationSlider>> calibrationMap = new HashMap<>();
 
     private MicroscopeSymptomConfig() {
         super(new Gson(), "microscope");
@@ -30,12 +31,19 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
         return itemEntries.getOrDefault(stack.getItem(), Collections.emptyList());
     }
 
+    public List<CalibrationSlider> getCalibrationFor(ItemStack stack) {
+        return calibrationMap.getOrDefault(stack.getItem(), Collections.emptyList());
+    }
+
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager manager, ProfilerFiller profiler) {
-        Map<Item, List<MicroscopeSymptomEntry>> map = new HashMap<>();
+        Map<Item, List<MicroscopeSymptomEntry>> entriesMap = new HashMap<>();
+        Map<Item, List<CalibrationSlider>> calibMap = new HashMap<>();
+
         objects.forEach((id, element) -> {
             try {
                 JsonObject root = element.getAsJsonObject();
+
                 if (root.has("items")) {
                     JsonObject itemsObj = root.getAsJsonObject("items");
                     for (String itemId : itemsObj.keySet()) {
@@ -46,13 +54,30 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
                         }
                         JsonElement itemElement = itemsObj.get(itemId);
                         List<MicroscopeSymptomEntry> entries = new ArrayList<>();
+                        List<CalibrationSlider> sliders = new ArrayList<>();
 
                         if (itemElement.isJsonObject()) {
                             JsonObject itemObj = itemElement.getAsJsonObject();
+
                             if (itemObj.has("entries")) {
                                 JsonArray arr = itemObj.getAsJsonArray("entries");
                                 for (JsonElement e : arr) {
                                     entries.add(parseEntry(e.getAsJsonObject()));
+                                }
+                            }
+                            if (itemObj.has("calibration")) {
+                                JsonObject calibObj = itemObj.getAsJsonObject("calibration");
+                                if (calibObj.has("sliders")) {
+                                    JsonArray sliderArr = calibObj.getAsJsonArray("sliders");
+                                    for (JsonElement e : sliderArr) {
+                                        JsonObject s = e.getAsJsonObject();
+                                        String nameKey = s.get("name").getAsString();
+                                        float target = s.get("target").getAsFloat();
+                                        float min = s.has("range_min") ? s.get("range_min").getAsFloat() : 0.0f;
+                                        float max = s.has("range_max") ? s.get("range_max").getAsFloat() : 1.0f;
+                                        boolean randomTarget = s.has("random_target") && s.get("random_target").getAsBoolean();
+                                        sliders.add(new CalibrationSlider(nameKey, target, min, max, randomTarget));
+                                    }
                                 }
                             }
                         } else if (itemElement.isJsonArray()) {
@@ -61,7 +86,9 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
                                 entries.add(parseEntry(e.getAsJsonObject()));
                             }
                         }
-                        map.put(item, entries);
+
+                        entriesMap.put(item, entries);
+                        calibMap.put(item, sliders);
                     }
                 }
                 else if (root.has("entries")) {
@@ -71,14 +98,17 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
                         entries.add(parseEntry(e.getAsJsonObject()));
                     }
                     for (Item item : ForgeRegistries.ITEMS.getValues()) {
-                        map.put(item, entries);
+                        entriesMap.put(item, entries);
+                        calibMap.put(item, List.of());
                     }
                 }
             } catch (Exception e) {
                 BioForge.LOGGER.error("Invalid microscope config {}: {}", id, e.getMessage());
             }
         });
-        this.itemEntries = map;
+
+        this.itemEntries = entriesMap;
+        this.calibrationMap = calibMap;
     }
 
     private MicroscopeSymptomEntry parseEntry(JsonObject json) {

@@ -3,18 +3,14 @@ package net.jenkimods.bioforge.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.MicroscopeVisibility;
-import net.jenkimods.bioforge.world.microscope.MicroscopeClientData;
-import net.jenkimods.bioforge.world.microscope.MicroscopeMenu;
-import net.jenkimods.bioforge.world.microscope.MicroscopeSymptomConfig;
-import net.jenkimods.bioforge.world.microscope.MicroscopeSymptomEntry;
+import net.jenkimods.bioforge.world.microscope.*;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
 
@@ -23,11 +19,21 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     private static final ResourceLocation EMPTY_ICON =
             ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/microscope/empty.png");
 
-    private static final int GRID_X = 8, GRID_Y = 17, CELL_W = 19, CELL_H = 28, COLS = 3, ICON_SIZE = 16;
+    private static final int GRID_X = 8, GRID_Y = 17, CELL_W = 18, CELL_H = 28, COLS = 3, ICON_SIZE = 16;
     private static final int GRID_W = COLS * CELL_W, GRID_H = 2 * CELL_H;
+
+    private static final int CALIB_X = 100;
+    private static final int CALIB_Y = 10;
+    private static final int TRACK_HEIGHT = 25;
+    private static final int TRACK_WIDTH = 2;
+    private static final int HANDLE_SIZE = 4;
+    private static final int SLIDER_SPACING_H = 6;
+    private static final int SLIDER_SPACING_V = 8;
+    private static final int SLIDERS_PER_ROW = 6;
 
     private int scrollOffset = 0;
     private boolean isScrolling = false;
+    private int draggingSlider = -1;
 
     public MicroscopeScreen(MicroscopeMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -42,22 +48,28 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
             updateScrollFromMouse(mouseY);
             return true;
         }
+        if (button == 0 && MicroscopeClientData.getCalibrationSliders().size() > 0) {
+            int idx = getSliderAt(mouseX, mouseY);
+            if (idx != -1) {
+                draggingSlider = idx;
+                updateSliderFromMouse(mouseY, idx);
+                return true;
+            }
+        }
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (button == 0 && isScrolling) {
-            isScrolling = false;
-            return true;
-        }
+        if (button == 0 && isScrolling) { isScrolling = false; return true; }
+        if (button == 0 && draggingSlider != -1) { draggingSlider = -1; return true; }
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseScrolled(double mx, double my, double delta) {
         if (isScrolling) return true;
-        if (isMouseInGrid(mx, my)) {
+        if (isMouseInGrid(mx, my) && MicroscopeClientData.isCalibrated()) {
             List<MicroscopeSymptomEntry> entries = MicroscopeClientData.getEntries();
             int totalRows = (int) Math.ceil((double) entries.size() / COLS);
             int visibleRows = GRID_H / CELL_H;
@@ -68,7 +80,38 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
         return super.mouseScrolled(mx, my, delta);
     }
 
+    private int getSliderAt(double mx, double my) {
+        List<CalibrationSlider> sliders = MicroscopeClientData.getCalibrationSliders();
+        int calibX = leftPos + CALIB_X;
+        int calibY = topPos + CALIB_Y;
+
+        for (int i = 0; i < sliders.size(); i++) {
+            int col = i % SLIDERS_PER_ROW;
+            int row = i / SLIDERS_PER_ROW;
+            int sx = calibX + col * (TRACK_WIDTH + HANDLE_SIZE + SLIDER_SPACING_H);
+            int sy = calibY + row * (TRACK_HEIGHT + SLIDER_SPACING_V);
+
+            if (mx >= sx - 2 && mx <= sx + TRACK_WIDTH + HANDLE_SIZE + 2 &&
+                    my >= sy - 2 && my <= sy + TRACK_HEIGHT + 2) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void updateSliderFromMouse(double mouseY, int index) {
+        List<CalibrationSlider> sliders = MicroscopeClientData.getCalibrationSliders();
+        int row = index / SLIDERS_PER_ROW;
+        int calibY = topPos + CALIB_Y + row * (TRACK_HEIGHT + SLIDER_SPACING_V);
+
+        CalibrationSlider slider = sliders.get(index);
+        float fraction = 1.0f - (float)(mouseY - calibY) / TRACK_HEIGHT;
+        float value = slider.rangeMin() + fraction * (slider.rangeMax() - slider.rangeMin());
+        MicroscopeClientData.setSliderValue(index, value);
+    }
+
     private boolean isMouseOverScrollbar(double mx, double my) {
+        if (!MicroscopeClientData.isCalibrated()) return false;
         int totalRows = (int) Math.ceil((double) MicroscopeClientData.getEntries().size() / COLS);
         int visibleRows = GRID_H / CELL_H;
         if (totalRows <= visibleRows) return false;
@@ -99,11 +142,53 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     public void render(GuiGraphics g, int mx, int my, float pt) {
         renderBackground(g);
         super.render(g, mx, my, pt);
-        renderSymptomGrid(g, mx, my);
+        if (MicroscopeClientData.isCalibrated()) {
+            renderSymptomGrid(g, mx, my);
+        }
+        renderCalibrationPanel(g, mx, my);
         renderTooltip(g, mx, my);
+        if (isScrolling) updateScrollFromMouse(my);
+        if (draggingSlider != -1) updateSliderFromMouse(my, draggingSlider);
+    }
 
-        if (isScrolling) {
-            updateScrollFromMouse(my);
+    private void renderCalibrationPanel(GuiGraphics g, int mouseX, int mouseY) {
+        List<CalibrationSlider> sliders = MicroscopeClientData.getCalibrationSliders();
+        if (sliders.isEmpty()) return;
+
+        float[] values = MicroscopeClientData.getSliderValues();
+        int calibX = leftPos + CALIB_X;
+        int calibY = topPos + CALIB_Y;
+
+        for (int i = 0; i < sliders.size(); i++) {
+            CalibrationSlider slider = sliders.get(i);
+            float val = values[i];
+            int col = i % SLIDERS_PER_ROW;
+            int row = i / SLIDERS_PER_ROW;
+
+            int sx = calibX + col * (TRACK_WIDTH + HANDLE_SIZE + SLIDER_SPACING_H);
+            int sy = calibY + row * (TRACK_HEIGHT + SLIDER_SPACING_V);
+
+            int trackLeft = sx + HANDLE_SIZE/2 - TRACK_WIDTH/2;
+            g.fill(trackLeft, sy, trackLeft + TRACK_WIDTH, sy + TRACK_HEIGHT, 0xFFAAAAAA);
+
+            float fraction = (val - slider.rangeMin()) / (slider.rangeMax() - slider.rangeMin());
+            int handleY = sy + (int)((1.0f - fraction) * (TRACK_HEIGHT - HANDLE_SIZE));
+            boolean inTolerance = slider.isWithinTolerance(val);
+            int handleColor = inTolerance ? 0xFF00FF00 : 0xFFFF0000;
+            g.fill(sx, handleY, sx + HANDLE_SIZE, handleY + HANDLE_SIZE, handleColor);
+
+            if (inTolerance) {
+                String num = String.valueOf(i + 1);
+                int numWidth = font.width(num);
+                font.drawInBatch(num, sx + HANDLE_SIZE/2 - numWidth/2, handleY + HANDLE_SIZE + 1,
+                        0xFFFFFF, false, g.pose().last().pose(), g.bufferSource(),
+                        net.minecraft.client.gui.Font.DisplayMode.NORMAL, 0, 15728880);
+            }
+
+            if (mouseX >= sx - 2 && mouseX <= sx + HANDLE_SIZE + 2 &&
+                    mouseY >= sy - 2 && mouseY <= sy + TRACK_HEIGHT + 2) {
+                g.renderTooltip(font, Component.translatable(slider.nameKey()), mouseX, mouseY);
+            }
         }
     }
 

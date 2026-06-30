@@ -335,6 +335,8 @@
   "item.bioforge.cell_pellet.anti_b": "Anti-B: %s",
   "item.bioforge.cell_pellet.anti_d": "Anti-D (Rh): %s",
 
+  "item.bioforge.microscope": "Microscope",
+  "block.bioforge.microscope": "Microscope",
   "microscope.symptom.heart_rate": "Heart Rate",
   "microscope.symptom.heart_rate.normal": "Normal",
   "microscope.symptom.heart_rate.tachy": "Tachycardia",
@@ -344,5 +346,10 @@
   "microscope.symptom.infection_strength": "Infection Strength",
   "microscope.symptom.lung_sound": "Lung Sound",
   "microscope.symptom.lung_sound.normal": "Clear",
-  "microscope.symptom.lung_sound.crackle": "Crackles"
+  "microscope.symptom.lung_sound.crackle": "Crackles",
+  "microscope.calibration.brightness": "Brightness",
+  "microscope.calibration.zoom": "Zoom",
+  "microscope.calibration.saturation": "Saturation",
+  "microscope.calibration.contrast": "Contrast",
+  "microscope.calibration.focus": "Focus"
 }

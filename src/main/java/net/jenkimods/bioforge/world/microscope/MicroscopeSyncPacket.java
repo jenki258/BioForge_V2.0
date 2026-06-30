@@ -11,11 +11,15 @@ public class MicroscopeSyncPacket {
     private final Map<String, Object> symptoms;
     private final String visibility;
     private final List<MicroscopeSymptomEntry> entries;
+    private final List<CalibrationSlider> calibrationSliders;
 
-    public MicroscopeSyncPacket(Map<String, Object> symptoms, String visibility, List<MicroscopeSymptomEntry> entries) {
+    public MicroscopeSyncPacket(Map<String, Object> symptoms, String visibility,
+                                List<MicroscopeSymptomEntry> entries,
+                                List<CalibrationSlider> calibrationSliders) {
         this.symptoms = symptoms;
         this.visibility = visibility;
         this.entries = entries;
+        this.calibrationSliders = calibrationSliders;
     }
 
     public static void encode(MicroscopeSyncPacket msg, FriendlyByteBuf buf) {
@@ -29,6 +33,7 @@ public class MicroscopeSyncPacket {
         }
         buf.writeUtf(msg.visibility);
         buf.writeCollection(msg.entries, (buf2, entry) -> entry.encode(buf2));
+        buf.writeCollection(msg.calibrationSliders, (buf2, slider) -> slider.encode(buf2));
     }
 
     public static MicroscopeSyncPacket decode(FriendlyByteBuf buf) {
@@ -43,11 +48,12 @@ public class MicroscopeSyncPacket {
         }
         String vis = buf.readUtf();
         List<MicroscopeSymptomEntry> entries = buf.readList(MicroscopeSymptomEntry::decode);
-        return new MicroscopeSyncPacket(map, vis, entries);
+        List<CalibrationSlider> calib = buf.readList(CalibrationSlider::decode);
+        return new MicroscopeSyncPacket(map, vis, entries, calib);
     }
 
     public static void handle(MicroscopeSyncPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> MicroscopeClientData.set(msg.symptoms, msg.visibility, msg.entries));
+        ctx.get().enqueueWork(() -> MicroscopeClientData.set(msg.symptoms, msg.visibility, msg.entries, msg.calibrationSliders));
         ctx.get().setPacketHandled(true);
     }
 }
