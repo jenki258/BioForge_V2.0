@@ -1,0 +1,8 @@
+{
+  "mappings": [
+    { "item": "minecraft:red_mushroom", "pathogen": "FUNGI" },
+    { "item": "minecraft:brown_mushroom", "pathogen": "FUNGI" },
+    { "item": "minecraft:rotten_flesh", "pathogen": "BACTERIA" },
+    { "item": "minecraft:spider_eye", "pathogen": "VIRUS" }
+  ]
+}

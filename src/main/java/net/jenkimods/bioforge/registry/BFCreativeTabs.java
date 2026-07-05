@@ -47,6 +47,8 @@ public class BFCreativeTabs {
                         output.accept(BioForge.ANTI_B_VIAL.get());
                         output.accept(BioForge.ANTI_D_VIAL.get());
                         output.accept(BioForge.DECALCIFICATION_FLUID.get());
+                        output.accept(BioForge.CATALYST_VIAL.get());
+                        output.accept(BioForge.NUTRIENT_MEDIUM.get());
                     })
                     .build());
 
@@ -57,6 +59,7 @@ public class BFCreativeTabs {
                     .displayItems((params, output) -> {
                         output.accept(BioForge.CENTRIFUGE_ITEM.get());
                         output.accept(BioForge.MICROSCOPE_ITEM.get());
+                        output.accept(BioForge.INCUBATOR_ITEM.get());
                     })
                     .build());
 
@@ -72,6 +75,7 @@ public class BFCreativeTabs {
                         output.accept(BioForge.PLASMA_SAMPLE.get());
                         output.accept(BioForge.CELL_PELLET.get());
                         output.accept(BioForge.MEDICAL_REPORT.get());
+                        output.accept(BioForge.VIRUS_SAMPLE.get());
                     })
                     .build());
 }

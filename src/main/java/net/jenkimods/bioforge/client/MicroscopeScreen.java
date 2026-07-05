@@ -178,9 +178,9 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
             g.fill(sx, handleY, sx + HANDLE_SIZE, handleY + HANDLE_SIZE, handleColor);
 
             if (inTolerance) {
-                String num = String.valueOf(i + 1);
-                int numWidth = font.width(num);
-                font.drawInBatch(num, sx + HANDLE_SIZE/2 - numWidth/2, handleY + HANDLE_SIZE + 1,
+                String plus = "+";
+                int numWidth = font.width(plus);
+                font.drawInBatch(plus, sx + HANDLE_SIZE/2 - numWidth/2, handleY + HANDLE_SIZE + 1,
                         0xFFFFFF, false, g.pose().last().pose(), g.bufferSource(),
                         net.minecraft.client.gui.Font.DisplayMode.NORMAL, 0, 15728880);
             }

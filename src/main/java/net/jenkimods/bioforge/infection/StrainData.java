@@ -24,6 +24,10 @@ public class StrainData {
         return ALL_SYMPTOM_KEYS;
     }
 
+    public static StrainData createEmpty() {
+        return new StrainData();
+    }
+
     public static StrainData buildFrom(InfectionData data) {
         StrainData s = new StrainData();
         if (data.getPathogenType() != null) {

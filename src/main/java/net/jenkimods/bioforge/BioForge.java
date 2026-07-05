@@ -4,13 +4,11 @@ import com.mojang.logging.LogUtils;
 import net.jenkimods.bioforge.block.*;
 import net.jenkimods.bioforge.client.CentrifugeScreen;
 import net.jenkimods.bioforge.blood.network.NetworkHandler;
+import net.jenkimods.bioforge.client.IncubatorScreen;
 import net.jenkimods.bioforge.client.MicroscopeScreen;
 import net.jenkimods.bioforge.infection.command.InfectCommand;
 import net.jenkimods.bioforge.infection.network.InfectionNetworkHandler;
-import net.jenkimods.bioforge.item.BloodSlideItem;
-import net.jenkimods.bioforge.item.CellPelletItem;
-import net.jenkimods.bioforge.item.PlasmaSampleItem;
-import net.jenkimods.bioforge.item.TubeItem;
+import net.jenkimods.bioforge.item.*;
 import net.jenkimods.bioforge.item.bone_saw.BoneSawItem;
 import net.jenkimods.bioforge.item.bones.BoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.SplitBoneItem;
@@ -37,6 +35,8 @@ import net.jenkimods.bioforge.item.thermometer.ThermometerNetworkHandler;
 import net.jenkimods.bioforge.registry.BFCreativeTabs;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeBlockEntity;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeMenu;
+import net.jenkimods.bioforge.world.incubator.IncubatorBlockEntity;
+import net.jenkimods.bioforge.world.incubator.IncubatorMenu;
 import net.jenkimods.bioforge.world.microscope.MicroscopeBlockEntity;
 import net.jenkimods.bioforge.world.microscope.MicroscopeMenu;
 import net.jenkimods.bioforge.world.microscope.MicroscopeNetwork;
@@ -50,6 +50,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
@@ -149,6 +150,18 @@ public class BioForge {
     public static final RegistryObject<BlockItem> MICROSCOPE_ITEM = ITEMS.register("microscope",
             () -> new BlockItem(MICROSCOPE.get(), new Item.Properties()));
 
+    public static final RegistryObject<Block> INCUBATOR = BLOCKS.register("incubator", IncubatorBlock::new);
+    public static final RegistryObject<BlockEntityType<IncubatorBlockEntity>> INCUBATOR_BE =
+            BLOCK_ENTITIES.register("incubator", () -> BlockEntityType.Builder.of(IncubatorBlockEntity::new, INCUBATOR.get()).build(null));
+    public static final RegistryObject<MenuType<IncubatorMenu>> INCUBATOR_MENU =
+            MENUS.register("incubator", () -> IForgeMenuType.create(IncubatorMenu::new));
+    public static final RegistryObject<BlockItem> INCUBATOR_ITEM = ITEMS.register("incubator",
+            () -> new BlockItem(INCUBATOR.get(), new Item.Properties()));
+
+    public static final RegistryObject<Item> CATALYST_VIAL = ITEMS.register("catalyst_vial", CatalystVialItem::new);
+    public static final RegistryObject<Item> NUTRIENT_MEDIUM = ITEMS.register("nutrient_medium", NutrientMediumItem::new);
+    public static final RegistryObject<Item> VIRUS_SAMPLE = ITEMS.register("virus_sample", VirusSampleItem::new);
+
     public BioForge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
         BLOCKS.register(modEventBus);
@@ -203,6 +216,7 @@ public class BioForge {
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.ANTI_D_VIAL.get(), reactedRL, (stack, level, entity, seed) -> ReagentVialItem.getReactedPredicate(stack));
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.CENTRIFUGE_MENU.get(), CentrifugeScreen::new);
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.MICROSCOPE_MENU.get(), MicroscopeScreen::new);
+                net.minecraft.client.gui.screens.MenuScreens.register(BioForge.INCUBATOR_MENU.get(), IncubatorScreen::new);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.THERMOMETER_ITEM.get(), ResourceLocation.tryBuild(BioForge.MODID, "ready"), (stack, level, entity, seed) -> ThermometerItem.isReady(stack) ? 1.0f : 0.0f);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;});
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.BLOOD_SLIDE.get(), ResourceLocation.tryBuild(BioForge.MODID, "blood_slide_filled"), (stack, level, entity, seed) -> BloodSlideItem.hasBlood(stack) ? 1.0f : 0.0f);

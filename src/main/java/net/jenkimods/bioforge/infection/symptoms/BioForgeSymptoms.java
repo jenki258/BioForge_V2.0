@@ -60,6 +60,8 @@ public final class BioForgeSymptoms {
         bacteria.put(REFLEX_STRENGTH,    new float[]{0.7f, 0.7f});
         bacteria.put(NEURAL_DAMAGE,      new float[]{0.1f, 0.1f});
         bacteria.put(INFECTION_STRENGTH, new float[]{0.4f, 0.7f});
+        bacteria.put(COLONY_RADIUS,        new float[]{18.0f, 22.0f});
+        bacteria.put(MAX_INFESTED_BLOCKS,  new float[]{70.0f, 90.0f});
         DEFAULT_RANGES.put(PathogenType.BACTERIA, bacteria);
 
         Map<SymptomKey<?>, float[]> fungi = new LinkedHashMap<>();
@@ -73,6 +75,8 @@ public final class BioForgeSymptoms {
         fungi.put(REFLEX_STRENGTH,    new float[]{0.3f, 0.3f});
         fungi.put(NEURAL_DAMAGE,      new float[]{0.4f, 0.4f});
         fungi.put(INFECTION_STRENGTH, new float[]{0.5f, 0.9f});
+        fungi.put(COLONY_RADIUS,        new float[]{22.0f, 28.0f});
+        fungi.put(MAX_INFESTED_BLOCKS,  new float[]{140.0f, 160.0f});
         DEFAULT_RANGES.put(PathogenType.FUNGI, fungi);
 
         Map<SymptomKey<?>, float[]> virus = new LinkedHashMap<>();
@@ -86,6 +90,8 @@ public final class BioForgeSymptoms {
         virus.put(REFLEX_STRENGTH,    new float[]{0.9f, 0.9f});
         virus.put(NEURAL_DAMAGE,      new float[]{0.0f, 0.0f});
         virus.put(INFECTION_STRENGTH, new float[]{0.3f, 0.8f});
+        virus.put(COLONY_RADIUS,        new float[]{25.0f, 35.0f});
+        virus.put(MAX_INFESTED_BLOCKS,  new float[]{110.0f, 130.0f});
         DEFAULT_RANGES.put(PathogenType.VIRUS, virus);
 
         Map<SymptomKey<?>, float[]> prion = new LinkedHashMap<>();
@@ -99,6 +105,8 @@ public final class BioForgeSymptoms {
         prion.put(REFLEX_STRENGTH,    new float[]{0.1f, 0.1f});
         prion.put(NEURAL_DAMAGE,      new float[]{0.9f, 0.9f});
         prion.put(INFECTION_STRENGTH, new float[]{0.1f, 0.3f});
+        prion.put(COLONY_RADIUS,        new float[]{18.0f, 22.0f});
+        prion.put(MAX_INFESTED_BLOCKS,  new float[]{90.0f, 110.0f});
         DEFAULT_RANGES.put(PathogenType.PRION, prion);
 
         Map<SymptomKey<?>, float[]> parasite = new LinkedHashMap<>();
@@ -112,6 +120,8 @@ public final class BioForgeSymptoms {
         parasite.put(REFLEX_STRENGTH,    new float[]{0.5f, 0.5f});
         parasite.put(NEURAL_DAMAGE,      new float[]{0.3f, 0.3f});
         parasite.put(INFECTION_STRENGTH, new float[]{0.6f, 0.9f});
+        parasite.put(COLONY_RADIUS,        new float[]{20.0f, 25.0f});
+        parasite.put(MAX_INFESTED_BLOCKS,  new float[]{80.0f, 100.0f});
         DEFAULT_RANGES.put(PathogenType.PARASITE, parasite);
 
         Map<SymptomKey<?>, float[]> universal = new LinkedHashMap<>();
@@ -125,6 +135,8 @@ public final class BioForgeSymptoms {
         universal.put(REFLEX_STRENGTH,    new float[]{0.0f, 1.0f});
         universal.put(NEURAL_DAMAGE,      new float[]{0.0f, 0.5f});
         universal.put(INFECTION_STRENGTH, new float[]{0.5f, 0.5f});
+        universal.put(COLONY_RADIUS,        new float[]{20.0f, 25.0f});
+        universal.put(MAX_INFESTED_BLOCKS,  new float[]{90.0f, 110.0f});
         DEFAULT_RANGES.put(PathogenType.UNIVERSAL, universal);
     }
 
@@ -235,5 +247,9 @@ public final class BioForgeSymptoms {
         } else if (key.getType() == Integer.class) {
             data.getSymptoms().set((SymptomKey) key, (int) value);
         }
+    }
+
+    public static Map<SymptomKey<?>, float[]> getDefaultRanges(PathogenType pathogen) {
+        return DEFAULT_RANGES.getOrDefault(pathogen, DEFAULT_RANGES.get(PathogenType.UNIVERSAL));
     }
 }

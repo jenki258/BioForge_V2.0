@@ -1,0 +1,33 @@
+package net.jenkimods.bioforge.client;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.world.incubator.IncubatorMenu;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+
+public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
+    private static final ResourceLocation TEXTURE = ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/incubator.png");
+
+    public IncubatorScreen(IncubatorMenu menu, Inventory inv, Component title) {
+        super(menu, inv, title);
+        this.imageWidth = 176;
+        this.imageHeight = 166;
+    }
+
+    @Override public void render(GuiGraphics g, int mx, int my, float pt) { renderBackground(g); super.render(g, mx, my, pt); renderTooltip(g, mx, my); }
+
+    @Override protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
+        RenderSystem.setShaderTexture(0, TEXTURE);
+        g.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        int progress = menu.getProgress();
+        int maxProgress = menu.getMaxProgress();
+        if (maxProgress > 0 && progress > 0) {
+            int barWidth = (int) (24 * ((float) progress / maxProgress));
+            g.blit(TEXTURE, leftPos + 76, topPos + 35, 176, 0, barWidth, 17);
+        }
+    }
+}

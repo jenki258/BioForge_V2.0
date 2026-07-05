@@ -351,5 +351,21 @@
   "microscope.calibration.zoom": "Zoom",
   "microscope.calibration.saturation": "Saturation",
   "microscope.calibration.contrast": "Contrast",
-  "microscope.calibration.focus": "Focus"
+  "microscope.calibration.focus": "Focus",
+
+  "block.bioforge.incubator": "Incubator",
+
+  "item.bioforge.catalyst_vial": "Catalyst Vial",
+  "item.bioforge.catalyst_vial.empty": "Empty - needs a pathogen reagent",
+  "item.bioforge.catalyst_vial.tooltip": "Right‑click with a reagent in your other hand",
+  "item.bioforge.catalyst_vial.pathogen": "Pathogen: %s",
+  "item.bioforge.catalyst_vial.set": "Catalyst Vial set to %s",
+  "item.bioforge.catalyst_vial.invalid_reagent": "That item does not contain a valid pathogen!",
+
+  "item.bioforge.nutrient_medium": "Nutrient Medium",
+
+  "item.bioforge.virus_sample": "Virus Sample",
+  "item.bioforge.virus_sample.empty": "Empty virus sample",
+  "item.bioforge.virus_sample.pathogen": "Pathogen: %s",
+  "item.bioforge.virus_sample.stats": "Randomised stats:"
 }
