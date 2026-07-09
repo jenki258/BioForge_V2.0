@@ -18,16 +18,27 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
         this.imageHeight = 166;
     }
 
-    @Override public void render(GuiGraphics g, int mx, int my, float pt) { renderBackground(g); super.render(g, mx, my, pt); renderTooltip(g, mx, my); }
+    @Override
+    public void render(GuiGraphics g, int mx, int my, float pt) {
+        renderBackground(g);
+        super.render(g, mx, my, pt);
+        renderTooltip(g, mx, my);
+    }
 
-    @Override protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
+    @Override
+    protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
         RenderSystem.setShaderTexture(0, TEXTURE);
         g.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+
         int progress = menu.getProgress();
         int maxProgress = menu.getMaxProgress();
         if (maxProgress > 0 && progress > 0) {
-            int barWidth = (int) (24 * ((float) progress / maxProgress));
-            g.blit(TEXTURE, leftPos + 76, topPos + 35, 176, 0, barWidth, 17);
+            int barX = leftPos + 72;
+            int barY = topPos + 27;
+            int barWidth = 31;
+            int barHeight = 22;
+            int filledHeight = (int) (barHeight * ((float) progress / maxProgress));
+            g.blit(TEXTURE, barX, barY, 176, 0, barWidth, filledHeight);
         }
     }
 }

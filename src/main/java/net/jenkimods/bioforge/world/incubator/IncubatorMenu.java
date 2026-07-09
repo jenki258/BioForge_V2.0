@@ -27,10 +27,10 @@ public class IncubatorMenu extends AbstractContainerMenu {
         addDataSlots(data);
 
         be.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> {
-            addSlot(new SlotItemHandler(handler, 0, 56, 17));
-            addSlot(new SlotItemHandler(handler, 1, 56, 53));
-            addSlot(new SlotItemHandler(handler, 2, 79, 53));
-            addSlot(new SlotItemHandler(handler, 3, 102, 53));
+            addSlot(new SlotItemHandler(handler, 0, 80, 7));
+            addSlot(new SlotItemHandler(handler, 1, 57, 52));
+            addSlot(new SlotItemHandler(handler, 2, 80, 52));
+            addSlot(new SlotItemHandler(handler, 3, 103, 52));
         });
 
         for (int row = 0; row < 3; ++row)

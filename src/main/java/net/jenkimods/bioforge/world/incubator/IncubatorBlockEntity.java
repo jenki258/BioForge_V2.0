@@ -39,7 +39,7 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             if (slot == 0) {
                 return stack.getItem() instanceof CatalystVialItem
-                        && CatalystVialItem.getPathogen(stack) != null
+                        && CatalystVialItem.getPathogenOrRandom(stack) != null
                         && CatalystVialItem.getCharges(stack) > 0;
             }
             return stack.getItem() instanceof NutrientMediumItem;
@@ -53,7 +53,7 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
 
     private LazyOptional<ItemStackHandler> lazyHandler = LazyOptional.of(() -> items);
     private int progress = 0;
-    private int maxProgress = 200;
+    private int maxProgress = 800;
 
     protected final ContainerData data = new ContainerData() {
         @Override public int get(int index) { return index == 0 ? progress : maxProgress; }
@@ -69,7 +69,7 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         if (level.isClientSide()) return;
 
         ItemStack catalyst = be.items.getStackInSlot(0);
-        PathogenType pathogen = CatalystVialItem.getPathogen(catalyst);
+        PathogenType pathogen = CatalystVialItem.getPathogenOrRandom(catalyst);
         if (pathogen == null || CatalystVialItem.getCharges(catalyst) <= 0) {
             be.progress = 0;
             return;

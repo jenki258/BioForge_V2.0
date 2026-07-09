@@ -34,8 +34,12 @@ public class CatalystMappingManager extends SimpleJsonResourceReloadListener {
     }
 
     public PathogenType getRandomPathogen() {
-        if (allPathogens.isEmpty()) return PathogenType.UNIVERSAL;
-        return allPathogens.get(new Random().nextInt(allPathogens.size()));
+        PathogenType[] types = PathogenType.values();
+        PathogenType random;
+        do {
+            random = types[new Random().nextInt(types.length)];
+        } while (random == PathogenType.UNIVERSAL);
+        return random;
     }
 
     @Override

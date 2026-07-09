@@ -360,7 +360,10 @@
   "item.bioforge.catalyst_vial.tooltip": "Right‑click with a reagent in your other hand",
   "item.bioforge.catalyst_vial.pathogen": "Pathogen: %s",
   "item.bioforge.catalyst_vial.set": "Catalyst Vial set to %s",
+  "item.bioforge.catalyst_vial.set_random": "Catalyst Vial set to Random pathogen!",
+  "item.bioforge.catalyst_vial.pathogen_random": "Pathogen: ??? (Random)",
   "item.bioforge.catalyst_vial.invalid_reagent": "That item does not contain a valid pathogen!",
+  "item.bioforge.catalyst_vial.already_set": "This catalyst vial already contains a pathogen – it cannot be changed.",
 
   "item.bioforge.nutrient_medium": "Nutrient Medium",
 

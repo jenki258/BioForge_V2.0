@@ -28,29 +28,58 @@ public class CatalystVialItem extends Item {
         ItemStack stack = player.getItemInHand(hand);
         if (level.isClientSide()) return InteractionResultHolder.pass(stack);
 
+        if (isSet(stack)) {
+            player.sendSystemMessage(Component.translatable("item.bioforge.catalyst_vial.already_set"));
+            return InteractionResultHolder.fail(stack);
+        }
+
         InteractionHand other = hand == InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack reagent = player.getItemInHand(other);
         if (reagent.isEmpty()) return InteractionResultHolder.fail(stack);
 
         PathogenType pathogen = CatalystMappingManager.INSTANCE.getPathogen(reagent.getItem());
-        if (pathogen == null && reagent.getItem() == net.minecraft.world.item.Items.NETHER_STAR) {
-            pathogen = CatalystMappingManager.INSTANCE.getRandomPathogen();
-        }
-        if (pathogen != null) {
-            stack.getOrCreateTag().putString("Pathogen", pathogen.name());
-            stack.getOrCreateTag().putInt("Charges", MAX_CHARGES);
+        String pathogenName;
+
+        if (reagent.getItem() == net.minecraft.world.item.Items.NETHER_STAR) {
+            pathogenName = "RANDOM";
             if (!player.isCreative()) reagent.shrink(1);
-            player.sendSystemMessage(Component.translatable("item.bioforge.catalyst_vial.set", pathogen.name()));
+            player.sendSystemMessage(Component.translatable("item.bioforge.catalyst_vial.set_random"));
+        } else if (pathogen != null) {
+            pathogenName = pathogen.name();
+            if (!player.isCreative()) reagent.shrink(1);
+            player.sendSystemMessage(Component.translatable("item.bioforge.catalyst_vial.set", pathogenName));
         } else {
             player.sendSystemMessage(Component.translatable("item.bioforge.catalyst_vial.invalid_reagent"));
+            return InteractionResultHolder.fail(stack);
         }
+
+        stack.getOrCreateTag().putString("Pathogen", pathogenName);
+        stack.getOrCreateTag().putInt("Charges", MAX_CHARGES);
         return InteractionResultHolder.success(stack);
+    }
+
+    public static boolean isSet(ItemStack stack) {
+        return stack.hasTag() && stack.getTag().contains("Pathogen");
     }
 
     @Nullable
     public static PathogenType getPathogen(ItemStack stack) {
         if (stack.hasTag() && stack.getTag().contains("Pathogen")) {
-            return PathogenType.fromName(stack.getTag().getString("Pathogen"));
+            String name = stack.getTag().getString("Pathogen");
+            if ("RANDOM".equals(name)) return null;
+            return PathogenType.fromName(name);
+        }
+        return null;
+    }
+
+    @Nullable
+    public static PathogenType getPathogenOrRandom(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains("Pathogen")) {
+            String name = stack.getTag().getString("Pathogen");
+            if ("RANDOM".equals(name)) {
+                return CatalystMappingManager.INSTANCE.getRandomPathogen();
+            }
+            return PathogenType.fromName(name);
         }
         return null;
     }
@@ -72,14 +101,18 @@ public class CatalystVialItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        PathogenType pathogen = getPathogen(stack);
-        int charges = getCharges(stack);
-        if (pathogen != null && charges > 0) {
-            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen", pathogen.name())
-                    .withStyle(ChatFormatting.DARK_PURPLE));
-        } else {
+        if (!isSet(stack)) {
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.empty").withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.tooltip").withStyle(ChatFormatting.DARK_GRAY));
+            return;
+        }
+        String pathogenName = stack.getTag().getString("Pathogen");
+        if ("RANDOM".equals(pathogenName)) {
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen_random")
+                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+        } else {
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen", pathogenName)
+                    .withStyle(ChatFormatting.DARK_PURPLE));
         }
     }
 }
