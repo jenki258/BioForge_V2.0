@@ -111,8 +111,13 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         strain.setPathogen(pathogen);
         strain.setColonyId(UUID.randomUUID());
 
-        for (InfectionType t : pathogen.getAllowedTransmissions()) {
-            strain.getInfectionTypes().add(t);
+        List<InfectionType> allowed = new ArrayList<>(pathogen.getAllowedTransmissions());
+        if (!allowed.isEmpty()) {
+            Collections.shuffle(allowed);
+            int count = 1 + new Random().nextInt(allowed.size());
+            for (int i = 0; i < count; i++) {
+                strain.getInfectionTypes().add(allowed.get(i));
+            }
         }
 
         Random rand = new Random();
@@ -129,8 +134,7 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
                     strain.getSymptoms().put(keyId, String.valueOf(value));
                 }
             } else if (key.getType() == Boolean.class) {
-                boolean value = rand.nextBoolean();
-                strain.getSymptoms().put(keyId, String.valueOf(value));
+                strain.getSymptoms().put(keyId, String.valueOf(rand.nextBoolean()));
             } else if (key.getType().isEnum()) {
                 Object[] constants = key.getType().getEnumConstants();
                 if (constants != null && constants.length > 0) {

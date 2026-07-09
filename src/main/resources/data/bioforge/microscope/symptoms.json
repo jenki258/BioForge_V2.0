@@ -84,6 +84,60 @@
           "icon": "bioforge:textures/gui/microscope/strength.png"
         }
       ]
+    },"bioforge:virus_sample": {
+      "entries": [
+        {
+          "symptom": "heart_rate",
+          "type": "enum",
+          "icon": "bioforge:textures/gui/microscope/heart.png",
+          "states": {
+            "normal": "bioforge:textures/gui/microscope/empty.png",
+            "tachy": "bioforge:textures/gui/microscope/heart.png",
+            "brady": "bioforge:textures/gui/microscope/small_heart.png"
+          },
+          "min_visibility": "LOW"
+        },
+        {
+          "symptom": "lung_sound",
+          "type": "enum",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "states": {
+            "normal": "bioforge:textures/gui/microscope/empty.png",
+            "crackle": "bioforge:textures/gui/microscope/heart.png"
+          },
+          "min_visibility": "LOW"
+        },
+        {
+          "symptom": "temperature_plus",
+          "type": "boolean",
+          "icon": "bioforge:textures/gui/microscope/temp.png",
+          "min_visibility": "VERY_LOW"
+        },
+        {
+          "symptom": "temperature_minus",
+          "type": "boolean",
+          "icon": "bioforge:textures/gui/microscope/temp_low.png",
+          "min_visibility": "VERY_LOW"
+        },
+        {
+          "symptom": "infection_strength",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        },
+        {
+          "symptom": "oxygen_saturation",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "LOW"
+        },
+        {
+          "symptom": "neural_damage",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        }
+      ]
     },
     "bioforge:cell_pellet": {
       "calibration": {

@@ -114,6 +114,9 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         ItemStack stack = itemHandler.getStackInSlot(0);
         if (!stack.isEmpty()) {
             String strainRaw = NbtObfuscator.readInfection(stack.getOrCreateTag());
+            if (strainRaw == null || strainRaw.isEmpty()) {
+                strainRaw = NbtObfuscator.readString(stack.getOrCreateTag());
+            }
             if (strainRaw != null && !strainRaw.isEmpty()) {
                 StrainData strain = StrainData.parse(strainRaw);
                 return strain.getSymptom("microscope_visibility").orElse("NONE");
