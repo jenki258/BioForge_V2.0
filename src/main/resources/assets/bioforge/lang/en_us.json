@@ -370,5 +370,22 @@
   "item.bioforge.virus_sample": "Virus Sample",
   "item.bioforge.virus_sample.empty": "Empty virus sample",
   "item.bioforge.virus_sample.pathogen": "Pathogen: %s",
-  "item.bioforge.virus_sample.stats": "Randomised stats:"
+  "item.bioforge.virus_sample.stats": "Randomised stats:",
+
+  "item.bioforge.live_culture_vial": "Live Culture Vial",
+  "item.bioforge.live_culture_vial.empty": "Empty – needs a virus sample",
+  "item.bioforge.live_culture_vial.tooltip": "Use in incubator with a virus sample",
+  "item.bioforge.live_culture_vial.filled": "Contains live culture",
+  "item.bioforge.live_culture_vial.pathogen": "Pathogen: %s",
+  "item.bioforge.live_culture_vial.stats": "Strain stats:",
+  "item.bioforge.live_culture_vial.transferred": "Strain transferred to syringe.",
+  "item.bioforge.live_culture_vial.infect_item": "Infected %s with the culture!",
+
+  "item.bioforge.dirty_culture_vial": "Dirty Culture Vial",
+
+  "item.bioforge.ethanol": "Ethanol",
+  "item.bioforge.ethanol.cleaned": "Culture Vial cleaned!",
+
+  "item.bioforge.wipes": "Wipe",
+  "item.bioforge.wipes.cleaned": "Culture Vial wiped clean."
 }

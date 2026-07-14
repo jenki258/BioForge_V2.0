@@ -161,6 +161,11 @@ public class BioForge {
     public static final RegistryObject<Item> CATALYST_VIAL = ITEMS.register("catalyst_vial", CatalystVialItem::new);
     public static final RegistryObject<Item> NUTRIENT_MEDIUM = ITEMS.register("nutrient_medium", NutrientMediumItem::new);
     public static final RegistryObject<Item> VIRUS_SAMPLE = ITEMS.register("virus_sample", VirusSampleItem::new);
+    public static final RegistryObject<Item> LIVE_CULTURE_VIAL = ITEMS.register("live_culture_vial", LiveCultureVialItem::new);
+    public static final RegistryObject<Item> DIRTY_CULTURE_VIAL = ITEMS.register("dirty_culture_vial", DirtyCultureVialItem::new);
+    public static final RegistryObject<Item> ETHANOL = ITEMS.register("ethanol", EthanolItem::new);
+    public static final RegistryObject<Item> WIPES = ITEMS.register("wipes", WipeItem::new);
+
 
     public BioForge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
@@ -221,6 +226,9 @@ public class BioForge {
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;});
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.BLOOD_SLIDE.get(), ResourceLocation.tryBuild(BioForge.MODID, "blood_slide_filled"), (stack, level, entity, seed) -> BloodSlideItem.hasBlood(stack) ? 1.0f : 0.0f);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.TUBE.get(), ResourceLocation.tryBuild(BioForge.MODID, "tube_filled_blood"), (stack, level, entity, seed) -> TubeItem.hasBlood(stack) ? 1.0f : 0.0f);
+                net.minecraft.client.renderer.item.ItemProperties.register(BioForge.LIVE_CULTURE_VIAL.get(),
+                        ResourceLocation.tryBuild(BioForge.MODID, "filled"),
+                        (stack, level, entity, seed) -> LiveCultureVialItem.hasStrain(stack) ? 1.0f : 0.0f);
             });
         }
     }

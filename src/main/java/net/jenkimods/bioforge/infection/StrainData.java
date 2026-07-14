@@ -132,13 +132,57 @@ public class StrainData {
         }
     }
 
+    public static StrainData compete(StrainData existing, StrainData incoming) {
+        if (existing == null) return incoming;
+        if (incoming == null) return existing;
+
+        Random rand = new Random();
+        float r1 = 0.8f + rand.nextFloat() * 0.4f;
+        float r2 = 0.8f + rand.nextFloat() * 0.4f;
+
+        float existingStr = getInfectionStrength(existing);
+        float incomingStr = getInfectionStrength(incoming);
+        float ns = incomingStr * r1;
+        float os = existingStr * r2;
+
+        if (ns > os * 1.5f) {
+            return incoming;
+        } else if (ns > os * 1.0f) {
+            StrainData blend = copy(incoming);
+            float avg = Math.min(1.0f, (existingStr + incomingStr) / 2f);
+            blend.getSymptoms().put("infection_strength", String.valueOf(avg));
+            return blend;
+        } else if (ns > os * 0.7f) {
+            StrainData boosted = copy(existing);
+            float newStr = Math.min(1.0f, existingStr + 0.05f);
+            boosted.getSymptoms().put("infection_strength", String.valueOf(newStr));
+            return boosted;
+        } else {
+            return existing;
+        }
+    }
+
+    private static float getInfectionStrength(StrainData strain) {
+        return strain.getSymptom("infection_strength")
+                .map(Float::parseFloat)
+                .orElse(0.5f);
+    }
+
+    private static StrainData copy(StrainData original) {
+        StrainData copy = createEmpty();
+        copy.setColonyId(original.getColonyId().orElse(null));
+        copy.setPathogen(original.getPathogen());
+        copy.getInfectionTypes().addAll(original.getInfectionTypes());
+        copy.getSymptoms().putAll(original.getSymptoms());
+        return copy;
+    }
+
     private static String serializeSymptomValue(Object value) {
         if (value instanceof Enum<?> e) return e.name();
         if (value instanceof Boolean || value instanceof Number) return value.toString();
         return "";
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> T parseSymptomValue(String string, Class<T> type) {
         try {
             if (type.isEnum()) {

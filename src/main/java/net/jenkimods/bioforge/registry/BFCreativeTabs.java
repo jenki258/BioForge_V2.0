@@ -49,6 +49,10 @@ public class BFCreativeTabs {
                         output.accept(BioForge.DECALCIFICATION_FLUID.get());
                         output.accept(BioForge.CATALYST_VIAL.get());
                         output.accept(BioForge.NUTRIENT_MEDIUM.get());
+                        output.accept(BioForge.LIVE_CULTURE_VIAL.get());
+                        output.accept(BioForge.DIRTY_CULTURE_VIAL.get());
+                        output.accept(BioForge.ETHANOL.get());
+                        output.accept(BioForge.WIPES.get());
                     })
                     .build());
 
