@@ -1,4 +1,4 @@
-package net.jenkimods.bioforge.item;
+package net.jenkimods.bioforge.item.reagents;
 
 import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.world.incubator.CatalystMappingManager;
@@ -11,9 +11,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 public class CatalystVialItem extends Item {
 
@@ -103,16 +105,32 @@ public class CatalystVialItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         if (!isSet(stack)) {
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.empty").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal(" "));
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.tooltip").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.literal(" "));
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.mappings_header").withStyle(ChatFormatting.GOLD));
+
+            Map<Item, PathogenType> mappings = CatalystMappingManager.INSTANCE.getAllMappings();
+            for (Map.Entry<Item, PathogenType> entry : mappings.entrySet()) {
+                String itemName = Component.translatable(entry.getKey().getDescriptionId()).getString();
+                String pathogenName = Component.translatable("pathogen.bioforge." + entry.getValue().name().toLowerCase()).getString();
+                tooltip.add(Component.literal("  " + itemName + " → " + pathogenName).withStyle(ChatFormatting.DARK_GRAY));
+            }
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.nether_star_hint").withStyle(ChatFormatting.LIGHT_PURPLE));
             return;
         }
+
         String pathogenName = stack.getTag().getString("Pathogen");
+        int charges = getCharges(stack);
         if ("RANDOM".equals(pathogenName)) {
-            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen_random")
-                    .withStyle(ChatFormatting.LIGHT_PURPLE));
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen_random").withStyle(ChatFormatting.LIGHT_PURPLE));
         } else {
-            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen", pathogenName)
-                    .withStyle(ChatFormatting.DARK_PURPLE));
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen", pathogenName).withStyle(ChatFormatting.DARK_PURPLE));
         }
+        if (charges > 0) {
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.charges", charges).withStyle(ChatFormatting.GOLD));
+        }
+        tooltip.add(Component.literal(" "));
+        tooltip.add(Component.translatable("item.bioforge.catalyst_vial.place_in_incubator").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

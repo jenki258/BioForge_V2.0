@@ -23,6 +23,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +36,8 @@ public class SyringeItem extends Item {
     private static final int BLOOD_DRAIN = 10;
     private static final int BLOOD_TRANSFER = 2;
     private static final int MAX_USES = 4;
+
+    private static final Map<UUID, Long> lastMobInjectionTick = new HashMap<>();
 
     public SyringeItem() {
         super(new Properties().stacksTo(1));
@@ -50,6 +54,15 @@ public class SyringeItem extends Item {
 
         if (level.isClientSide()) return super.use(level, player, hand);
         if (!(player instanceof ServerPlayer sp)) return InteractionResultHolder.pass(stack);
+
+        Long lastMobTick = lastMobInjectionTick.get(sp.getUUID());
+        if (lastMobTick != null && (System.currentTimeMillis() - lastMobTick) < 50) {
+            return InteractionResultHolder.pass(stack);
+        }
+
+        if (isLookingAtLivingEntity(player)) {
+            return InteractionResultHolder.pass(stack);
+        }
 
         if (BloodSampleUtil.hasBlood(stack)) {
             BloodData selfData = BloodCapability.get(sp);
@@ -85,14 +98,16 @@ public class SyringeItem extends Item {
 
         if (!BloodSampleUtil.hasBlood(stack)) return InteractionResult.PASS;
 
+        lastMobInjectionTick.put(sp.getUUID(), System.currentTimeMillis());
+
         BloodData targetData = BloodCapability.get(living);
         if (targetData == null) return InteractionResult.FAIL;
 
         targetData.addBlood(BLOOD_TRANSFER);
         applyStoredInfection(stack, living);
         consumeUse(stack);
-        player.setItemInHand(hand, stack);
 
+        player.setItemInHand(hand, stack);
         level.playSound(null, living.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
         return InteractionResult.SUCCESS;
     }
@@ -113,6 +128,11 @@ public class SyringeItem extends Item {
             return true;
         }
         return false;
+    }
+
+    private static boolean isLookingAtLivingEntity(Player player) {
+        HitResult hit = player.pick(5.0D, 0.0F, false);
+        return hit instanceof EntityHitResult entityHit && entityHit.getEntity() instanceof LivingEntity;
     }
 
     public static void consumeUse(ItemStack stack) {
@@ -186,8 +206,8 @@ public class SyringeItem extends Item {
         if (!hasBlood(stack)) {
             tooltip.add(Component.translatable("item.bioforge.syringe.empty").withStyle(ChatFormatting.DARK_GRAY));
             tooltip.add(Component.literal(" "));
-            tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_self").withStyle(ChatFormatting.DARK_GRAY));
-            tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_other").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.draw_self").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.draw_mob").withStyle(ChatFormatting.DARK_GRAY));
             tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.warning_blood").withStyle(ChatFormatting.DARK_RED));
             return;
         }
@@ -199,8 +219,8 @@ public class SyringeItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.syringe.uses_left", data.amount()).withStyle(ChatFormatting.GOLD));
         appendKnowledgeLines(data, tooltip);
         tooltip.add(Component.literal(" "));
-        tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_self").withStyle(ChatFormatting.DARK_GRAY));
-        tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.use_other").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.inject_self").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.inject_mob").withStyle(ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.syringe.tooltip.warning_blood").withStyle(ChatFormatting.DARK_RED));
     }
 

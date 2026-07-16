@@ -4,10 +4,11 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
-import net.jenkimods.bioforge.item.CatalystVialItem;
-import net.jenkimods.bioforge.item.LiveCultureVialItem;
-import net.jenkimods.bioforge.item.NutrientMediumItem;
-import net.jenkimods.bioforge.item.VirusSampleItem;
+import net.jenkimods.bioforge.item.*;
+import net.jenkimods.bioforge.item.incubating.LiveCultureVialItem;
+import net.jenkimods.bioforge.item.incubating.NutrientMediumItem;
+import net.jenkimods.bioforge.item.incubating.VirusSampleItem;
+import net.jenkimods.bioforge.item.reagents.CatalystVialItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -49,6 +50,9 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
                         NbtObfuscator.readString(stack.getOrCreateTag()) != null) {
                     return true;
                 }
+                if (isBloodItemWithInfection(stack)) {
+                    return true;
+                }
                 return false;
             }
             return stack.getItem() instanceof NutrientMediumItem ||
@@ -60,6 +64,25 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
             return (slot >= 1 && slot <= 3) ? 1 : super.getSlotLimit(slot);
         }
     };
+
+    private static boolean isBloodItemWithInfection(ItemStack stack) {
+        if (!BloodSampleUtil.hasBlood(stack)) return false;
+        return getStrainFromBloodItem(stack) != null;
+    }
+
+    @Nullable
+    private static String getStrainFromBloodItem(ItemStack stack) {
+        String raw = NbtObfuscator.readInfection(stack.getOrCreateTag());
+        if (raw == null || raw.isEmpty()) {
+            raw = NbtObfuscator.readString(stack.getOrCreateTag());
+        }
+        if (raw == null || raw.isEmpty()) return null;
+
+        StrainData strain = StrainData.parse(raw);
+        if (strain.getPathogen() == null) return null;
+
+        return raw;
+    }
 
     private LazyOptional<ItemStackHandler> lazyHandler = LazyOptional.of(() -> items);
     private int progress = 0;
@@ -80,22 +103,24 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
 
         ItemStack topItem = be.items.getStackInSlot(0);
 
-        if (topItem.getItem() instanceof CatalystVialItem catalyst) {
-            tickCatalystMode(be, topItem);
+        if (topItem.getItem() instanceof CatalystVialItem) {
+            tickCatalystMode(be);
         } else if (topItem.getItem() instanceof VirusSampleItem) {
             tickCultureMode(be);
+        } else if (isBloodItemWithInfection(topItem)) {
+            tickBloodDuplicateMode(be);
         } else {
             be.progress = 0;
         }
     }
 
-    private static void tickCatalystMode(IncubatorBlockEntity be, ItemStack catalyst) {
+    private static void tickCatalystMode(IncubatorBlockEntity be) {
+        ItemStack catalyst = be.items.getStackInSlot(0);
         PathogenType pathogen = CatalystVialItem.getPathogenOrRandom(catalyst);
         if (pathogen == null || CatalystVialItem.getCharges(catalyst) <= 0) {
             be.progress = 0;
             return;
         }
-
         int nutrientCount = countNutrientMedium(be);
         if (nutrientCount == 0) { be.progress = 0; return; }
 
@@ -137,6 +162,30 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
                 }
             }
             virusSample.shrink(1);
+        }
+        be.setChanged();
+    }
+
+    private static void tickBloodDuplicateMode(IncubatorBlockEntity be) {
+        ItemStack bloodItem = be.items.getStackInSlot(0);
+        String strainRaw = getStrainFromBloodItem(bloodItem);
+        if (strainRaw == null || strainRaw.isEmpty()) { be.progress = 0; return; }
+
+        int emptyVialCount = countEmptyCultureVials(be);
+        if (emptyVialCount == 0) { be.progress = 0; return; }
+
+        be.progress++;
+        if (be.progress >= be.maxProgress) {
+            be.progress = 0;
+            for (int i = 1; i <= 3; i++) {
+                ItemStack stack = be.items.getStackInSlot(i);
+                if (stack.getItem() instanceof LiveCultureVialItem && !LiveCultureVialItem.hasStrain(stack)) {
+                    ItemStack filled = new ItemStack(BioForge.LIVE_CULTURE_VIAL.get());
+                    NbtObfuscator.writeString(filled.getOrCreateTag(), strainRaw);
+                    be.items.setStackInSlot(i, filled);
+                }
+            }
+            bloodItem.shrink(1);
         }
         be.setChanged();
     }

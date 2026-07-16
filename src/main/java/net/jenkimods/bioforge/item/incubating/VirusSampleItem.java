@@ -1,4 +1,4 @@
-package net.jenkimods.bioforge.item;
+package net.jenkimods.bioforge.item.incubating;
 
 import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.util.NbtObfuscator;
@@ -31,13 +31,22 @@ public class VirusSampleItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         StrainData strain = getStrain(stack);
         if (strain != null) {
-            tooltip.add(Component.translatable("item.bioforge.virus_sample.pathogen", strain.getPathogen().name()).withStyle(ChatFormatting.DARK_RED));
+            tooltip.add(Component.translatable("item.bioforge.virus_sample.filled").withStyle(ChatFormatting.DARK_RED));
+            if (strain.getPathogen() != null) {
+                tooltip.add(Component.translatable("item.bioforge.virus_sample.pathogen", strain.getPathogen().name())
+                        .withStyle(ChatFormatting.DARK_PURPLE));
+            }
+            tooltip.add(Component.literal(" "));
             tooltip.add(Component.translatable("item.bioforge.virus_sample.stats").withStyle(ChatFormatting.GRAY));
             for (Map.Entry<String, String> entry : strain.getSymptoms().entrySet()) {
-                tooltip.add(Component.literal(entry.getKey() + ": " + entry.getValue()).withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(Component.literal("  " + entry.getKey() + ": " + entry.getValue()).withStyle(ChatFormatting.DARK_GRAY));
             }
+            tooltip.add(Component.literal(" "));
+            tooltip.add(Component.translatable("item.bioforge.virus_sample.use_in_incubator").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.virus_sample.use_with_live_culture").withStyle(ChatFormatting.DARK_GRAY));
         } else {
             tooltip.add(Component.translatable("item.bioforge.virus_sample.empty").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.bioforge.virus_sample.tooltip").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 }

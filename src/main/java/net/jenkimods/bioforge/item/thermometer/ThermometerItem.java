@@ -109,8 +109,9 @@ public class ThermometerItem extends Item {
             applyReading(stack, player, player);
             applyInternalCooldown(stack);
             setReady(stack, false);
+            player.setItemInHand(hand, stack);
+            player.sendSystemMessage(Component.translatable("item.bioforge.thermometer.reading_taken_self"));
         }
-
         return InteractionResultHolder.success(stack);
     }
 
@@ -118,7 +119,12 @@ public class ThermometerItem extends Item {
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
         Level level = player.level();
 
-        if (!player.isShiftKeyDown()) return InteractionResult.PASS;
+        if (!player.isShiftKeyDown()) {
+            if (level.isClientSide()) {
+                player.sendSystemMessage(Component.translatable("item.bioforge.thermometer.hold_shift"));
+            }
+            return InteractionResult.PASS;
+        }
 
         if (isOnCooldown(stack)) {
             if (level.isClientSide()) {
@@ -145,36 +151,26 @@ public class ThermometerItem extends Item {
             applyReading(stack, player, target);
             applyInternalCooldown(stack);
             setReady(stack, false);
+            player.setItemInHand(hand, stack);
+            player.sendSystemMessage(Component.translatable("item.bioforge.thermometer.reading_taken_mob", target.getDisplayName()));
         }
-
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     public void applyReading(ItemStack stack, Player player, LivingEntity subject) {
-        String subjectName = subject.getDisplayName().getString();
-        InfectionData selfData = InfectionCapability.get(subject);
-        boolean tempPlus  = selfData != null && selfData.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS);
-        boolean tempMinus = selfData != null && selfData.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS);
-        long    cooldownUntil  = System.currentTimeMillis() + COOLDOWN_MS;
-
-        stack.getOrCreateTag().remove(NBT_LAST_TARGET);
+        InfectionData data = InfectionCapability.get(subject);
+        boolean tempPlus  = data != null && data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS);
+        boolean tempMinus = data != null && data.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS);
 
         saveAllTemps(stack, tempPlus, tempMinus);
-        stack.getOrCreateTag().putLong(NBT_LAST_USED, cooldownUntil - COOLDOWN_MS);
-        stack.getOrCreateTag().putBoolean(NBT_READY, false);
-        if (subjectName.isEmpty()) {
-            stack.getOrCreateTag().remove(NBT_LAST_TARGET);
-        } else {
-            stack.getOrCreateTag().putString(NBT_LAST_TARGET, subjectName);
-        }
-
-        double celsius = tempPlus ? HIGH_TEMP_CELSIUS : tempMinus ? LOW_TEMP_CELSIUS : NORMAL_TEMP_CELSIUS;
-        ClipboardHelper.recordTemperature((float)celsius, false, player, subject.getUUID());
+        stack.getOrCreateTag().putString(NBT_LAST_TARGET, subject.getDisplayName().getString());
     }
 
     public void onShake(Player player, ItemStack stack) {
         if (!isReady(stack)) {
             setReady(stack, true);
+            InteractionHand hand = player.getMainHandItem() == stack ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+            player.setItemInHand(hand, stack);
             if (player.level().isClientSide()) {
                 player.sendSystemMessage(Component.translatable("item.bioforge.thermometer.shaken"));
             }

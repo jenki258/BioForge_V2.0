@@ -54,8 +54,10 @@
   "item.bioforge.syringe.anti_a": "Anti-A: %s",
   "item.bioforge.syringe.anti_b": "Anti-B: %s",
   "item.bioforge.syringe.anti_d": "Anti-D (Rh): %s",
-  "item.bioforge.syringe.tooltip.use_self": "Right-click to draw your own blood",
-  "item.bioforge.syringe.tooltip.use_other": "Attack a mob to collect its blood",
+  "item.bioforge.syringe.tooltip.draw_self": "Right‑click air to draw your own blood",
+  "item.bioforge.syringe.tooltip.draw_mob": "Left‑click a mob to collect its blood",
+  "item.bioforge.syringe.tooltip.inject_self": "Right‑click air to inject yourself",
+  "item.bioforge.syringe.tooltip.inject_mob": "Right‑click a mob to inject it",
   "item.bioforge.syringe.tooltip.warning_blood": "⚠ Drawing blood from a mob with a Blood‑borne infection will contaminate the syringe.",
 
   "item.bioforge.bone_saw":         "Bone Saw",
@@ -135,6 +137,9 @@
   "item.bioforge.thermometer.shake_first": "Shake the thermometer first!",
   "item.bioforge.thermometer.shaken":      "The thermometer is ready.",
   "item.bioforge.thermometer.no_infection":    "%s has no detectable temperature.",
+  "item.bioforge.thermometer.hold_shift": "Hold shift while right‑clicking a mob to take its temperature.",
+  "item.bioforge.thermometer.reading_taken_self": "Temperature taken.",
+  "item.bioforge.thermometer.reading_taken_mob": "Temperature taken from %s.",
 
   "item.bioforge.stethoscope": "Stethoscope",
   "item.bioforge.stethoscope.tooltip.hold": "Hold right-click to start listening",
@@ -364,13 +369,22 @@
   "item.bioforge.catalyst_vial.pathogen_random": "Pathogen: ??? (Random)",
   "item.bioforge.catalyst_vial.invalid_reagent": "That item does not contain a valid pathogen!",
   "item.bioforge.catalyst_vial.already_set": "This catalyst vial already contains a pathogen – it cannot be changed.",
+  "item.bioforge.catalyst_vial.mappings_header": "Reagents:",
+  "item.bioforge.catalyst_vial.nether_star_hint": "Nether Star → Random pathogen",
+  "item.bioforge.catalyst_vial.place_in_incubator": "Place in the Incubator with Nutrient Medium to grow a virus.",
 
   "item.bioforge.nutrient_medium": "Nutrient Medium",
+  "item.bioforge.nutrient_medium.tooltip": "Place in the Incubator bottom slots to grow virus samples.",
 
   "item.bioforge.virus_sample": "Virus Sample",
   "item.bioforge.virus_sample.empty": "Empty virus sample",
+  "item.bioforge.virus_sample.filled": "Virus Sample",
   "item.bioforge.virus_sample.pathogen": "Pathogen: %s",
-  "item.bioforge.virus_sample.stats": "Randomised stats:",
+  "item.bioforge.virus_sample.stats": "Strain stats:",
+  "item.bioforge.virus_sample.use_in_incubator": "Place in Incubator top slot to grow into Live Culture Vials.",
+  "item.bioforge.virus_sample.use_with_live_culture": "Place empty Live Culture Vials in the bottom slots.",
+  "item.bioforge.virus_sample.tooltip": "Created in the Incubator using a Catalyst Vial and Nutrient Medium.",
+
 
   "item.bioforge.live_culture_vial": "Live Culture Vial",
   "item.bioforge.live_culture_vial.empty": "Empty – needs a virus sample",
@@ -380,12 +394,27 @@
   "item.bioforge.live_culture_vial.stats": "Strain stats:",
   "item.bioforge.live_culture_vial.transferred": "Strain transferred to syringe.",
   "item.bioforge.live_culture_vial.infect_item": "Infected %s with the culture!",
+  "item.bioforge.live_culture_vial.use_syringe": "Right‑click a filled Syringe to load the infection.",
+  "item.bioforge.live_culture_vial.use_infect": "Right‑click food, water or Petri dishes to infect.",
+  "item.bioforge.live_culture_vial.grow_in_incubator": "Place in Incubator bottom slots with a Virus Sample/Filled Live Culture Vial on top to fill.",
 
   "item.bioforge.dirty_culture_vial": "Dirty Culture Vial",
+  "item.bioforge.dirty_culture_vial.tooltip": "This vial has been used and is contaminated.",
+  "item.bioforge.dirty_culture_vial.tooltip.clean": "Clean it with Ethanol or a Wipe to reuse.",
 
   "item.bioforge.ethanol": "Ethanol",
   "item.bioforge.ethanol.cleaned": "Culture Vial cleaned!",
+  "item.bioforge.ethanol.syringe_cleaned": "Syringe infection wiped clean.",
+  "item.bioforge.ethanol.syringe_not_empty": "Syringe must be empty of blood first.",
+  "item.bioforge.ethanol.tooltip.clean_vial": "Cleans Dirty Culture Vials",
+  "item.bioforge.ethanol.tooltip.clean_syringe": "Removes infection from empty Syringes",
+  "item.bioforge.ethanol.tooltip.usage": "Hold the item to clean in your other hand and right‑click",
 
   "item.bioforge.wipes": "Wipe",
-  "item.bioforge.wipes.cleaned": "Culture Vial wiped clean."
+  "item.bioforge.wipe.cleaned": "Culture Vial wiped clean.",
+  "item.bioforge.wipe.syringe_cleaned": "Syringe infection wiped clean.",
+  "item.bioforge.wipe.syringe_not_empty": "Syringe must be empty of blood first.",
+  "item.bioforge.wipe.tooltip.clean_vial": "Cleans Dirty Culture Vials",
+  "item.bioforge.wipe.tooltip.clean_syringe": "Removes infection from empty Syringes",
+  "item.bioforge.wipe.tooltip.usage": "Hold the item to clean in your other hand and right‑click"
 }

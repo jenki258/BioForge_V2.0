@@ -1,4 +1,4 @@
-package net.jenkimods.bioforge.item;
+package net.jenkimods.bioforge.item.incubating;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.block.PetriDishBlock;
@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class LiveCultureVialItem extends Item {
 
@@ -97,7 +96,6 @@ public class LiveCultureVialItem extends Item {
         return InteractionResult.PASS;
     }
 
-    // ── Helper: transfer to syringe ────────────────────────────
     private InteractionResultHolder<ItemStack> transferToSyringe(Player player, ItemStack vial, ItemStack syringe, InteractionHand hand) {
         String existingRaw = NbtObfuscator.readInfection(syringe.getOrCreateTag());
         StrainData existingStrain = existingRaw != null && !existingRaw.isEmpty()
@@ -108,7 +106,6 @@ public class LiveCultureVialItem extends Item {
         StrainData finalStrain = StrainData.compete(existingStrain, vialStrain);
         NbtObfuscator.writeInfection(syringe.getOrCreateTag(), finalStrain.toPayload());
 
-        // Turn into dirty vial
         vial.shrink(1);
         ItemStack dirty = new ItemStack(BioForge.DIRTY_CULTURE_VIAL.get());
         if (!player.getInventory().add(dirty)) {
@@ -141,13 +138,19 @@ public class LiveCultureVialItem extends Item {
                 tooltip.add(Component.translatable("item.bioforge.live_culture_vial.pathogen", strain.getPathogen().name())
                         .withStyle(ChatFormatting.DARK_PURPLE));
             }
+            tooltip.add(Component.literal(" "));
             tooltip.add(Component.translatable("item.bioforge.live_culture_vial.stats").withStyle(ChatFormatting.GRAY));
             for (Map.Entry<String, String> entry : strain.getSymptoms().entrySet()) {
-                tooltip.add(Component.literal(entry.getKey() + ": " + entry.getValue()).withStyle(ChatFormatting.DARK_GRAY));
+                tooltip.add(Component.literal("  " + entry.getKey() + ": " + entry.getValue()).withStyle(ChatFormatting.DARK_GRAY));
             }
+            tooltip.add(Component.literal(" "));
+            tooltip.add(Component.translatable("item.bioforge.live_culture_vial.use_syringe").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.live_culture_vial.use_infect").withStyle(ChatFormatting.DARK_GRAY));
         } else {
             tooltip.add(Component.translatable("item.bioforge.live_culture_vial.empty").withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.translatable("item.bioforge.live_culture_vial.tooltip").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.literal(" "));
+            tooltip.add(Component.translatable("item.bioforge.live_culture_vial.grow_in_incubator").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 }

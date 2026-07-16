@@ -84,7 +84,14 @@
           "icon": "bioforge:textures/gui/microscope/strength.png"
         }
       ]
-    },"bioforge:virus_sample": {
+    },
+    "bioforge:virus_sample": {
+      "calibration": {
+        "sliders": [
+          { "name": "microscope.calibration.brightness", "target": 0.55, "random_target": true },
+          { "name": "microscope.calibration.zoom", "target": 0.60, "range_min": 0.1, "range_max": 0.9, "random_target": true }
+        ]
+      },
       "entries": [
         {
           "symptom": "heart_rate",
@@ -159,6 +166,75 @@
           "symptom": "reflex_delay",
           "type": "float",
           "icon": "bioforge:textures/gui/microscope/strength.png"
+        }
+      ]
+    },
+    "bioforge:bone_marrow": {
+      "calibration": {
+        "sliders": [
+          { "name": "microscope.calibration.brightness", "target": 0.50, "random_target": true },
+          { "name": "microscope.calibration.zoom", "target": 0.55, "range_min": 0.1, "range_max": 0.9, "random_target": true }
+        ]
+      },
+      "entries": [
+        {
+          "symptom": "neural_damage",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        },
+        {
+          "symptom": "reflex_delay",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        },
+        {
+          "symptom": "reflex_strength",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        },
+        {
+          "symptom": "infection_strength",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        }
+      ]
+    },
+    "bioforge:withered_bone_marrow": {
+      "calibration": {
+        "sliders": [
+          { "name": "microscope.calibration.brightness", "target": 0.40, "random_target": true },
+          { "name": "microscope.calibration.zoom", "target": 0.65, "range_min": 0.1, "range_max": 0.9, "random_target": true },
+          { "name": "microscope.calibration.contrast", "target": 0.55, "random_target": true }
+        ]
+      },
+      "entries": [
+        {
+          "symptom": "neural_damage",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        },
+        {
+          "symptom": "reflex_delay",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        },
+        {
+          "symptom": "reflex_strength",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
+        },
+        {
+          "symptom": "infection_strength",
+          "type": "float",
+          "icon": "bioforge:textures/gui/microscope/strength.png",
+          "min_visibility": "MEDIUM"
         }
       ]
     }

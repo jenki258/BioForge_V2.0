@@ -1,8 +1,9 @@
-package net.jenkimods.bioforge.item;
+package net.jenkimods.bioforge.item.samples;
 
 import net.jenkimods.bioforge.blood.BloodType;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledge;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
+import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
 import net.jenkimods.bioforge.item.needle.SyringeItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
@@ -28,9 +29,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class BloodSlideItem extends Item {
+public class TubeItem extends Item {
 
-    public BloodSlideItem() {
+    public TubeItem() {
         super(new Properties().stacksTo(1));
     }
 
@@ -46,13 +47,13 @@ public class BloodSlideItem extends Item {
 
         if (!(tool.getItem() instanceof SyringeItem) && !(tool.getItem() instanceof NeedleItem)) {
             if (player instanceof ServerPlayer sp)
-                sp.sendSystemMessage(Component.translatable("item.bioforge.blood_slide.need_blood"));
+                sp.sendSystemMessage(Component.translatable("item.bioforge.tube.need_blood"));
             return InteractionResultHolder.fail(slide);
         }
 
         if (!BloodSampleUtil.hasBlood(tool)) {
             if (player instanceof ServerPlayer sp)
-                sp.sendSystemMessage(Component.translatable("item.bioforge.blood_slide.need_blood"));
+                sp.sendSystemMessage(Component.translatable("item.bioforge.tube.need_blood"));
             return InteractionResultHolder.fail(slide);
         }
 
@@ -77,7 +78,7 @@ public class BloodSlideItem extends Item {
 
         level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
         if (player instanceof ServerPlayer sp)
-            sp.sendSystemMessage(Component.translatable("item.bioforge.blood_slide.transferred"));
+            sp.sendSystemMessage(Component.translatable("item.bioforge.tube.transferred"));
         return InteractionResultHolder.success(slide);
     }
 
@@ -89,18 +90,18 @@ public class BloodSlideItem extends Item {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         if (!hasBlood(stack)) {
-            tooltip.add(Component.translatable("item.bioforge.blood_slide.empty").withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.translatable("item.bioforge.blood_slide.tooltip.usage").withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.tube.empty").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.bioforge.tube.tooltip.usage").withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
 
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         if (data == null) return;
 
-        tooltip.add(Component.translatable("item.bioforge.blood_slide.filled").withStyle(ChatFormatting.RED));
-        tooltip.add(Component.translatable("item.bioforge.blood_slide.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
+        tooltip.add(Component.translatable("item.bioforge.tube.filled").withStyle(ChatFormatting.RED));
+        tooltip.add(Component.translatable("item.bioforge.tube.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
         BloodType type = BloodType.fromName(data.typeName());
-        tooltip.add(Component.translatable("item.bioforge.blood_slide.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.tube.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
 
         appendKnowledgeLines(data, tooltip);
     }
@@ -117,10 +118,10 @@ public class BloodSlideItem extends Item {
         if (knowledge.isEmpty()) return;
         BloodKnowledge k = knowledge.get();
         if (k.getAntiA() != null && k.getAntiB() != null && k.getAntiD() != null) {
-            tooltip.add(Component.translatable("item.bioforge.blood_slide.reactions").withStyle(ChatFormatting.DARK_GREEN));
-            tooltip.add(Component.translatable("item.bioforge.blood_slide.anti_a", k.getAntiA() ? "+" : "-").withStyle(k.getAntiA() ? ChatFormatting.RED : ChatFormatting.GREEN));
-            tooltip.add(Component.translatable("item.bioforge.blood_slide.anti_b", k.getAntiB() ? "+" : "-").withStyle(k.getAntiB() ? ChatFormatting.RED : ChatFormatting.GREEN));
-            tooltip.add(Component.translatable("item.bioforge.blood_slide.anti_d", k.getAntiD() ? "+" : "-").withStyle(k.getAntiD() ? ChatFormatting.RED : ChatFormatting.GREEN));
+            tooltip.add(Component.translatable("item.bioforge.tube.reactions").withStyle(ChatFormatting.DARK_GREEN));
+            tooltip.add(Component.translatable("item.bioforge.tube.anti_a", k.getAntiA() ? "+" : "-").withStyle(k.getAntiA() ? ChatFormatting.RED : ChatFormatting.GREEN));
+            tooltip.add(Component.translatable("item.bioforge.tube.anti_b", k.getAntiB() ? "+" : "-").withStyle(k.getAntiB() ? ChatFormatting.RED : ChatFormatting.GREEN));
+            tooltip.add(Component.translatable("item.bioforge.tube.anti_d", k.getAntiD() ? "+" : "-").withStyle(k.getAntiD() ? ChatFormatting.RED : ChatFormatting.GREEN));
         }
     }
 }

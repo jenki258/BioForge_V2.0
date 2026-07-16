@@ -75,4 +75,8 @@ public class CatalystMappingManager extends SimpleJsonResourceReloadListener {
     public static void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(INSTANCE);
     }
+
+    public Map<Item, PathogenType> getAllMappings() {
+        return Collections.unmodifiableMap(itemToPathogen);
+    }
 }

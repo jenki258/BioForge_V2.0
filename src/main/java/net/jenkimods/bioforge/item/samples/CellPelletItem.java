@@ -1,8 +1,9 @@
-package net.jenkimods.bioforge.item;
+package net.jenkimods.bioforge.item.samples;
 
 import net.jenkimods.bioforge.blood.BloodType;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledge;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
+import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -19,9 +20,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class PlasmaSampleItem extends Item {
+public class CellPelletItem extends Item {
 
-    public PlasmaSampleItem() {
+    public CellPelletItem() {
         super(new Properties().stacksTo(1));
     }
 
@@ -33,17 +34,17 @@ public class PlasmaSampleItem extends Item {
     @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         if (!hasBlood(stack)) {
-            tooltip.add(Component.translatable("item.bioforge.plasma_sample.empty").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("item.bioforge.cell_pellet.empty").withStyle(ChatFormatting.GRAY));
             return;
         }
 
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         if (data == null) return;
 
-        tooltip.add(Component.translatable("item.bioforge.plasma_sample.filled").withStyle(ChatFormatting.DARK_RED));
-        tooltip.add(Component.translatable("item.bioforge.plasma_sample.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
+        tooltip.add(Component.translatable("item.bioforge.cell_pellet.filled").withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.cell_pellet.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
         BloodType type = BloodType.fromName(data.typeName());
-        tooltip.add(Component.translatable("item.bioforge.plasma_sample.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.cell_pellet.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
 
         appendKnowledgeLines(data, tooltip);
     }
@@ -60,10 +61,10 @@ public class PlasmaSampleItem extends Item {
         if (knowledge.isEmpty()) return;
         BloodKnowledge k = knowledge.get();
         if (k.getAntiA() != null && k.getAntiB() != null && k.getAntiD() != null) {
-            tooltip.add(Component.translatable("item.bioforge.plasma_sample.reactions").withStyle(ChatFormatting.DARK_GREEN));
-            tooltip.add(Component.translatable("item.bioforge.plasma_sample.anti_a", k.getAntiA() ? "+" : "-").withStyle(k.getAntiA() ? ChatFormatting.RED : ChatFormatting.GREEN));
-            tooltip.add(Component.translatable("item.bioforge.plasma_sample.anti_b", k.getAntiB() ? "+" : "-").withStyle(k.getAntiB() ? ChatFormatting.RED : ChatFormatting.GREEN));
-            tooltip.add(Component.translatable("item.bioforge.plasma_sample.anti_d", k.getAntiD() ? "+" : "-").withStyle(k.getAntiD() ? ChatFormatting.RED : ChatFormatting.GREEN));
+            tooltip.add(Component.translatable("item.bioforge.cell_pellet.reactions").withStyle(ChatFormatting.DARK_GREEN));
+            tooltip.add(Component.translatable("item.bioforge.cell_pellet.anti_a", k.getAntiA() ? "+" : "-").withStyle(k.getAntiA() ? ChatFormatting.RED : ChatFormatting.GREEN));
+            tooltip.add(Component.translatable("item.bioforge.cell_pellet.anti_b", k.getAntiB() ? "+" : "-").withStyle(k.getAntiB() ? ChatFormatting.RED : ChatFormatting.GREEN));
+            tooltip.add(Component.translatable("item.bioforge.cell_pellet.anti_d", k.getAntiD() ? "+" : "-").withStyle(k.getAntiD() ? ChatFormatting.RED : ChatFormatting.GREEN));
         }
     }
 }
