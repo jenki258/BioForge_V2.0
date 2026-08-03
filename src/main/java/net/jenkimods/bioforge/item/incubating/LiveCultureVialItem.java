@@ -3,8 +3,10 @@ package net.jenkimods.bioforge.item.incubating;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.block.PetriDishBlock;
 import net.jenkimods.bioforge.infection.*;
+import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.item.needle.SyringeItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.jenkimods.bioforge.vaccine.StrainFingerprint;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -22,7 +24,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 public class LiveCultureVialItem extends Item {
 
@@ -134,15 +135,12 @@ public class LiveCultureVialItem extends Item {
         StrainData strain = getStrain(stack);
         if (strain != null) {
             tooltip.add(Component.translatable("item.bioforge.live_culture_vial.filled").withStyle(ChatFormatting.DARK_RED));
-            if (strain.getPathogen() != null) {
-                tooltip.add(Component.translatable("item.bioforge.live_culture_vial.pathogen", strain.getPathogen().name())
-                        .withStyle(ChatFormatting.DARK_PURPLE));
-            }
-            tooltip.add(Component.literal(" "));
-            tooltip.add(Component.translatable("item.bioforge.live_culture_vial.stats").withStyle(ChatFormatting.GRAY));
-            for (Map.Entry<String, String> entry : strain.getSymptoms().entrySet()) {
-                tooltip.add(Component.literal("  " + entry.getKey() + ": " + entry.getValue()).withStyle(ChatFormatting.DARK_GRAY));
-            }
+            String fingerprint = StrainFingerprint.ofPayload(strain.toPayload());
+            StrainNamingManager.getClientName(fingerprint).ifPresent(name ->
+                    tooltip.add(Component.translatable("item.bioforge.strain_name", name)
+                            .withStyle(ChatFormatting.AQUA)));
+            tooltip.add(Component.translatable("item.bioforge.live_culture_vial.sealed_profile")
+                    .withStyle(ChatFormatting.DARK_GRAY));
             tooltip.add(Component.literal(" "));
             tooltip.add(Component.translatable("item.bioforge.live_culture_vial.use_syringe").withStyle(ChatFormatting.DARK_GRAY));
             tooltip.add(Component.translatable("item.bioforge.live_culture_vial.use_infect").withStyle(ChatFormatting.DARK_GRAY));

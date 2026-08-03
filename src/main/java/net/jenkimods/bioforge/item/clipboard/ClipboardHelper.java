@@ -1,5 +1,6 @@
 package net.jenkimods.bioforge.item.clipboard;
 
+import net.jenkimods.bioforge.vaccine.MedicalReportStrainBinding;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -45,6 +46,7 @@ public class ClipboardHelper {
     public static void assignSubject(Player player, LivingEntity subject, ItemStack clipboardStack) {
         setSubjectName(clipboardStack, subject.getDisplayName().getString());
         setSubjectUUID(clipboardStack, subject.getUUID());
+        MedicalReportStrainBinding.capture(clipboardStack, subject);
 
         startSession(player, clipboardStack);
     }

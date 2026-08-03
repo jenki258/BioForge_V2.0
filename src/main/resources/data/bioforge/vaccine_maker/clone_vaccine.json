@@ -1,0 +1,49 @@
+{
+  "operation": "clone",
+  "processing_time": 120,
+  "requires_program": false,
+  "consume_sample": false,
+  "minimum_quality": 0.0,
+  "inputs": {
+    "sample": [
+      {
+        "item": "bioforge:vaccine"
+      },
+      {
+        "item": "bioforge:mutation_vaccine"
+      },
+      {
+        "item": "bioforge:transmission_vaccine"
+      },
+      {
+        "item": "bioforge:symptom_vaccine"
+      },
+      {
+        "item": "bioforge:random_mutation_vaccine"
+      }
+    ],
+    "carrier": [
+      {
+        "item": "bioforge:vaccine"
+      },
+      {
+        "item": "bioforge:mutation_vaccine"
+      },
+      {
+        "item": "bioforge:transmission_vaccine"
+      },
+      {
+        "item": "bioforge:symptom_vaccine"
+      },
+      {
+        "item": "bioforge:random_mutation_vaccine"
+      }
+    ],
+    "reagent": {
+      "item": "bioforge:ethanol"
+    }
+  },
+  "result": {
+    "uses": 1
+  }
+}

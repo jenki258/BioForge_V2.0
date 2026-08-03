@@ -35,7 +35,7 @@ public class SyringeItem extends Item {
 
     private static final int BLOOD_DRAIN = 10;
     private static final int BLOOD_TRANSFER = 2;
-    private static final int MAX_USES = 4;
+    public static final int MAX_USES = 4;
 
     private static final Map<UUID, Long> lastMobInjectionTick = new HashMap<>();
 

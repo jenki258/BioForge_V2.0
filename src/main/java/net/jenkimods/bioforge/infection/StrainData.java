@@ -2,6 +2,10 @@ package net.jenkimods.bioforge.infection;
 
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
+import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
+import net.jenkimods.bioforge.mutation.MutationManager;
+import net.jenkimods.bioforge.vaccine.StrainImmunityManager;
+import net.jenkimods.bioforge.mutation.MutationDefinition;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -12,6 +16,7 @@ public class StrainData {
     private PathogenType pathogen;
     private final Set<InfectionType> infectionTypes = EnumSet.noneOf(InfectionType.class);
     private final Map<String, String> symptoms = new LinkedHashMap<>();
+    private final Set<String> mutationIds = new HashSet<>();
 
     private static Map<String, SymptomKey<?>> ALL_SYMPTOM_KEYS;
 
@@ -43,6 +48,8 @@ public class StrainData {
                     s.symptoms.put(keyId, serializeSymptomValue(value));
                 }
             }
+
+            s.mutationIds.addAll(data.getSymptoms().getMutations());
         }
         return s;
     }
@@ -69,8 +76,12 @@ public class StrainData {
         Map<String, SymptomKey<?>> allKeys = getAllSymptomKeys();
         for (int i = 1; i < parts.length; i++) {
             String[] kv = parts[i].split("=", 2);
-            if (kv.length == 2 && allKeys.containsKey(kv[0])) {
-                s.symptoms.put(kv[0], kv[1]);
+            if (kv.length == 2) {
+                if (kv[0].equals("mutations")) {
+                    s.parseMutations(kv[1]);
+                } else if (allKeys.containsKey(kv[0])) {
+                    s.symptoms.put(kv[0], kv[1]);
+                }
             }
         }
         return s;
@@ -80,10 +91,112 @@ public class StrainData {
     public PathogenType getPathogen() { return pathogen; }
     public Set<InfectionType> getInfectionTypes() { return infectionTypes; }
     public Map<String, String> getSymptoms() { return symptoms; }
+    public Set<String> getMutationIds() { return mutationIds; }
     public Optional<String> getSymptom(String key) { return Optional.ofNullable(symptoms.get(key)); }
 
     public void setColonyId(UUID id) { this.colonyId = id; }
     public void setPathogen(PathogenType pathogen) { this.pathogen = pathogen; }
+
+    public StrainData addMutation(String id) {
+        mutationIds.add(id);
+        return this;
+    }
+
+    public StrainData addMutations(Collection<String> ids) {
+        mutationIds.addAll(ids);
+        return this;
+    }
+
+
+
+
+
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public boolean applyMutationInVitro(MutationDefinition definition) {
+        if (definition == null || mutationIds.contains(definition.id())) return false;
+        mutationIds.add(definition.id());
+        for (MutationDefinition.Effect effect : definition.effects()) {
+            if (effect.trigger() != MutationDefinition.Trigger.APPLY) continue;
+            switch (effect.type()) {
+                case "modify_symptom", "set_symptom" -> {
+                    SymptomKey key = getAllSymptomKeys().get(effect.target());
+                    if (key == null) continue;
+                    String stored = symptoms.get(effect.target());
+                    Object current = stored == null
+                            ? key.getDefaultValue()
+                            : parseSymptomValue(stored, key.getType());
+                    if (current == null) current = key.getDefaultValue();
+                    Object result = inVitroSymptomValue(current, key.getType(), effect);
+                    if (result != null) {
+                        symptoms.put(effect.target(), serializeSymptomValue(result));
+                    }
+                }
+                case "add_infection_type" -> {
+                    InfectionType type = InfectionType.fromName(effect.target());
+                    if (type != null && (pathogen == null || pathogen.allows(type))) {
+                        infectionTypes.add(type);
+                    }
+                }
+                case "remove_infection_type" -> {
+                    InfectionType type = InfectionType.fromName(effect.target());
+                    if (type != null) infectionTypes.remove(type);
+                }
+                default -> {
+
+                }
+            }
+        }
+        return true;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object inVitroSymptomValue(Object current, Class<?> type,
+                                               MutationDefinition.Effect effect) {
+        String operation = effect.operation();
+        if (type == Float.class || type == Integer.class) {
+            if (!(current instanceof Number number)) return null;
+            float value = effect.floatValue("value", 1.0f);
+            float result = switch (operation) {
+                case "add" -> number.floatValue() + value;
+                case "multiply" -> number.floatValue() * value;
+                case "min" -> Math.min(number.floatValue(), value);
+                case "max" -> Math.max(number.floatValue(), value);
+                case "clamp" -> number.floatValue();
+                default -> value;
+            };
+            float minimum = effect.floatValue("min", -Float.MAX_VALUE);
+            float maximum = effect.floatValue("max", Float.MAX_VALUE);
+            if (minimum > maximum) {
+                float swap = minimum;
+                minimum = maximum;
+                maximum = swap;
+            }
+            result = Math.max(minimum, Math.min(maximum, result));
+            return type == Integer.class ? Math.round(result) : result;
+        }
+        if (type == Boolean.class) {
+            boolean now = current instanceof Boolean bool && bool;
+            boolean configured = effect.booleanValue("value",
+                    effect.floatValue("value", 1.0f) > 0.5f);
+            return switch (operation) {
+                case "toggle" -> !now;
+                case "and" -> now && configured;
+                case "or" -> now || configured;
+                default -> configured;
+            };
+        }
+        if (type.isEnum()) {
+            String value = effect.stringValue("value", "");
+            if (value.isBlank()) return current;
+            try {
+                return Enum.valueOf((Class<Enum>) type, value.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ignored) {
+                return current;
+            }
+        }
+        return null;
+    }
 
     public static String replaceColonyId(String payload, String newColonyId) {
         int firstPipe = payload.indexOf('|');
@@ -106,12 +219,45 @@ public class StrainData {
         for (Map.Entry<String, String> entry : symptoms.entrySet()) {
             sb.append(entry.getKey()).append("=").append(entry.getValue()).append(";");
         }
+        if (!mutationIds.isEmpty()) {
+            sb.append("mutations=");
+            StringJoiner joiner = new StringJoiner(",");
+            for (String id : mutationIds) joiner.add(id);
+            sb.append(joiner);
+            sb.append(";");
+        }
         return sb.toString();
+    }
+
+
+
+
+
+    public String toCanonicalGeneticPayload() {
+        StringBuilder result = new StringBuilder();
+        result.append(pathogen != null ? pathogen.name() : "UNKNOWN").append('|');
+        infectionTypes.stream().map(Enum::name).sorted()
+                .forEach(type -> result.append(type).append(','));
+        result.append(';');
+        symptoms.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> result.append(entry.getKey()).append('=')
+                        .append(entry.getValue()).append(';'));
+        if (!mutationIds.isEmpty()) {
+            result.append("mutations=");
+            mutationIds.stream().sorted().forEach(id -> result.append(id).append(','));
+            result.append(';');
+        }
+        return result.toString();
+    }
+
+    public static String canonicalGeneticPayload(String payload) {
+        return parse(payload).toCanonicalGeneticPayload();
     }
 
     @SuppressWarnings("unchecked")
     public void applyToEntity(InfectionData data, LivingEntity target) {
         if (data == null || data.isInfected() || pathogen == null) return;
+        if (StrainImmunityManager.blocks(data, this)) return;
         data.setInfected(true);
         data.setPathogenType(pathogen);
         for (InfectionType type : infectionTypes) {
@@ -127,6 +273,13 @@ public class StrainData {
                 }
             }
         }
+        for (String id : mutationIds) {
+            data.getSymptoms().addMutation(id);
+        }
+        StrainNamingManager.discover(target, data);
+
+
+        MutationManager.refreshContinuousEffects(data, target);
         if (target instanceof ServerPlayer sp) {
             InfectionEventHandler.syncToClient(sp, data);
         }
@@ -145,21 +298,28 @@ public class StrainData {
         float ns = incomingStr * r1;
         float os = existingStr * r2;
 
+        StrainData result;
         if (ns > os * 1.5f) {
-            return incoming;
+            result = incoming;
         } else if (ns > os * 1.0f) {
             StrainData blend = copy(incoming);
             float avg = Math.min(1.0f, (existingStr + incomingStr) / 2f);
             blend.getSymptoms().put("infection_strength", String.valueOf(avg));
-            return blend;
+            result = blend;
         } else if (ns > os * 0.7f) {
             StrainData boosted = copy(existing);
             float newStr = Math.min(1.0f, existingStr + 0.05f);
             boosted.getSymptoms().put("infection_strength", String.valueOf(newStr));
-            return boosted;
+            result = boosted;
         } else {
-            return existing;
+            result = existing;
         }
+
+
+        result.getMutationIds().addAll(existing.getMutationIds());
+        result.getMutationIds().addAll(incoming.getMutationIds());
+
+        return result;
     }
 
     private static float getInfectionStrength(StrainData strain) {
@@ -174,6 +334,7 @@ public class StrainData {
         copy.setPathogen(original.getPathogen());
         copy.getInfectionTypes().addAll(original.getInfectionTypes());
         copy.getSymptoms().putAll(original.getSymptoms());
+        copy.getMutationIds().addAll(original.getMutationIds());
         return copy;
     }
 
@@ -204,6 +365,15 @@ public class StrainData {
         for (String t : raw.split(",")) {
             InfectionType it = InfectionType.fromName(t.trim());
             if (it != null) infectionTypes.add(it);
+        }
+    }
+
+    private void parseMutations(String raw) {
+        mutationIds.clear();
+        if (raw == null || raw.isEmpty()) return;
+        for (String id : raw.split(",")) {
+            String trimmed = id.trim();
+            if (!trimmed.isEmpty()) mutationIds.add(trimmed);
         }
     }
 }

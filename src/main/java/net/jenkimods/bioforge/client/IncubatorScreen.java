@@ -41,4 +41,10 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
             g.blit(TEXTURE, barX, barY, 176, 0, barWidth, filledHeight);
         }
     }
+
+    @Override
+    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
+        g.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x6EFFFF, false);
+        g.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 0x6EFFFF, false);
+    }
 }

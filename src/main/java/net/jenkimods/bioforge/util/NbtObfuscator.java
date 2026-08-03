@@ -1,8 +1,10 @@
 package net.jenkimods.bioforge.util;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +24,7 @@ public final class NbtObfuscator {
     private static final String KEY_INF_FLAG     = "bf_if";
     private static final String KEY_INF_PAYLOAD  = "bf_ip";
     private static final String KEY_INF_CHECKSUM = "bf_ic";
+    private static final String KEY_NAMED_ROOT = "bf_o";
 
     private static final long XOR_MASK_A = 0x42694666F726765L;
     private static final long XOR_MASK_B = 0x426C6F6F64480000L;
@@ -105,6 +108,59 @@ public final class NbtObfuscator {
         long rawHi = salt.getMostSignificantBits();
         long rawLo = salt.getLeastSignificantBits();
         writeInternal(tag, payload, rawHi, rawLo, KEY_SALT_HI, KEY_SALT_LO, KEY_FLAG, KEY_PAYLOAD, KEY_CHECKSUM);
+    }
+
+
+
+
+
+    public static void writeString(CompoundTag tag, String channel, String payload) {
+        if (tag == null || channel == null || channel.isBlank()) return;
+        CompoundTag channels = tag.contains(KEY_NAMED_ROOT, Tag.TAG_COMPOUND)
+                ? tag.getCompound(KEY_NAMED_ROOT) : new CompoundTag();
+        CompoundTag encoded = new CompoundTag();
+        UUID salt = UUID.randomUUID();
+        writeInternal(encoded, payload == null ? "" : payload,
+                salt.getMostSignificantBits(), salt.getLeastSignificantBits(),
+                KEY_SALT_HI, KEY_SALT_LO, KEY_FLAG, KEY_PAYLOAD, KEY_CHECKSUM);
+        channels.put(channel, encoded);
+        tag.put(KEY_NAMED_ROOT, channels);
+    }
+
+    @Nullable
+    public static String readString(CompoundTag tag, String channel) {
+        if (tag == null || channel == null || channel.isBlank()
+                || !tag.contains(KEY_NAMED_ROOT, Tag.TAG_COMPOUND)) return null;
+        CompoundTag channels = tag.getCompound(KEY_NAMED_ROOT);
+        if (!channels.contains(channel, Tag.TAG_COMPOUND)) return null;
+        return readString(channels.getCompound(channel));
+    }
+
+    public static boolean hasData(CompoundTag tag, String channel) {
+        return readString(tag, channel) != null;
+    }
+
+    public static void clear(CompoundTag tag, String channel) {
+        if (tag == null || !tag.contains(KEY_NAMED_ROOT, Tag.TAG_COMPOUND)) return;
+        CompoundTag channels = tag.getCompound(KEY_NAMED_ROOT);
+        channels.remove(channel);
+        if (channels.isEmpty()) tag.remove(KEY_NAMED_ROOT);
+        else tag.put(KEY_NAMED_ROOT, channels);
+    }
+
+    public static void writeCompound(CompoundTag tag, String channel, CompoundTag payload) {
+        writeString(tag, channel, payload == null ? "{}" : payload.toString());
+    }
+
+    @Nullable
+    public static CompoundTag readCompound(CompoundTag tag, String channel) {
+        String payload = readString(tag, channel);
+        if (payload == null || payload.isBlank()) return null;
+        try {
+            return TagParser.parseTag(payload);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     public static void writeStringDeterministic(CompoundTag tag, String payload) {

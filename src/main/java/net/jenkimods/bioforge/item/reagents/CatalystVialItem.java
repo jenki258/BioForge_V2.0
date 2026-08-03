@@ -127,9 +127,6 @@ public class CatalystVialItem extends Item {
         } else {
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen", pathogenName).withStyle(ChatFormatting.DARK_PURPLE));
         }
-        if (charges > 0) {
-            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.charges", charges).withStyle(ChatFormatting.GOLD));
-        }
         tooltip.add(Component.literal(" "));
         tooltip.add(Component.translatable("item.bioforge.catalyst_vial.place_in_incubator").withStyle(ChatFormatting.DARK_GRAY));
     }

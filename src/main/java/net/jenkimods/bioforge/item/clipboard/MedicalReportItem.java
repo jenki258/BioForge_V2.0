@@ -1,10 +1,16 @@
 package net.jenkimods.bioforge.item.clipboard;
 
+import net.jenkimods.bioforge.vaccine.MedicalReportStrainBinding;
+import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +20,46 @@ import java.util.List;
 public class MedicalReportItem extends Item {
 
     public MedicalReportItem() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(16));
+    }
+
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack report = player.getItemInHand(hand);
+        InteractionHand otherHand = hand == InteractionHand.MAIN_HAND
+                ? InteractionHand.OFF_HAND
+                : InteractionHand.MAIN_HAND;
+        ItemStack otherStack = player.getItemInHand(otherHand);
+        CompoundTag reportTag = report.getTag();
+        if (reportTag == null || !reportTag.hasUUID("SessionId")) {
+            return InteractionResultHolder.pass(report);
+        }
+
+        if (otherStack.is(Items.WRITABLE_BOOK)) {
+            if (!level.isClientSide()) {
+                ClipboardAppendToBookHelper.appendToBook(reportTag, player, otherStack);
+                player.setItemInHand(otherHand, otherStack);
+            }
+            return InteractionResultHolder.sidedSuccess(report, level.isClientSide());
+        }
+
+        if (!otherStack.is(Items.PAPER)) {
+            return InteractionResultHolder.pass(report);
+        }
+
+        if (!level.isClientSide()) {
+            ItemStack copy = report.copy();
+            copy.setCount(1);
+
+            if (!player.getAbilities().instabuild) {
+                otherStack.shrink(1);
+            }
+            if (!player.getInventory().add(copy)) {
+                player.drop(copy, false);
+            }
+        }
+
+        return InteractionResultHolder.sidedSuccess(report, level.isClientSide());
     }
 
     @Override
@@ -28,6 +73,18 @@ public class MedicalReportItem extends Item {
         String patient = tag.contains("SubjectName") ? tag.getString("SubjectName") : "???";
         tooltip.add(Component.translatable("item.bioforge.medical_report.patient", patient)
                 .withStyle(ChatFormatting.AQUA));
+        String strainFingerprint = MedicalReportStrainBinding.fingerprint(stack);
+        tooltip.add(Component.translatable(
+                        strainFingerprint == null
+                                ? "item.bioforge.medical_report.strain_unbound"
+                                : "item.bioforge.medical_report.strain_bound")
+                .withStyle(strainFingerprint == null
+                        ? ChatFormatting.DARK_GRAY : ChatFormatting.DARK_AQUA));
+        if (strainFingerprint != null && hasCompleteRecord(tag)) {
+            StrainNamingManager.getClientName(strainFingerprint).ifPresent(name ->
+                    tooltip.add(Component.translatable("item.bioforge.strain_name", name)
+                            .withStyle(ChatFormatting.AQUA)));
+        }
         tooltip.add(Component.literal(""));
 
         tooltip.add(Component.translatable("clipboard.section.vital").withStyle(ChatFormatting.BOLD, ChatFormatting.AQUA));
@@ -133,6 +190,14 @@ public class MedicalReportItem extends Item {
                             tag.getBoolean("AntiD") ? "+" : "-")
                     .withStyle(ChatFormatting.WHITE));
         }
+
+        tooltip.add(Component.literal(""));
+        tooltip.add(Component.translatable("item.bioforge.medical_report.hint_copy")
+                .withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.medical_report.hint_book")
+                .withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.add(Component.translatable("item.bioforge.medical_report.hint_vaccine_maker")
+                .withStyle(ChatFormatting.DARK_AQUA));
     }
 
     private String describeVisual(float val) {
@@ -140,5 +205,17 @@ public class MedicalReportItem extends Item {
         if (val > 0.3f) return "Moderate";
         if (val > 0f) return "Low";
         return "None";
+    }
+
+    private static boolean hasCompleteRecord(CompoundTag tag) {
+        return tag.contains("TemperatureC")
+                && tag.contains("HeartRate")
+                && tag.contains("OxygenSaturation")
+                && tag.contains("LungSound")
+                && tag.contains("ReflexDelay")
+                && tag.contains("Redness")
+                && tag.contains("AntiA")
+                && tag.contains("AntiB")
+                && tag.contains("AntiD");
     }
 }

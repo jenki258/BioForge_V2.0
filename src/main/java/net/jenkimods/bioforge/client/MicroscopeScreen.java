@@ -3,12 +3,15 @@ package net.jenkimods.bioforge.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.MicroscopeVisibility;
+import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
 import net.jenkimods.bioforge.world.microscope.*;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
 
@@ -18,6 +21,9 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
             ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/microscope.png");
     private static final ResourceLocation EMPTY_ICON =
             ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/microscope/empty.png");
+    private static final ResourceLocation IDENTIFY_BUTTON_TEXTURE =
+            ResourceLocation.tryBuild(BioForge.MODID,
+                    "textures/gui/microscope/button_identify.png");
 
     private static final int GRID_X = 8, GRID_Y = 17, CELL_W = 18, CELL_H = 28, COLS = 3, ICON_SIZE = 16;
     private static final int GRID_W = COLS * CELL_W, GRID_H = 2 * CELL_H;
@@ -34,11 +40,37 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     private int scrollOffset = 0;
     private boolean isScrolling = false;
     private int draggingSlider = -1;
+    private Button identifyButton;
 
     public MicroscopeScreen(MicroscopeMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
         this.imageWidth = 176;
         this.imageHeight = 166;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        identifyButton = addRenderableWidget(new BioForgeTexturedButton(
+                leftPos + 64, topPos + 57, 34, 16,
+                        Component.translatable("gui.bioforge.microscope.identify"),
+                        button -> {
+                            if (minecraft != null && minecraft.gameMode != null) {
+                                minecraft.gameMode.handleInventoryButtonClick(
+                                        menu.containerId,
+                                        MicroscopeBlockEntity.IDENTIFY_GENE_BUTTON);
+                            }
+                        }, IDENTIFY_BUTTON_TEXTURE));
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        if (identifyButton == null) return;
+        ItemStack stack = menu.slots.get(0).getItem();
+        GeneImprintItem.Data imprint = GeneImprintItem.read(stack);
+        identifyButton.visible = imprint != null && !imprint.identified();
+        identifyButton.active = identifyButton.visible && MicroscopeClientData.isCalibrated();
     }
 
     @Override
@@ -296,5 +328,11 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
         RenderSystem.setShaderTexture(0, GUI_TEXTURE);
         g.blit(GUI_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
+        g.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x6EFFFF, false);
+        g.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 0x6EFFFF, false);
     }
 }

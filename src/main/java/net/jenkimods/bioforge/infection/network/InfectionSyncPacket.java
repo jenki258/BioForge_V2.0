@@ -10,17 +10,24 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class InfectionSyncPacket {
+    private static final int MAX_MUTATIONS = 1024;
+    private static final int MAX_IMMUNITIES = 256;
     private final boolean infected;
     private final String pathogenType;
     private final List<String> infectionTypes;
     private final Map<String, Object> symptoms;
+    private final List<String> mutations;
+    private final List<StrainImmunity> immunities;
 
     public InfectionSyncPacket(boolean infected, String pathogenType, List<String> infectionTypes,
-                               Map<String, Object> symptoms) {
+                               Map<String, Object> symptoms, List<String> mutations,
+                               List<StrainImmunity> immunities) {
         this.infected = infected;
         this.pathogenType = pathogenType;
         this.infectionTypes = infectionTypes;
         this.symptoms = symptoms;
+        this.mutations = mutations;
+        this.immunities = immunities;
     }
 
     public static InfectionSyncPacket fromData(InfectionData data) {
@@ -39,7 +46,10 @@ public class InfectionSyncPacket {
                 data.isInfected(),
                 data.getPathogenType() != null ? data.getPathogenType().name() : "",
                 types,
-                symptomMap
+                symptomMap,
+                List.copyOf(data.getSymptoms().getMutations()),
+                data.getStrainImmunities().stream().filter(StrainImmunity::isActive)
+                        .limit(MAX_IMMUNITIES).toList()
         );
     }
 
@@ -66,6 +76,22 @@ public class InfectionSyncPacket {
                 buf.writeByte(3);
             }
         }
+        List<String> safeMutations = pkt.mutations.stream()
+                .filter(mutation -> mutation != null && !mutation.isBlank() && mutation.length() <= 256)
+                .limit(MAX_MUTATIONS)
+                .toList();
+        buf.writeVarInt(safeMutations.size());
+        for (String mutation : safeMutations) {
+            buf.writeUtf(mutation, 256);
+        }
+        List<StrainImmunity> safeImmunities = pkt.immunities.stream()
+                .filter(StrainImmunity::isActive).limit(MAX_IMMUNITIES).toList();
+        buf.writeVarInt(safeImmunities.size());
+        for (StrainImmunity immunity : safeImmunities) {
+            buf.writeUtf(immunity.fingerprint(), 64);
+            buf.writeUtf(immunity.displayName(), StrainImmunity.MAX_NAME_LENGTH);
+            buf.writeVarInt(immunity.remainingTicks());
+        }
     }
 
     public static InfectionSyncPacket decode(FriendlyByteBuf buf) {
@@ -85,7 +111,27 @@ public class InfectionSyncPacket {
             }
         }
 
-        return new InfectionSyncPacket(infected, pathogenType, types, symptoms);
+        int mutationCount = buf.readVarInt();
+        if (mutationCount < 0 || mutationCount > MAX_MUTATIONS) {
+            throw new IllegalArgumentException("Invalid mutation count: " + mutationCount);
+        }
+        List<String> mutations = new ArrayList<>(mutationCount);
+        for (int i = 0; i < mutationCount; i++) {
+            mutations.add(buf.readUtf(256));
+        }
+
+        int immunityCount = buf.readVarInt();
+        if (immunityCount < 0 || immunityCount > MAX_IMMUNITIES) {
+            throw new IllegalArgumentException("Invalid immunity count: " + immunityCount);
+        }
+        List<StrainImmunity> immunities = new ArrayList<>(immunityCount);
+        for (int i = 0; i < immunityCount; i++) {
+            immunities.add(new StrainImmunity(buf.readUtf(64),
+                    buf.readUtf(StrainImmunity.MAX_NAME_LENGTH), buf.readVarInt()));
+        }
+
+        return new InfectionSyncPacket(infected, pathogenType, types, symptoms, mutations,
+                immunities);
     }
 
     public static void handle(InfectionSyncPacket pkt, Supplier<NetworkEvent.Context> ctxSupplier) {
@@ -98,7 +144,8 @@ public class InfectionSyncPacket {
             }
 
             Map<String, Object> symptoms = pkt.symptoms;
-            InfectionClientCache.set(pkt.infected, pt, types, symptoms);
+            InfectionClientCache.set(pkt.infected, pt, types, symptoms, pkt.mutations,
+                    pkt.immunities);
         });
         ctx.setPacketHandled(true);
     }

@@ -17,6 +17,8 @@ public class NeedleAttackHandler {
         if (!(event.getSource().getEntity() instanceof ServerPlayer attacker)) return;
 
         LivingEntity target = event.getEntity();
+        if (target == attacker) return;
+        if (event.getSource().getDirectEntity() != attacker) return;
 
         ItemStack mainHand = attacker.getMainHandItem();
         if (mainHand.getItem() instanceof NeedleItem needle) {

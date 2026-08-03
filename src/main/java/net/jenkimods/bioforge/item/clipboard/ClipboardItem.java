@@ -29,10 +29,33 @@ public class ClipboardItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack clipboard = player.getItemInHand(hand);
+        InteractionHand other = hand == InteractionHand.MAIN_HAND
+                ? InteractionHand.OFF_HAND
+                : InteractionHand.MAIN_HAND;
+        ItemStack otherStack = player.getItemInHand(other);
+
+        if (otherStack.is(Items.WRITABLE_BOOK)) {
+            CompoundTag tag = clipboard.getOrCreateTag();
+            if (!level.isClientSide() && tag.hasUUID("SessionId")) {
+                ClipboardAppendToBookHelper.appendToBook(tag, player, otherStack);
+                player.setItemInHand(other, otherStack);
+            }
+            return InteractionResultHolder.sidedSuccess(clipboard, level.isClientSide());
+        }
+
+        if (otherStack.is(Items.PAPER)) {
+            CompoundTag tag = clipboard.getOrCreateTag();
+            if (!level.isClientSide() && tag.hasUUID("SessionId")) {
+                ClipboardCreateReportHelper.createReport(tag, player, otherStack);
+                player.setItemInHand(other, otherStack);
+            }
+            return InteractionResultHolder.sidedSuccess(clipboard, level.isClientSide());
+        }
+
         if (level.isClientSide()) {
             return super.use(level, player, hand);
         }
-        ItemStack clipboard = player.getItemInHand(hand);
 
         if (player.isShiftKeyDown()) {
             EntityHitResult hitResult = HitResultUtil.getHitResult(player);
@@ -42,27 +65,6 @@ public class ClipboardItem extends Item {
                 player.sendSystemMessage(Component.translatable("item.bioforge.clipboard.cleared"));
                 return InteractionResultHolder.success(clipboard);
             }
-        }
-
-        InteractionHand other = (hand == InteractionHand.MAIN_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-        ItemStack otherStack = player.getItemInHand(other);
-
-        if (otherStack.is(Items.WRITABLE_BOOK)) {
-            CompoundTag tag = clipboard.getOrCreateTag();
-            if (tag.hasUUID("SessionId")) {
-                ClipboardAppendToBookHelper.appendToBook(tag, player);
-                ClipboardHelper.clearClipboardItem(clipboard);
-            }
-            return InteractionResultHolder.success(clipboard);
-        }
-
-        if (otherStack.is(Items.PAPER)) {
-            CompoundTag tag = clipboard.getOrCreateTag();
-            if (tag.hasUUID("SessionId")) {
-                ClipboardCreateReportHelper.createReport(tag, player);
-                ClipboardHelper.clearClipboardItem(clipboard);
-            }
-            return InteractionResultHolder.success(clipboard);
         }
 
         CompoundTag tag = clipboard.getOrCreateTag();
@@ -96,15 +98,16 @@ public class ClipboardItem extends Item {
     @Override
     public InteractionResult interactLivingEntity(ItemStack clipboard, Player player, LivingEntity living, InteractionHand hand) {
         if (player.level().isClientSide()) {
-            return super.interactLivingEntity(clipboard, player, living, hand);
+            return InteractionResult.SUCCESS;
         }
         ClipboardHelper.assignSubject(
                 player,
                 living,
                 clipboard
         );
+        player.setItemInHand(hand, clipboard);
         player.sendSystemMessage(Component.translatable("item.bioforge.clipboard.patient_set", living.getDisplayName()));
-        return super.interactLivingEntity(clipboard, player, living, hand);
+        return InteractionResult.CONSUME;
     }
 
     @Override

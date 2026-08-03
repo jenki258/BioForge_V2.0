@@ -6,6 +6,7 @@ import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
 import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
 import net.jenkimods.bioforge.item.needle.SyringeItem;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
 import net.minecraft.ChatFormatting;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 
 public class TubeItem extends Item {
 
@@ -38,12 +40,19 @@ public class TubeItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack slide = player.getItemInHand(hand);
-        if (level.isClientSide()) return InteractionResultHolder.pass(slide);
-
-        if (hasBlood(slide)) return InteractionResultHolder.fail(slide);
 
         InteractionHand other = hand == InteractionHand.MAIN_HAND ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack tool = player.getItemInHand(other);
+
+        if (level.isClientSide()) {
+            return hasBlood(slide) && tool.getItem() instanceof SyringeItem
+                    ? InteractionResultHolder.success(slide)
+                    : InteractionResultHolder.pass(slide);
+        }
+
+        if (hasBlood(slide)) {
+            return transferBackToSyringe(level, player, slide, tool, other);
+        }
 
         if (!(tool.getItem() instanceof SyringeItem) && !(tool.getItem() instanceof NeedleItem)) {
             if (player instanceof ServerPlayer sp)
@@ -59,13 +68,10 @@ public class TubeItem extends Item {
 
         ObfuscatedData data = BloodSampleUtil.getData(tool);
         if (data == null) return InteractionResultHolder.fail(slide);
-        BloodSampleUtil.setData(slide, data.amount(),
+        BloodSampleUtil.setData(slide, 1,
                 BloodType.fromName(data.typeName()), data.sourceName(), data.subjectUUID());
 
         String infectionStrain = NbtObfuscator.readInfection(tool.getOrCreateTag());
-        if (infectionStrain == null || infectionStrain.isEmpty()) {
-            infectionStrain = NbtObfuscator.readString(tool.getOrCreateTag());
-        }
         if (infectionStrain != null && !infectionStrain.isEmpty()) {
             NbtObfuscator.writeInfection(slide.getOrCreateTag(), infectionStrain);
         }
@@ -80,6 +86,64 @@ public class TubeItem extends Item {
         if (player instanceof ServerPlayer sp)
             sp.sendSystemMessage(Component.translatable("item.bioforge.tube.transferred"));
         return InteractionResultHolder.success(slide);
+    }
+
+    private InteractionResultHolder<ItemStack> transferBackToSyringe(
+            Level level, Player player, ItemStack tube, ItemStack syringe,
+            InteractionHand syringeHand) {
+        if (!(syringe.getItem() instanceof SyringeItem)) {
+            player.sendSystemMessage(Component.translatable(
+                    "item.bioforge.tube.need_syringe"));
+            return InteractionResultHolder.fail(tube);
+        }
+        ObfuscatedData incoming = BloodSampleUtil.getData(tube);
+        if (incoming == null) return InteractionResultHolder.fail(tube);
+        ObfuscatedData existing = BloodSampleUtil.getData(syringe);
+        BloodType incomingType = BloodType.fromName(incoming.typeName());
+        if (existing != null
+                && BloodType.fromName(existing.typeName()) != incomingType) {
+            player.sendSystemMessage(Component.translatable(
+                    "item.bioforge.tube.blood_mismatch"));
+            return InteractionResultHolder.fail(tube);
+        }
+        int currentUses = existing == null ? 0 : existing.amount();
+        if (currentUses >= SyringeItem.MAX_USES) {
+            player.sendSystemMessage(Component.translatable(
+                    "item.bioforge.tube.syringe_full"));
+            return InteractionResultHolder.fail(tube);
+        }
+
+        String source = incoming.sourceName();
+        java.util.UUID subject = incoming.subjectUUID();
+        if (existing != null) {
+            if (!existing.sourceName().equals(incoming.sourceName())) {
+                source = existing.sourceName() + " + " + incoming.sourceName();
+            }
+            if (!Objects.equals(existing.subjectUUID(), incoming.subjectUUID())) subject = null;
+        }
+        BloodSampleUtil.setData(syringe, currentUses + 1, incomingType, source, subject);
+
+        String incomingInfection = NbtObfuscator.readInfection(tube.getOrCreateTag());
+        if (incomingInfection != null && !incomingInfection.isEmpty()) {
+            String existingInfection = NbtObfuscator.readInfection(
+                    syringe.getOrCreateTag());
+            StrainData transferred = StrainData.parse(incomingInfection);
+            if (existingInfection != null && !existingInfection.isEmpty()) {
+                transferred = StrainData.compete(
+                        StrainData.parse(existingInfection), transferred);
+            }
+            NbtObfuscator.writeInfection(
+                    syringe.getOrCreateTag(), transferred.toPayload());
+        }
+
+        BloodSampleUtil.clear(tube);
+        NbtObfuscator.clearInfection(tube.getOrCreateTag());
+        player.setItemInHand(syringeHand, syringe);
+        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY,
+                SoundSource.PLAYERS, 0.8f, 1.2f);
+        player.sendSystemMessage(Component.translatable(
+                "item.bioforge.tube.transferred_to_syringe"));
+        return InteractionResultHolder.success(tube);
     }
 
     public static boolean hasBlood(ItemStack stack) {
@@ -102,6 +166,8 @@ public class TubeItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.tube.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
         BloodType type = BloodType.fromName(data.typeName());
         tooltip.add(Component.translatable("item.bioforge.tube.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.tube.tooltip.return_to_syringe")
+                .withStyle(ChatFormatting.DARK_GRAY));
 
         appendKnowledgeLines(data, tooltip);
     }

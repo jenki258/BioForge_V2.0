@@ -3,6 +3,7 @@ package net.jenkimods.bioforge.infection;
 import net.jenkimods.bioforge.infection.symptoms.EntitySymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import org.jetbrains.annotations.Nullable;
+import java.util.Collection;
 import java.util.Set;
 
 public interface InfectionData {
@@ -15,6 +16,13 @@ public interface InfectionData {
     void addInfectionType(InfectionType type);
     void removeInfectionType(InfectionType type);
     void clearInfection();
+
+
+    Collection<StrainImmunity> getStrainImmunities();
+    boolean hasStrainImmunity(String fingerprint);
+    void grantStrainImmunity(String fingerprint, String displayName, int durationTicks);
+    boolean tickStrainImmunities();
+    void copyStrainImmunitiesFrom(InfectionData source);
 
     EntitySymptoms getSymptoms();
 

@@ -63,11 +63,17 @@ public class InfectionStore extends SavedData {
             boolean persistent,
             @Nullable PathogenType pathogenType,
             List<InfectionType> infectionTypes,
-            Map<String, Object> symptoms
+            Map<String, Object> symptoms,
+            List<String> mutations
     ) {
         public static final InfectionRecord NONE = new InfectionRecord(
-                false, false, null, List.of(), Map.of()
+                false, false, null, List.of(), Map.of(), List.of()
         );
+
+        public InfectionRecord(boolean infected, boolean persistent, @Nullable PathogenType pathogenType,
+                               List<InfectionType> infectionTypes, Map<String, Object> symptoms) {
+            this(infected, persistent, pathogenType, infectionTypes, symptoms, List.of());
+        }
 
         public CompoundTag toNbt() {
             CompoundTag tag = new CompoundTag();
@@ -86,6 +92,10 @@ public class InfectionStore extends SavedData {
                 }
             }
             tag.put("Symptoms", symptomTag);
+
+            if (!mutations.isEmpty()) {
+                tag.putString("Mutations", String.join(",", mutations));
+            }
             return tag;
         }
 
@@ -122,7 +132,17 @@ public class InfectionStore extends SavedData {
                 }
             }
 
-            return new InfectionRecord(infected, persistent, pt, types, symptoms);
+            List<String> mutations = new ArrayList<>();
+            if (tag.contains("Mutations")) {
+                String raw = tag.getString("Mutations");
+                if (!raw.isEmpty()) {
+                    for (String s : raw.split(",")) {
+                        if (!s.isEmpty()) mutations.add(s);
+                    }
+                }
+            }
+
+            return new InfectionRecord(infected, persistent, pt, types, symptoms, mutations);
         }
     }
 }

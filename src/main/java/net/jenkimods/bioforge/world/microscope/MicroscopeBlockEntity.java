@@ -4,7 +4,9 @@ import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
+import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
+    public static final int IDENTIFY_GENE_BUTTON = 0;
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(1) {
         @Override
@@ -41,7 +44,8 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         }
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            return !MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack).isEmpty();
+            return stack.getItem() instanceof GeneImprintItem
+                    || !MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack).isEmpty();
         }
     };
 
@@ -55,7 +59,7 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         if (level == null) return;
         ItemStack stack = itemHandler.getStackInSlot(0);
         List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack);
-        List<CalibrationSlider> calib = MicroscopeSymptomConfig.INSTANCE.getCalibrationFor(stack);
+        List<CalibrationSlider> calib = getCalibrationFor(stack);
         List<CalibrationSlider> randomised = new ArrayList<>();
         for (CalibrationSlider slider : calib) {
             if (slider.randomTarget()) {
@@ -74,6 +78,38 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
                 MicroscopeNetwork.sendToPlayer(packet, (ServerPlayer) player);
             }
         }
+    }
+
+    private List<CalibrationSlider> getCalibrationFor(ItemStack stack) {
+        GeneImprintItem.Data imprint = GeneImprintItem.read(stack);
+        if (imprint != null && !imprint.identified()) {
+            return List.of(
+                    new CalibrationSlider("microscope.calibration.focus", 0.5f,
+                            0.0f, 1.0f, true),
+                    new CalibrationSlider("microscope.calibration.contrast", 0.5f,
+                            0.0f, 1.0f, true),
+                    new CalibrationSlider("microscope.calibration.spectrum", 0.5f,
+                            0.0f, 1.0f, true)
+            );
+        }
+        return MicroscopeSymptomConfig.INSTANCE.getCalibrationFor(stack);
+    }
+
+    public boolean handleButton(Player player, int buttonId) {
+        if (buttonId != IDENTIFY_GENE_BUTTON) return false;
+        ItemStack stack = itemHandler.getStackInSlot(0);
+        if (!GeneImprintItem.identify(stack)) return false;
+        GeneImprintItem.Data imprint = GeneImprintItem.read(stack);
+        setChanged();
+        syncToViewers();
+        if (imprint != null) {
+            player.displayClientMessage(Component.translatable(
+                    "message.bioforge.gene_imprint.identified",
+                    Component.translatable("vaccine.category."
+                            + imprint.category().serializedName()),
+                    imprint.target()).withStyle(ChatFormatting.AQUA), true);
+        }
+        return true;
     }
 
     private Map<String, Object> getCurrentSymptoms(List<MicroscopeSymptomEntry> entries) {
@@ -134,7 +170,7 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
         if (player instanceof ServerPlayer sp) {
             ItemStack stack = itemHandler.getStackInSlot(0);
             List<MicroscopeSymptomEntry> entries = MicroscopeSymptomConfig.INSTANCE.getEntriesFor(stack);
-            List<CalibrationSlider> calib = MicroscopeSymptomConfig.INSTANCE.getCalibrationFor(stack);
+            List<CalibrationSlider> calib = getCalibrationFor(stack);
             List<CalibrationSlider> randomised = new ArrayList<>();
             for (CalibrationSlider slider : calib) {
                 if (slider.randomTarget()) {

@@ -6,8 +6,14 @@ import net.jenkimods.bioforge.client.CentrifugeScreen;
 import net.jenkimods.bioforge.blood.network.NetworkHandler;
 import net.jenkimods.bioforge.client.IncubatorScreen;
 import net.jenkimods.bioforge.client.MicroscopeScreen;
+import net.jenkimods.bioforge.client.VaccineMakerScreen;
+import net.jenkimods.bioforge.api.vaccine.VaccineMakerPageRegistry;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
+import net.jenkimods.bioforge.crispr.command.CrisprCommand;
 import net.jenkimods.bioforge.infection.command.InfectCommand;
+import net.jenkimods.bioforge.infection.command.StrainCommand;
 import net.jenkimods.bioforge.infection.network.InfectionNetworkHandler;
+import net.jenkimods.bioforge.infection.naming.StrainNameNetworkHandler;
 import net.jenkimods.bioforge.item.bone_saw.BoneSawItem;
 import net.jenkimods.bioforge.item.bones.BoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.SplitBoneItem;
@@ -19,6 +25,10 @@ import net.jenkimods.bioforge.item.incubating.DirtyCultureVialItem;
 import net.jenkimods.bioforge.item.incubating.LiveCultureVialItem;
 import net.jenkimods.bioforge.item.incubating.NutrientMediumItem;
 import net.jenkimods.bioforge.item.incubating.VirusSampleItem;
+import net.jenkimods.bioforge.item.crispr.CasModuleItem;
+import net.jenkimods.bioforge.item.crispr.CrisprCartridgeItem;
+import net.jenkimods.bioforge.item.crispr.CrisprNotesItem;
+import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
 import net.jenkimods.bioforge.item.reagents.EthanolItem;
 import net.jenkimods.bioforge.item.reagents.WipeItem;
 import net.jenkimods.bioforge.item.infection.*;
@@ -42,7 +52,12 @@ import net.jenkimods.bioforge.item.stethoscope.StethoscopeItem;
 import net.jenkimods.bioforge.item.stethoscope.StethoscopeNetworkHandler;
 import net.jenkimods.bioforge.item.thermometer.ThermometerItem;
 import net.jenkimods.bioforge.item.thermometer.ThermometerNetworkHandler;
+import net.jenkimods.bioforge.item.vaccine.VaccineItem;
+import net.jenkimods.bioforge.mutation.command.MutateCommand;
+import net.jenkimods.bioforge.mutation.network.MutationNetworkHandler;
 import net.jenkimods.bioforge.registry.BFCreativeTabs;
+import net.jenkimods.bioforge.registry.BioForgeEffects;
+import net.jenkimods.bioforge.vaccine.command.VaccineMakeCommand;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeBlockEntity;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeMenu;
 import net.jenkimods.bioforge.world.incubator.IncubatorBlockEntity;
@@ -50,6 +65,8 @@ import net.jenkimods.bioforge.world.incubator.IncubatorMenu;
 import net.jenkimods.bioforge.world.microscope.MicroscopeBlockEntity;
 import net.jenkimods.bioforge.world.microscope.MicroscopeMenu;
 import net.jenkimods.bioforge.world.microscope.MicroscopeNetwork;
+import net.jenkimods.bioforge.world.vaccine.VaccineMakerBlockEntity;
+import net.jenkimods.bioforge.world.vaccine.VaccineMakerMenu;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -65,6 +82,7 @@ import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -93,6 +111,24 @@ public class BioForge {
     public static final RegistryObject<Item> ANTI_A_VIAL = ITEMS.register("anti_a_vial", () -> new ReagentVialItem(ReagentVialItem.Type.ANTI_A));
     public static final RegistryObject<Item> ANTI_B_VIAL = ITEMS.register("anti_b_vial", () -> new ReagentVialItem(ReagentVialItem.Type.ANTI_B));
     public static final RegistryObject<Item> ANTI_D_VIAL = ITEMS.register("anti_d_vial", () -> new ReagentVialItem(ReagentVialItem.Type.ANTI_D));
+    public static final RegistryObject<Item> VACCINE = ITEMS.register("vaccine", VaccineItem::new);
+    public static final RegistryObject<Item> MUTATION_VACCINE = ITEMS.register("mutation_vaccine",
+            () -> new VaccineItem(VaccineItem.Kind.MUTATION));
+    public static final RegistryObject<Item> TRANSMISSION_VACCINE = ITEMS.register("transmission_vaccine",
+            () -> new VaccineItem(VaccineItem.Kind.TRANSMISSION));
+    public static final RegistryObject<Item> SYMPTOM_VACCINE = ITEMS.register("symptom_vaccine",
+            () -> new VaccineItem(VaccineItem.Kind.SYMPTOM));
+    public static final RegistryObject<Item> RANDOM_MUTATION_VACCINE =
+            ITEMS.register("random_mutation_vaccine",
+                    () -> new VaccineItem(VaccineItem.Kind.RANDOM_MUTATION));
+    public static final RegistryObject<Item> CRISPR_CARTRIDGE = ITEMS.register("crispr_cartridge",
+            CrisprCartridgeItem::new);
+    public static final RegistryObject<Item> CAS_MODULE = ITEMS.register("cas_module",
+            CasModuleItem::new);
+    public static final RegistryObject<Item> GENE_IMPRINT = ITEMS.register("gene_imprint",
+            GeneImprintItem::new);
+    public static final RegistryObject<Item> CRISPR_NOTES = ITEMS.register("crispr_notes",
+            CrisprNotesItem::new);
     public static final RegistryObject<Item> DECALCIFICATION_FLUID = ITEMS.register("decalcification_fluid", DecalcificationFluidItem::new);
     public static final RegistryObject<Item> BONE_SAW = ITEMS.register("bone_saw", BoneSawItem::new);
     public static final RegistryObject<Item> WITHERED_SPLIT_BONE = ITEMS.register("withered_split_bone", WitheredSplitBoneItem::new);
@@ -166,6 +202,18 @@ public class BioForge {
     public static final RegistryObject<BlockItem> INCUBATOR_ITEM = ITEMS.register("incubator",
             () -> new BlockItem(INCUBATOR.get(), new Item.Properties()));
 
+    public static final RegistryObject<Block> VACCINE_MAKER =
+            BLOCKS.register("vaccine_maker", VaccineMakerBlock::new);
+    public static final RegistryObject<BlockEntityType<VaccineMakerBlockEntity>> VACCINE_MAKER_BE =
+            BLOCK_ENTITIES.register("vaccine_maker", () ->
+                    BlockEntityType.Builder.of(VaccineMakerBlockEntity::new,
+                            VACCINE_MAKER.get()).build(null));
+    public static final RegistryObject<MenuType<VaccineMakerMenu>> VACCINE_MAKER_MENU =
+            MENUS.register("vaccine_maker", () -> IForgeMenuType.create(VaccineMakerMenu::new));
+    public static final RegistryObject<BlockItem> VACCINE_MAKER_ITEM =
+            ITEMS.register("vaccine_maker",
+                    () -> new BlockItem(VACCINE_MAKER.get(), new Item.Properties()));
+
     public static final RegistryObject<Item> CATALYST_VIAL = ITEMS.register("catalyst_vial", CatalystVialItem::new);
     public static final RegistryObject<Item> NUTRIENT_MEDIUM = ITEMS.register("nutrient_medium", NutrientMediumItem::new);
     public static final RegistryObject<Item> VIRUS_SAMPLE = ITEMS.register("virus_sample", VirusSampleItem::new);
@@ -174,13 +222,16 @@ public class BioForge {
     public static final RegistryObject<Item> ETHANOL = ITEMS.register("ethanol", EthanolItem::new);
     public static final RegistryObject<Item> WIPES = ITEMS.register("wipes", WipeItem::new);
 
-
     public BioForge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
+        context.registerConfig(ModConfig.Type.SERVER, BioForgeServerConfig.SPEC,
+                "bioforge-server.toml");
+        VaccineMakerPageRegistry.bootstrapBuiltIns();
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
+        BioForgeEffects.register(modEventBus);
         BFCreativeTabs.TABS.register(modEventBus);
         modEventBus.addListener(this::onCommonSetup);
 
@@ -196,13 +247,19 @@ public class BioForge {
             ReflexHammerNetworkHandler.register();
             PulseOximeterNetworkHandler.register();
             InfectionNetworkHandler.register();
+            StrainNameNetworkHandler.register();
             MicroscopeNetwork.register();
+            MutationNetworkHandler.register();
         });
     }
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         InfectCommand.register(event.getDispatcher());
+        StrainCommand.register(event.getDispatcher());
+        MutateCommand.register(event.getDispatcher());
+        VaccineMakeCommand.register(event.getDispatcher(), VACCINE);
+        CrisprCommand.register(event.getDispatcher());
     }
 
     @SubscribeEvent
@@ -230,6 +287,8 @@ public class BioForge {
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.CENTRIFUGE_MENU.get(), CentrifugeScreen::new);
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.MICROSCOPE_MENU.get(), MicroscopeScreen::new);
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.INCUBATOR_MENU.get(), IncubatorScreen::new);
+                net.minecraft.client.gui.screens.MenuScreens.register(
+                        BioForge.VACCINE_MAKER_MENU.get(), VaccineMakerScreen::new);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.THERMOMETER_ITEM.get(), ResourceLocation.tryBuild(BioForge.MODID, "ready"), (stack, level, entity, seed) -> ThermometerItem.isReady(stack) ? 1.0f : 0.0f);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;});
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.BLOOD_SLIDE.get(), ResourceLocation.tryBuild(BioForge.MODID, "blood_slide_filled"), (stack, level, entity, seed) -> BloodSlideItem.hasBlood(stack) ? 1.0f : 0.0f);

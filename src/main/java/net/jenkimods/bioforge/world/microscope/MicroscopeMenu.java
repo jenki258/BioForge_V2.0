@@ -52,6 +52,11 @@ public class MicroscopeMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public boolean clickMenuButton(Player player, int id) {
+        return blockEntity.handleButton(player, id);
+    }
+
+    @Override
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack copied = ItemStack.EMPTY;
         Slot slot = slots.get(index);

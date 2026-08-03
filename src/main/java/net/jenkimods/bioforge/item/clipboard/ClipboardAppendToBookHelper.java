@@ -4,7 +4,6 @@ import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -14,45 +13,18 @@ import java.util.*;
 public class ClipboardAppendToBookHelper {
     private static final int MAX_CHARS_PER_PAGE = 130;
 
-    public static void appendToBook(CompoundTag tag, Player player) {
-        if (player == null) return;
-
-        ItemStack clipboard = player.getMainHandItem();
-        if (!(clipboard.getItem() instanceof ClipboardItem)) return;
-
-        InteractionHand mainHand = player.getUsedItemHand();
-        InteractionHand otherHand = mainHand == InteractionHand.MAIN_HAND
-                ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
-        ItemStack bookStack = player.getItemInHand(otherHand);
+    public static void appendToBook(CompoundTag tag, Player player, ItemStack bookStack) {
+        if (player == null || tag == null) return;
         if (!bookStack.is(Items.WRITABLE_BOOK)) return;
 
         CompoundTag bookTag = bookStack.getOrCreateTag();
         ListTag pages = bookTag.getList("pages", 8);
 
         String reportText = buildPlainTextReport(tag, player);
-        List<String> allPages = new ArrayList<>();
-        if (!pages.isEmpty()) {
-            for (int i = 0; i < pages.size(); i++) {
-                allPages.add(pages.getString(i));
-            }
-            int last = allPages.size() - 1;
-            allPages.set(last, allPages.get(last) + "\n" + reportText);
-        } else {
-            allPages.add(reportText);
+        for (String reportPage : splitIntoPages(reportText, MAX_CHARS_PER_PAGE)) {
+            pages.add(StringTag.valueOf(reportPage));
         }
-
-        List<String> finalPages = new ArrayList<>();
-        for (String full : allPages) {
-            finalPages.addAll(splitIntoPages(full, MAX_CHARS_PER_PAGE));
-        }
-
-        ListTag newPages = new ListTag();
-        for (String p : finalPages) {
-            newPages.add(StringTag.valueOf(p));
-        }
-        bookTag.put("pages", newPages);
-
-        clipboard.getOrCreateTag().remove("SessionToken");
+        bookTag.put("pages", pages);
     }
 
     private static List<String> splitIntoPages(String text, int maxChars) {

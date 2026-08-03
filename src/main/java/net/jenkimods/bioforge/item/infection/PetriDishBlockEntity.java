@@ -83,6 +83,20 @@ public class PetriDishBlockEntity extends BlockEntity {
         return false;
     }
 
+    public boolean consumeGrowth(int amount) {
+        if (amount <= 0 || growthStage <= 0) return false;
+        growthStage = Math.max(0, growthStage - amount);
+        setChanged();
+        if (level != null && !level.isClientSide) {
+            BlockState state = getBlockState();
+            if (state.hasProperty(PetriDishBlock.GROWTH)) {
+                level.setBlock(worldPosition, state.setValue(PetriDishBlock.GROWTH, growthStage), 3);
+            }
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+        return true;
+    }
+
     public boolean harvest(ItemStack swab, Player player) {
         if (!isInoculated() || strainData == null) return false;
         if (growthStage < 3) return false;

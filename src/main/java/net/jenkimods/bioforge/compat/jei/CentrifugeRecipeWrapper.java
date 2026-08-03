@@ -1,5 +1,8 @@
 package net.jenkimods.bioforge.compat.jei;
 
+import net.jenkimods.bioforge.blood.BloodType;
+import net.jenkimods.bioforge.item.BloodSampleUtil;
+import net.jenkimods.bioforge.item.samples.TubeItem;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeIngredient;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeOutput;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeRecipe;
@@ -19,6 +22,11 @@ public class CentrifugeRecipeWrapper {
     public CentrifugeRecipeWrapper(CentrifugeRecipe recipe) {
         this.recipe = recipe;
         this.inputs = resolveIngredient(recipe.input());
+        if (recipe.copyBloodData()) {
+            inputs.stream()
+                    .filter(stack -> stack.getItem() instanceof TubeItem)
+                    .forEach(CentrifugeRecipeWrapper::markAsBloodFilled);
+        }
         this.outputs = new ArrayList<>();
 
         if (!recipe.outputs().isEmpty()) {
@@ -45,6 +53,10 @@ public class CentrifugeRecipeWrapper {
             if (item != null) result.add(new ItemStack(item));
         }
         return result;
+    }
+
+    private static void markAsBloodFilled(ItemStack stack) {
+        BloodSampleUtil.setData(stack, 1, BloodType.O_POSITIVE, "JEI", null);
     }
 
     public List<ItemStack> getInputs() { return inputs; }

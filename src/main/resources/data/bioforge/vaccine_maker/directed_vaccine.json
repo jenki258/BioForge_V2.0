@@ -1,0 +1,75 @@
+{
+  "operation": "directed",
+  "guide_profile": "bioforge:default",
+  "processing_time": 200,
+  "requires_program": true,
+  "consume_sample": true,
+  "minimum_quality": 0.35,
+  "research": {
+    "base_quality_cap": 0.85,
+    "identified_imprint_bonus": 0.15
+  },
+  "failure": {
+    "mutation_chance": 0.95,
+    "mutation_below_quality": 0.95,
+    "consume_reagent": true
+  },
+  "inputs": {
+    "sample": [
+      {
+        "item": "bioforge:virus_sample"
+      },
+      {
+        "item": "bioforge:live_culture_vial"
+      },
+      {
+        "item": "bioforge:petri_dish"
+      }
+    ],
+    "carrier": [
+      {
+        "item": "bioforge:mutation_vaccine"
+      },
+      {
+        "item": "bioforge:transmission_vaccine"
+      },
+      {
+        "item": "bioforge:symptom_vaccine"
+      }
+    ],
+    "reagent": {
+      "item": "bioforge:gene_imprint"
+    },
+    "cartridge": {
+      "item": "bioforge:crispr_cartridge"
+    },
+    "cas_module": {
+      "item": "bioforge:cas_module"
+    }
+  },
+  "quality": {
+    "guides": [
+      0.25,
+      0.25,
+      0.25
+    ],
+    "cas_module": 0.1,
+    "sample": 0.05,
+    "carrier": 0.05,
+    "reagent": 0.05
+  },
+  "result": {
+    "items": {
+      "mutation": "bioforge:mutation_vaccine",
+      "transmission": "bioforge:transmission_vaccine",
+      "symptom": "bioforge:symptom_vaccine"
+    },
+    "actions": {
+      "mutation": "bioforge:mutation_auto_opposite",
+      "transmission": "bioforge:transmission_auto_opposite",
+      "symptom": "bioforge:symptom_auto_opposite"
+    },
+    "uses": 1,
+    "defense_risk": 0.2
+  }
+}

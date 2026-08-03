@@ -1,5 +1,7 @@
 package net.jenkimods.bioforge.blood;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Random;
 
 public enum BloodType {
@@ -31,6 +33,13 @@ public enum BloodType {
     public String getDisplayName() { return displayName; }
     public Category getCategory() { return category; }
 
+    public boolean isRhPositive() {
+        return category == Category.HUMAN && displayName.endsWith("+");
+    }
+
+    public boolean isRhNegative() {
+        return category == Category.HUMAN && displayName.endsWith("-");
+    }
 
     public boolean isCompatibleWith(BloodType other) {
 
@@ -84,9 +93,19 @@ public enum BloodType {
     }
 
     public static BloodType fromName(String name) {
+        BloodType found = findByName(name);
+        return found == null ? O_POSITIVE : found;
+    }
+
+    @Nullable
+    public static BloodType findByName(String name) {
+        if (name == null) return null;
         for (BloodType t : values()) {
-            if (t.name().equalsIgnoreCase(name)) return t;
+            if (t.name().equalsIgnoreCase(name)
+                    || t.displayName.equalsIgnoreCase(name.trim())) {
+                return t;
+            }
         }
-        return O_POSITIVE;
+        return null;
     }
 }

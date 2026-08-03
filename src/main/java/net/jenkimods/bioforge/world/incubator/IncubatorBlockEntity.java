@@ -5,20 +5,20 @@ import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.jenkimods.bioforge.item.*;
-import net.jenkimods.bioforge.item.incubating.LiveCultureVialItem;
-import net.jenkimods.bioforge.item.incubating.NutrientMediumItem;
-import net.jenkimods.bioforge.item.incubating.VirusSampleItem;
 import net.jenkimods.bioforge.item.reagents.CatalystVialItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -41,22 +41,9 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
             if (slot == 0) {
-                if (stack.getItem() instanceof CatalystVialItem &&
-                        CatalystVialItem.isSet(stack) &&
-                        CatalystVialItem.getCharges(stack) > 0) {
-                    return true;
-                }
-                if (stack.getItem() instanceof VirusSampleItem &&
-                        NbtObfuscator.readString(stack.getOrCreateTag()) != null) {
-                    return true;
-                }
-                if (isBloodItemWithInfection(stack)) {
-                    return true;
-                }
-                return false;
+                return hasPrimaryRecipe(stack);
             }
-            return stack.getItem() instanceof NutrientMediumItem ||
-                    (stack.getItem() instanceof LiveCultureVialItem && !LiveCultureVialItem.hasStrain(stack));
+            return hasSecondaryRecipe(stack);
         }
 
         @Override
@@ -65,28 +52,12 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         }
     };
 
-    private static boolean isBloodItemWithInfection(ItemStack stack) {
-        if (!BloodSampleUtil.hasBlood(stack)) return false;
-        return getStrainFromBloodItem(stack) != null;
-    }
-
-    @Nullable
-    private static String getStrainFromBloodItem(ItemStack stack) {
-        String raw = NbtObfuscator.readInfection(stack.getOrCreateTag());
-        if (raw == null || raw.isEmpty()) {
-            raw = NbtObfuscator.readString(stack.getOrCreateTag());
-        }
-        if (raw == null || raw.isEmpty()) return null;
-
-        StrainData strain = StrainData.parse(raw);
-        if (strain.getPathogen() == null) return null;
-
-        return raw;
-    }
-
     private LazyOptional<ItemStackHandler> lazyHandler = LazyOptional.of(() -> items);
     private int progress = 0;
     private int maxProgress = 200;
+    @Nullable
+    private ResourceLocation activeRecipeId;
+    private String activePrimarySignature = "";
 
     protected final ContainerData data = new ContainerData() {
         @Override public int get(int index) { return index == 0 ? progress : maxProgress; }
@@ -101,123 +72,154 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
     public static void tick(Level level, BlockPos pos, BlockState state, IncubatorBlockEntity be) {
         if (level.isClientSide()) return;
 
-        ItemStack topItem = be.items.getStackInSlot(0);
-
-        if (topItem.getItem() instanceof CatalystVialItem) {
-            tickCatalystMode(be);
-        } else if (topItem.getItem() instanceof VirusSampleItem) {
-            tickCultureMode(be);
-        } else if (isBloodItemWithInfection(topItem)) {
-            tickBloodDuplicateMode(be);
-        } else {
-            be.progress = 0;
-        }
-    }
-
-    private static void tickCatalystMode(IncubatorBlockEntity be) {
-        ItemStack catalyst = be.items.getStackInSlot(0);
-        PathogenType pathogen = CatalystVialItem.getPathogenOrRandom(catalyst);
-        if (pathogen == null || CatalystVialItem.getCharges(catalyst) <= 0) {
-            be.progress = 0;
+        Optional<IncubatorRecipe> recipeOptional = be.findRecipe();
+        if (recipeOptional.isEmpty()) {
+            be.resetProgress();
             return;
         }
-        int nutrientCount = countNutrientMedium(be);
-        if (nutrientCount == 0) { be.progress = 0; return; }
 
+        IncubatorRecipe recipe = recipeOptional.get();
+        String primarySignature = createPrimarySignature(be.items.getStackInSlot(0));
+        if (!recipe.id().equals(be.activeRecipeId)
+                || !primarySignature.equals(be.activePrimarySignature)) {
+            be.progress = 0;
+            be.activeRecipeId = recipe.id();
+            be.activePrimarySignature = primarySignature;
+        }
+        be.maxProgress = recipe.processingTime();
         be.progress++;
         if (be.progress >= be.maxProgress) {
             be.progress = 0;
-            for (int i = 1; i <= 3; i++) {
-                ItemStack stack = be.items.getStackInSlot(i);
-                if (stack.getItem() instanceof NutrientMediumItem) {
-                    stack.shrink(1);
-                    ItemStack output = new ItemStack(BioForge.VIRUS_SAMPLE.get());
-                    StrainData strain = generateRandomStrain(pathogen);
-                    NbtObfuscator.writeString(output.getOrCreateTag(), strain.toPayload());
-                    be.items.setStackInSlot(i, output);
-                }
-            }
-            CatalystVialItem.consumeCharge(catalyst);
+            be.process(recipe, level.random);
         }
         be.setChanged();
     }
 
-    private static void tickCultureMode(IncubatorBlockEntity be) {
-        ItemStack virusSample = be.items.getStackInSlot(0);
-        String strainRaw = NbtObfuscator.readString(virusSample.getOrCreateTag());
-        if (strainRaw == null || strainRaw.isEmpty()) { be.progress = 0; return; }
+    private Optional<IncubatorRecipe> findRecipe() {
+        if (level == null) {
+            return Optional.empty();
+        }
+        ItemStack primary = items.getStackInSlot(0);
+        return getRecipes().stream()
+                .filter(recipe -> recipe.matchesPrimary(primary))
+                .filter(recipe -> {
+                    for (int slot = 1; slot <= 3; slot++) {
+                        if (recipe.matchesSecondary(items.getStackInSlot(slot))) {
+                            return true;
+                        }
+                    }
+                    return false;
+                })
+                .sorted(Comparator
+                        .comparingInt((IncubatorRecipe recipe) -> recipe.primaryInput().specificity())
+                        .thenComparingInt(recipe -> recipe.secondaryInput().specificity())
+                        .reversed()
+                        .thenComparing(recipe -> recipe.id().toString()))
+                .findFirst();
+    }
 
-        int emptyVialCount = countEmptyCultureVials(be);
-        if (emptyVialCount == 0) { be.progress = 0; return; }
+    private List<IncubatorRecipe> getRecipes() {
+        if (level == null) {
+            return List.of();
+        }
+        return level.getRecipeManager().getAllRecipesFor(IncubatorRecipeRegistration.TYPE);
+    }
 
-        be.progress++;
-        if (be.progress >= be.maxProgress) {
-            be.progress = 0;
-            for (int i = 1; i <= 3; i++) {
-                ItemStack stack = be.items.getStackInSlot(i);
-                if (stack.getItem() instanceof LiveCultureVialItem && !LiveCultureVialItem.hasStrain(stack)) {
-                    ItemStack filled = new ItemStack(BioForge.LIVE_CULTURE_VIAL.get());
-                    NbtObfuscator.writeString(filled.getOrCreateTag(), strainRaw);
-                    be.items.setStackInSlot(i, filled);
-                }
+    private boolean hasPrimaryRecipe(ItemStack stack) {
+        return getRecipes().stream().anyMatch(recipe -> recipe.matchesPrimary(stack));
+    }
+
+    private boolean hasSecondaryRecipe(ItemStack stack) {
+        return getRecipes().stream().anyMatch(recipe -> recipe.matchesSecondary(stack));
+    }
+
+    private void resetProgress() {
+        if (progress != 0 || activeRecipeId != null) {
+            progress = 0;
+            activeRecipeId = null;
+            activePrimarySignature = "";
+            setChanged();
+        }
+    }
+
+    private static String createPrimarySignature(ItemStack stack) {
+        return stack.save(new CompoundTag()).toString();
+    }
+
+    private void process(IncubatorRecipe recipe, RandomSource random) {
+        ItemStack primary = items.getStackInSlot(0);
+        String sourceStrain = recipe.getSourceStrain(primary);
+        PathogenType generatedPathogen = null;
+        if (recipe.operation() == IncubatorOperation.GENERATE_STRAIN) {
+            generatedPathogen = CatalystVialItem.getPathogenOrRandom(primary);
+            if (generatedPathogen == null) {
+                return;
             }
-            virusSample.shrink(1);
         }
-        be.setChanged();
-    }
 
-    private static void tickBloodDuplicateMode(IncubatorBlockEntity be) {
-        ItemStack bloodItem = be.items.getStackInSlot(0);
-        String strainRaw = getStrainFromBloodItem(bloodItem);
-        if (strainRaw == null || strainRaw.isEmpty()) { be.progress = 0; return; }
-
-        int emptyVialCount = countEmptyCultureVials(be);
-        if (emptyVialCount == 0) { be.progress = 0; return; }
-
-        be.progress++;
-        if (be.progress >= be.maxProgress) {
-            be.progress = 0;
-            for (int i = 1; i <= 3; i++) {
-                ItemStack stack = be.items.getStackInSlot(i);
-                if (stack.getItem() instanceof LiveCultureVialItem && !LiveCultureVialItem.hasStrain(stack)) {
-                    ItemStack filled = new ItemStack(BioForge.LIVE_CULTURE_VIAL.get());
-                    NbtObfuscator.writeString(filled.getOrCreateTag(), strainRaw);
-                    be.items.setStackInSlot(i, filled);
-                }
+        boolean produced = false;
+        int producedSlots = 0;
+        int affordableSlots = recipe.primaryCostPerOutput() && recipe.primaryItemCost() > 0
+                ? primary.getCount() / recipe.primaryItemCost()
+                : 3;
+        for (int slot = 1; slot <= 3; slot++) {
+            if (producedSlots >= affordableSlots) {
+                break;
             }
-            bloodItem.shrink(1);
+            ItemStack secondary = items.getStackInSlot(slot);
+            if (!recipe.matchesSecondary(secondary)) {
+                continue;
+            }
+
+            Item outputItem = recipe.output().resolveItem(random);
+            if (outputItem == null) {
+                continue;
+            }
+            int outputCount = Math.min(recipe.outputCount(), outputItem.getMaxStackSize());
+            ItemStack output = new ItemStack(outputItem, outputCount);
+            if (recipe.operation() == IncubatorOperation.GENERATE_STRAIN) {
+                StrainData strain = generateRandomStrain(generatedPathogen, random);
+                NbtObfuscator.writeString(output.getOrCreateTag(), strain.toPayload());
+            } else if (sourceStrain != null) {
+                NbtObfuscator.writeString(output.getOrCreateTag(), sourceStrain);
+            } else if (recipe.operation() != IncubatorOperation.CRAFT) {
+                continue;
+            }
+
+            items.setStackInSlot(slot, output);
+            produced = true;
+            producedSlots++;
         }
-        be.setChanged();
+
+        if (!produced) {
+            return;
+        }
+
+        if (recipe.catalystChargeCost() > 0) {
+            for (int charge = 0; charge < recipe.catalystChargeCost() && !primary.isEmpty(); charge++) {
+                CatalystVialItem.consumeCharge(primary);
+            }
+        }
+        if (recipe.primaryItemCost() > 0) {
+            int primaryCost = recipe.primaryCostPerOutput()
+                    ? recipe.primaryItemCost() * producedSlots
+                    : recipe.primaryItemCost();
+            primary.shrink(primaryCost);
+        }
     }
 
-    private static int countNutrientMedium(IncubatorBlockEntity be) {
-        int count = 0;
-        for (int i = 1; i <= 3; i++) {
-            if (be.items.getStackInSlot(i).getItem() instanceof NutrientMediumItem) count++;
-        }
-        return count;
-    }
-
-    private static int countEmptyCultureVials(IncubatorBlockEntity be) {
-        int count = 0;
-        for (int i = 1; i <= 3; i++) {
-            ItemStack stack = be.items.getStackInSlot(i);
-            if (stack.getItem() instanceof LiveCultureVialItem && !LiveCultureVialItem.hasStrain(stack)) count++;
-        }
-        return count;
-    }
-
-    private static StrainData generateRandomStrain(PathogenType pathogen) {
+    private static StrainData generateRandomStrain(PathogenType pathogen, RandomSource random) {
         StrainData strain = StrainData.createEmpty();
         strain.setPathogen(pathogen);
         strain.setColonyId(UUID.randomUUID());
         List<InfectionType> allowed = new ArrayList<>(pathogen.getAllowedTransmissions());
         if (!allowed.isEmpty()) {
-            Collections.shuffle(allowed);
-            int count = 1 + new Random().nextInt(allowed.size());
+            for (int index = allowed.size() - 1; index > 0; index--) {
+                Collections.swap(allowed, index, random.nextInt(index + 1));
+            }
+            int count = 1 + random.nextInt(allowed.size());
             for (int i = 0; i < count; i++) strain.getInfectionTypes().add(allowed.get(i));
         }
-        Random rand = new Random();
         Map<SymptomKey<?>, float[]> ranges = BioForgeSymptoms.getDefaultRanges(pathogen);
         for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
             SymptomKey<?> key = entry.getValue();
@@ -225,15 +227,15 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
             if (key.getType() == Float.class) {
                 float[] minMax = ranges.get(key);
                 if (minMax != null) {
-                    float value = minMax[0] + rand.nextFloat() * (minMax[1] - minMax[0]);
+                    float value = minMax[0] + random.nextFloat() * (minMax[1] - minMax[0]);
                     strain.getSymptoms().put(keyId, String.valueOf(value));
                 }
             } else if (key.getType() == Boolean.class) {
-                strain.getSymptoms().put(keyId, String.valueOf(rand.nextBoolean()));
+                strain.getSymptoms().put(keyId, String.valueOf(random.nextBoolean()));
             } else if (key.getType().isEnum()) {
                 Object[] constants = key.getType().getEnumConstants();
                 if (constants != null && constants.length > 0) {
-                    int idx = rand.nextInt(constants.length);
+                    int idx = random.nextInt(constants.length);
                     strain.getSymptoms().put(keyId, ((Enum<?>) constants[idx]).name());
                 }
             }
@@ -252,8 +254,25 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         return super.getCapability(cap, side);
     }
 
-    @Override protected void saveAdditional(CompoundTag tag) { super.saveAdditional(tag); tag.put("inv", items.serializeNBT()); tag.putInt("progress", progress); }
-    @Override public void load(CompoundTag tag) { super.load(tag); items.deserializeNBT(tag.getCompound("inv")); progress = tag.getInt("progress"); }
+    @Override
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put("inv", items.serializeNBT());
+        tag.putInt("progress", progress);
+        if (activeRecipeId != null) {
+            tag.putString("active_recipe", activeRecipeId.toString());
+        }
+        tag.putString("active_primary", activePrimarySignature);
+    }
+
+    @Override
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        items.deserializeNBT(tag.getCompound("inv"));
+        progress = tag.getInt("progress");
+        activeRecipeId = ResourceLocation.tryParse(tag.getString("active_recipe"));
+        activePrimarySignature = tag.getString("active_primary");
+    }
     @Override public void setRemoved() { super.setRemoved(); lazyHandler.invalidate(); }
     @Override public void reviveCaps() { super.reviveCaps(); lazyHandler = LazyOptional.of(() -> items); }
 

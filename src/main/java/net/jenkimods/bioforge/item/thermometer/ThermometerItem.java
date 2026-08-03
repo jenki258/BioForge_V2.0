@@ -6,6 +6,7 @@ import net.jenkimods.bioforge.infection.InfectionData;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.item.clipboard.ClipboardHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -18,6 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -48,6 +50,11 @@ public class ThermometerItem extends Item {
         super(new Properties().stacksTo(1));
     }
 
+    @Override
+    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        return false;
+    }
+
     public static boolean isReady(ItemStack stack) {
         return stack.hasTag() && stack.getTag().getBoolean(NBT_READY);
     }
@@ -65,12 +72,13 @@ public class ThermometerItem extends Item {
         stack.getOrCreateTag().putLong(NBT_LAST_USED, System.currentTimeMillis());
     }
 
-    private void saveAllTemps(ItemStack stack, boolean tempPlus, boolean tempMinus) {
+    private double saveAllTemps(ItemStack stack, boolean tempPlus, boolean tempMinus) {
         double celsius = tempPlus ? HIGH_TEMP_CELSIUS : tempMinus ? LOW_TEMP_CELSIUS : NORMAL_TEMP_CELSIUS;
         stack.getOrCreateTag().putDouble(NBT_LAST_RAW_C, celsius);
         stack.getOrCreateTag().putString(NBT_LAST_C, String.format("%.1f\u00b0C", celsius));
         stack.getOrCreateTag().putString(NBT_LAST_F, String.format("%.1f\u00b0F", celsius * 9.0 / 5.0 + 32.0));
         stack.getOrCreateTag().putString(NBT_LAST_K, String.format("%.2fK",       celsius + 273.15));
+        return celsius;
     }
 
     private boolean hasReading(ItemStack stack) {
@@ -162,8 +170,9 @@ public class ThermometerItem extends Item {
         boolean tempPlus  = data != null && data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS);
         boolean tempMinus = data != null && data.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS);
 
-        saveAllTemps(stack, tempPlus, tempMinus);
+        double celsius = saveAllTemps(stack, tempPlus, tempMinus);
         stack.getOrCreateTag().putString(NBT_LAST_TARGET, subject.getDisplayName().getString());
+        ClipboardHelper.recordTemperature((float) celsius, false, player, subject.getUUID());
     }
 
     public void onShake(Player player, ItemStack stack) {

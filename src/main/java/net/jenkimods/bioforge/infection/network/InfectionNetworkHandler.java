@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public class InfectionNetworkHandler {
 
-    private static final String PROTOCOL = "1";
+    private static final String PROTOCOL = "3";
     private static SimpleChannel CHANNEL;
     private static int id = 0;
 

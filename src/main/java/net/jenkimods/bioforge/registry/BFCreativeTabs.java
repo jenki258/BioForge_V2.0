@@ -46,6 +46,15 @@ public class BFCreativeTabs {
                         output.accept(BioForge.ANTI_A_VIAL.get());
                         output.accept(BioForge.ANTI_B_VIAL.get());
                         output.accept(BioForge.ANTI_D_VIAL.get());
+                        output.accept(BioForge.VACCINE.get());
+                        output.accept(BioForge.MUTATION_VACCINE.get());
+                        output.accept(BioForge.TRANSMISSION_VACCINE.get());
+                        output.accept(BioForge.SYMPTOM_VACCINE.get());
+                        output.accept(BioForge.RANDOM_MUTATION_VACCINE.get());
+                        output.accept(BioForge.CRISPR_CARTRIDGE.get());
+                        output.accept(BioForge.CAS_MODULE.get());
+                        output.accept(BioForge.GENE_IMPRINT.get());
+                        output.accept(BioForge.CRISPR_NOTES.get());
                         output.accept(BioForge.DECALCIFICATION_FLUID.get());
                         output.accept(BioForge.CATALYST_VIAL.get());
                         output.accept(BioForge.NUTRIENT_MEDIUM.get());
@@ -64,6 +73,7 @@ public class BFCreativeTabs {
                         output.accept(BioForge.CENTRIFUGE_ITEM.get());
                         output.accept(BioForge.MICROSCOPE_ITEM.get());
                         output.accept(BioForge.INCUBATOR_ITEM.get());
+                        output.accept(BioForge.VACCINE_MAKER_ITEM.get());
                     })
                     .build());
 
