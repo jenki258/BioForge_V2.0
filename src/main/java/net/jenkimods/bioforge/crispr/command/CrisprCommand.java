@@ -212,7 +212,7 @@ public final class CrisprCommand {
         }
         InfectionData infection = InfectionCapability.get(living);
         if (infection == null || !infection.isInfected()
-                || infection.getPathogenType() == null) {
+                || infection.getPathogenId() == null) {
             source.sendFailure(Component.translatable(
                     "command.bioforge.vaccinemake.not_infected",
                     living.getDisplayName()));

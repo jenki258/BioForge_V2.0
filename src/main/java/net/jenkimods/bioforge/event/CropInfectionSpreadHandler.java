@@ -2,7 +2,11 @@ package net.jenkimods.bioforge.event;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.BioForgeTags;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.CropInfection;
+import net.jenkimods.bioforge.infection.InfectionType;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.infection.capability.CropInfectionCapability;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -24,6 +28,8 @@ public class CropInfectionSpreadHandler {
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
+        if (!BioForgeServerConfig.isTransmissionEnabled(InfectionType.FOOD_BORNE)
+                && !BioForgeServerConfig.isTransmissionEnabled(InfectionType.ENVIRONMENTAL)) return;
         tickCounter++;
         if (tickCounter % 20 != 0) return;
 
@@ -40,6 +46,7 @@ public class CropInfectionSpreadHandler {
             chunk.getCapability(CropInfectionCapability.CROP_INFECTION).ifPresent(storage -> {
                 List<Map.Entry<BlockPos, CropInfection>> entries = new ArrayList<>(storage.getAllInfections().entrySet());
                 for (Map.Entry<BlockPos, CropInfection> entry : entries) {
+                    if (!supportsCropSpread(entry.getValue())) continue;
                     BlockPos pos = entry.getKey();
                     BlockState state = chunk.getBlockState(pos);
                     if (!isMature(state) || !state.is(BioForgeTags.INFECTABLE_CROPS)) continue;
@@ -75,5 +82,16 @@ public class CropInfectionSpreadHandler {
             }
         }
         return false;
+    }
+
+    private static boolean supportsCropSpread(CropInfection infection) {
+        String raw = infection.getStrainData();
+        if (raw == null) return false;
+        int separator = raw.indexOf('|');
+        StrainData strain = StrainData.parse(separator < 0 ? raw : raw.substring(separator + 1));
+        return BioForgeServerConfig.isTransmissionEnabled(InfectionType.FOOD_BORNE)
+                && BioForgeDefinitionManager.hasTransmissionBehavior(strain, InfectionType.FOOD_BORNE)
+                || BioForgeServerConfig.isTransmissionEnabled(InfectionType.ENVIRONMENTAL)
+                && BioForgeDefinitionManager.hasTransmissionBehavior(strain, InfectionType.ENVIRONMENTAL);
     }
 }

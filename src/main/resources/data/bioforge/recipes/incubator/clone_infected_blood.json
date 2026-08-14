@@ -1,8 +1,8 @@
 {
   "type": "bioforge:incubator",
   "primary_input": "*",
-  "jei_input": "bioforge:tube",
-  "secondary_input": "bioforge:live_culture_vial",
+  "jei_input": "#bioforge:ingredients/bioforge/tube",
+  "secondary_input": "#bioforge:ingredients/bioforge/live_culture_vial",
   "output": "bioforge:live_culture_vial",
   "operation": "copy_blood_strain",
   "processing_time": 200,

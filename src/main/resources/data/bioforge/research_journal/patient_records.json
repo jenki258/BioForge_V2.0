@@ -1,0 +1,10 @@
+{
+  "order": 140,
+  "unlock_items": ["bioforge:clipboard", "bioforge:medical_report", "bioforge:crispr_notes"],
+  "title": { "text": "RECORDS & TEMPLATES", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "The Clipboard targets one patient and gathers readings from diagnostic tools. Temperature and every other completed observation are written into the same case.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Medical Reports preserve patient and exact-strain evidence. Matching reports improve vaccine research; a report from another strain must not be trusted even when the visible symptoms look alike.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "CRISPR Notes store the completed 60-base program and Cas/PAM choice. Paper copies notes, while a Book and Quill receives a readable copy without opening during the transfer. Notes can be loaded as a template once all 15 cartridges are installed.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

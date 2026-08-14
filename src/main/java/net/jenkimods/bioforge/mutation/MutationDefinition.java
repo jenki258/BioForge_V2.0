@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.jenkimods.bioforge.infection.InfectionData;
 import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -326,6 +327,7 @@ public final class MutationDefinition {
     private final String name;
     private final String description;
     private final Set<PathogenType> pathogens;
+    private final Set<ResourceLocation> pathogenIds;
     private final List<Effect> effects;
     private final String rarity;
     private final int weight;
@@ -342,6 +344,7 @@ public final class MutationDefinition {
         this.name = builder.name == null || builder.name.isBlank() ? builder.id : builder.name;
         this.description = builder.description;
         this.pathogens = Collections.unmodifiableSet(EnumSet.copyOf(builder.pathogens));
+        this.pathogenIds = Collections.unmodifiableSet(new LinkedHashSet<>(builder.pathogenIds));
         this.effects = List.copyOf(builder.effects);
         this.rarity = builder.rarity;
         this.weight = builder.weight;
@@ -358,6 +361,7 @@ public final class MutationDefinition {
     public String name() { return name; }
     public String description() { return description; }
     public Set<PathogenType> pathogens() { return pathogens; }
+    public Set<ResourceLocation> pathogenIds() { return pathogenIds; }
     public List<Effect> effects() { return effects; }
     public String rarity() { return rarity; }
     public int weight() { return weight; }
@@ -374,7 +378,7 @@ public final class MutationDefinition {
 
     public PathogenType pathogen() {
         if (pathogens.contains(PathogenType.UNIVERSAL)) return PathogenType.UNIVERSAL;
-        return pathogens.iterator().next();
+        return pathogens.isEmpty() ? PathogenType.UNIVERSAL : pathogens.iterator().next();
     }
 
 
@@ -400,7 +404,16 @@ public final class MutationDefinition {
 
     public boolean isCompatible(@Nullable PathogenType pathogen) {
         if (pathogen == null) return false;
+        if (pathogen == PathogenType.UNIVERSAL) return true;
         return pathogens.contains(PathogenType.UNIVERSAL) || pathogens.contains(pathogen);
+    }
+
+    public boolean isCompatible(@Nullable ResourceLocation pathogenId) {
+        if (pathogenId == null) return false;
+        ResourceLocation universal = BioForgeIds.pathogen(PathogenType.UNIVERSAL);
+        if (universal.equals(pathogenId)) return true;
+        return pathogenIds.contains(universal)
+                || pathogenIds.contains(pathogenId);
     }
 
     public boolean requirementsMet(InfectionData data) {
@@ -426,6 +439,7 @@ public final class MutationDefinition {
         private String name;
         private String description = "";
         private final EnumSet<PathogenType> pathogens = EnumSet.noneOf(PathogenType.class);
+        private final Set<ResourceLocation> pathogenIds = new LinkedHashSet<>();
         private final List<Effect> effects = new ArrayList<>();
         private String rarity = "common";
         private int weight = 100;
@@ -446,12 +460,29 @@ public final class MutationDefinition {
         public Builder description(String description) { this.description = description == null ? "" : description; return this; }
 
         public Builder pathogen(PathogenType pathogen) {
-            if (pathogen != null) this.pathogens.add(pathogen);
+            if (pathogen != null) {
+                this.pathogens.add(pathogen);
+                this.pathogenIds.add(BioForgeIds.pathogen(pathogen));
+            }
             return this;
         }
 
         public Builder pathogens(Collection<PathogenType> pathogens) {
-            if (pathogens != null) this.pathogens.addAll(pathogens);
+            if (pathogens != null) pathogens.forEach(this::pathogen);
+            return this;
+        }
+
+        public Builder pathogenId(ResourceLocation pathogenId) {
+            if (pathogenId != null) {
+                this.pathogenIds.add(pathogenId);
+                PathogenType legacy = BioForgeIds.legacyPathogen(pathogenId);
+                if (legacy != null) this.pathogens.add(legacy);
+            }
+            return this;
+        }
+
+        public Builder pathogenIds(Collection<ResourceLocation> pathogenIds) {
+            if (pathogenIds != null) pathogenIds.forEach(this::pathogenId);
             return this;
         }
 
@@ -507,7 +538,7 @@ public final class MutationDefinition {
         public MutationDefinition build() {
             Objects.requireNonNull(id, "Mutation ID cannot be null");
             if (id.isBlank()) throw new IllegalArgumentException("Mutation ID cannot be empty");
-            if (pathogens.isEmpty()) pathogens.add(PathogenType.UNIVERSAL);
+            if (pathogenIds.isEmpty()) pathogen(PathogenType.UNIVERSAL);
             if (effects.isEmpty() && interactions.isEmpty()) {
                 throw new IllegalArgumentException(
                         "Mutation must define at least one effect or interaction");

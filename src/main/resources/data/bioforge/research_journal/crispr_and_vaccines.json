@@ -1,0 +1,59 @@
+{
+  "order": 500,
+  "unlock_items": ["bioforge:vaccine_maker", "bioforge:crispr_cartridge", "bioforge:cas_module", "bioforge:gene_imprint"],
+  "recipes": [
+    "bioforge:vaccine_maker",
+    "bioforge:crispr_cartridge",
+    "bioforge:cas_module",
+    "bioforge:gene_imprint",
+    "bioforge:blank_vaccine",
+    "bioforge:mutation_vaccine",
+    "bioforge:transmission_vaccine",
+    "bioforge:symptom_vaccine",
+    "bioforge:random_mutation_vaccine",
+    "bioforge:symptom_tablet",
+    { "type": "vaccine_maker", "id": "bioforge:clone_vaccine" },
+    { "type": "vaccine_maker", "id": "bioforge:directed_vaccine" },
+    { "type": "vaccine_maker", "id": "bioforge:full_strain_vaccine" },
+    { "type": "vaccine_maker", "id": "bioforge:full_strain_vaccine_assayed" },
+    { "type": "vaccine_maker", "id": "bioforge:full_strain_vaccine_documented" },
+    { "type": "vaccine_maker", "id": "bioforge:random_mutation_vaccine" },
+    { "type": "vaccine_maker", "id": "bioforge:symptom_tablet" },
+    { "type": "vaccine_maker", "id": "bioforge:viral_blocker_pill" },
+    { "type": "vaccine_maker", "id": "bioforge:viral_inhibitor_pill" },
+    { "type": "vaccine_maker", "id": "bioforge:viral_suppressor_pill" }
+  ],
+  "title": { "text": "5. CRISPR & VACCINES", "color": "dark_aqua", "bold": true },
+  "content": [
+    {
+      "component": {
+        "text": "Install all 15 gRNA cartridges, select a compatible Cas/PAM module, and edit four bases per cartridge.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "Correction quality and CRISPR accuracy combine into the hidden batch result. Test uncertain vaccines on infected blood before using them.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": { "text": "Failure may strengthen or mutate the strain.", "color": "black" },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "Medical Reports improve the evidence cap only when they match the exact strain. CRISPR Notes store a reusable sequence, while Gene Imprints identify one mutation, symptom or transmission route for directed treatment.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": { "text": "[Return to contents]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:contents",
+      "line_breaks": 0
+    }
+  ]
+}

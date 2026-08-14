@@ -2,6 +2,7 @@ package net.jenkimods.bioforge.crispr;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.jenkimods.bioforge.infection.PathogenType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -16,7 +17,8 @@ public record CrisprCasModuleDefinition(
         String pam,
         float efficiency,
         Set<ResourceLocation> compatibleGuideProfiles,
-        Set<PathogenType> compatiblePathogens
+        Set<PathogenType> compatiblePathogens,
+        Set<ResourceLocation> compatiblePathogenIds
 ) {
     public CrisprCasModuleDefinition {
         if (displayName == null || displayName.isBlank()) {
@@ -28,6 +30,16 @@ public record CrisprCasModuleDefinition(
         efficiency = Mth.clamp(efficiency, 0.0f, 1.0f);
         compatibleGuideProfiles = Set.copyOf(compatibleGuideProfiles);
         compatiblePathogens = Set.copyOf(compatiblePathogens);
+        compatiblePathogenIds = Set.copyOf(compatiblePathogenIds);
+    }
+
+    public CrisprCasModuleDefinition(ResourceLocation id, String displayName, String pam,
+                                     float efficiency,
+                                     Set<ResourceLocation> compatibleGuideProfiles,
+                                     Set<PathogenType> compatiblePathogens) {
+        this(id, displayName, pam, efficiency, compatibleGuideProfiles, compatiblePathogens,
+                compatiblePathogens.stream().map(BioForgeIds::pathogen)
+                        .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new)));
     }
 
     public static CrisprCasModuleDefinition fromJson(ResourceLocation id, JsonObject json) {
@@ -44,12 +56,15 @@ public record CrisprCasModuleDefinition(
             }
         }
         Set<PathogenType> pathogens = new LinkedHashSet<>();
+        Set<ResourceLocation> pathogenIds = new LinkedHashSet<>();
         if (json.has("compatible_pathogens")) {
             for (JsonElement element : GsonHelper.getAsJsonArray(
                     json, "compatible_pathogens")) {
                 try {
-                    pathogens.add(PathogenType.valueOf(
-                            element.getAsString().trim().toUpperCase(java.util.Locale.ROOT)));
+                    ResourceLocation pathogenId = BioForgeIds.parse(element.getAsString());
+                    pathogenIds.add(pathogenId);
+                    PathogenType legacy = BioForgeIds.legacyPathogen(pathogenId);
+                    if (legacy != null) pathogens.add(legacy);
                 } catch (IllegalArgumentException invalid) {
                     throw new IllegalArgumentException(
                             "Invalid compatible pathogen: " + element.getAsString());
@@ -63,7 +78,8 @@ public record CrisprCasModuleDefinition(
                 GsonHelper.getAsString(json, "pam", "NGG"),
                 GsonHelper.getAsFloat(json, "efficiency", 1.0f),
                 profiles,
-                pathogens
+                pathogens,
+                pathogenIds
         );
     }
 
@@ -73,8 +89,13 @@ public record CrisprCasModuleDefinition(
     }
 
     public boolean isCompatible(ResourceLocation profile, PathogenType pathogen) {
-        return isCompatible(profile) && (pathogen == PathogenType.UNIVERSAL
-                || compatiblePathogens.isEmpty()
-                || compatiblePathogens.contains(pathogen));
+        return isCompatible(profile, pathogen == null ? null : BioForgeIds.pathogen(pathogen));
+    }
+
+    public boolean isCompatible(ResourceLocation profile, ResourceLocation pathogenId) {
+        return isCompatible(profile) && pathogenId != null
+                && (BioForgeIds.pathogen(PathogenType.UNIVERSAL).equals(pathogenId)
+                || compatiblePathogenIds.isEmpty()
+                || compatiblePathogenIds.contains(pathogenId));
     }
 }

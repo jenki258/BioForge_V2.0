@@ -29,9 +29,9 @@ public record VaccineRules(
         similarityCurveFloor = probability(similarityCurveFloor);
         similarityCurveFloor = Math.min(similarityCurveFloor, minimumSimilarity);
         if (similarityCurveFloor >= 1.0f) similarityCurveFloor = 0.999f;
-        basePotency = Math.max(0.0f, finite(basePotency, 0.95f));
+        basePotency = Math.max(0.0f, finite(basePotency, 1.00f));
         maximumCureChance = probability(maximumCureChance);
-        strengthResistance = Math.max(0.0f, finite(strengthResistance, 2.25f));
+        strengthResistance = Math.max(0.0f, finite(strengthResistance, 1.80f));
         defenseMutationCureMultiplier = probability(defenseMutationCureMultiplier);
         defenseRiskStrengthScale = Math.max(0.0f, finite(defenseRiskStrengthScale, 0.75f));
         defenseRiskMismatchScale = Math.max(0.0f, finite(defenseRiskMismatchScale, 0.5f));
@@ -46,14 +46,14 @@ public record VaccineRules(
 
     public static VaccineRules defaults() {
         return new VaccineRules(
-                0.45f,
+                0.55f,
                 0.40f,
-                0.95f,
-                0.85f,
-                2.25f,
-                0.35f,
-                0.75f,
-                0.50f,
+                1.00f,
+                0.88f,
+                1.80f,
+                0.40f,
+                0.65f,
+                0.40f,
                 1.10f,
                 0.95f,
                 0.65f,

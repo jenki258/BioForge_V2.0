@@ -2,9 +2,11 @@ package net.jenkimods.bioforge.api.vaccine;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.world.vaccine.VaccineMakerBlockEntity;
+import net.jenkimods.bioforge.world.vaccine.VaccineMakerMenu;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,10 +25,23 @@ public final class VaccineMakerPageRegistry {
             ResourceLocation.tryBuild(BioForge.MODID, "journal");
     public static final ResourceLocation CRAFT =
             ResourceLocation.tryBuild(BioForge.MODID, "craft");
+    public static final ResourceLocation CORRECTION =
+            ResourceLocation.tryBuild(BioForge.MODID, "correction");
+    public static final int CORRECTION_SYNC_BUTTON =
+            VaccineMakerMenu.EXTENSION_BUTTON_BASE;
+    public static final int CORRECTION_RESET_BUTTON =
+            CORRECTION_SYNC_BUTTON + 1;
+    public static final int CORRECTION_READ_BUTTON =
+            CORRECTION_RESET_BUTTON + 1;
+    public static final int CORRECTION_WRITE_BUTTON =
+            CORRECTION_READ_BUTTON + 1;
+    public static final int CORRECTION_TARGET_BUTTON_BASE =
+            CORRECTION_WRITE_BUTTON + 1;
 
     private static final Map<ResourceLocation, VaccineMakerPageDefinition> PAGES =
             new LinkedHashMap<>();
     private static boolean builtInsRegistered;
+    private static boolean frozen;
 
     private VaccineMakerPageRegistry() {}
 
@@ -89,14 +104,50 @@ public final class VaccineMakerPageRegistry {
                 () -> Component.translatable("gui.bioforge.vaccine_maker.page.craft"),
                 () -> new ItemStack(BioForge.VACCINE.get()),
                 craft, null));
+
+        register(new VaccineMakerPageDefinition(
+                CORRECTION, 300,
+                () -> Component.translatable(
+                        "gui.bioforge.vaccine_maker.page.correction"),
+                () -> new ItemStack(BioForge.GENE_IMPRINT.get()),
+                Map.of(VaccineMakerBlockEntity.REPORT_SLOT,
+                        new VaccineMakerPageDefinition.SlotPosition(218, 94)),
+                (menu, player, buttonId) -> {
+                    if (!(player instanceof ServerPlayer serverPlayer)) return false;
+                    if (buttonId == CORRECTION_SYNC_BUTTON) {
+                        menu.getBlockEntity().sendCorrectionState(
+                                serverPlayer, menu.containerId);
+                        return true;
+                    }
+                    if (buttonId == CORRECTION_RESET_BUTTON) {
+                        return menu.getBlockEntity().resetCorrectionState(serverPlayer);
+                    }
+                    if (buttonId == CORRECTION_READ_BUTTON) {
+                        return menu.getBlockEntity().readCorrectionDocument(serverPlayer);
+                    }
+                    if (buttonId == CORRECTION_WRITE_BUTTON) {
+                        return menu.getBlockEntity().writeCorrectionDocument(serverPlayer);
+                    }
+                    int encoded = buttonId - CORRECTION_TARGET_BUTTON_BASE;
+                    if (encoded < 0) return false;
+                    int targetIndex = encoded / 2;
+                    int direction = (encoded & 1) == 0 ? 1 : -1;
+                    return menu.getBlockEntity().cycleCorrectionSelection(
+                            targetIndex, direction);
+                }));
     }
 
     public static synchronized void register(VaccineMakerPageDefinition definition) {
+        if (frozen) throw new IllegalStateException("Vaccine Maker page registry is frozen");
         if (PAGES.containsKey(definition.id())) {
             throw new IllegalArgumentException(
                     "Duplicate Vaccine Maker page: " + definition.id());
         }
         PAGES.put(definition.id(), definition);
+    }
+
+    public static synchronized void freeze() {
+        frozen = true;
     }
 
     public static synchronized List<VaccineMakerPageDefinition> pages() {

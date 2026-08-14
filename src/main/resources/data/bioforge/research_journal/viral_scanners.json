@@ -1,0 +1,9 @@
+{
+  "order": 690,
+  "unlock_items": ["bioforge:viral_scanner", "bioforge:ceiling_viral_scanner", "bioforge:open_left_viral_scanner", "bioforge:open_right_viral_scanner"],
+  "title": {"text": "VIRAL SCANNER GATES", "color": "dark_purple", "bold": true},
+  "content": [
+    {"component":{"text":"Scanner gates emit a full redstone signal whenever an infected living entity occupies their detection field. Incubating carriers still contain a pathogen and are therefore detected even before symptoms begin.","color":"black"},"line_breaks":2},
+    {"component":{"text":"The full arch and both open-side gates are two blocks tall. The ceiling scanner monitors the space beneath a single suspended unit. Their output can drive alarms, quarantine doors, lights, dispensers, or other connected machinery.","color":"black"},"line_breaks":0}
+  ]
+}

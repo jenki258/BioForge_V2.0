@@ -46,9 +46,7 @@ public final class VaccineMakerRecipeWrapper {
 
     public List<ItemStack> outputs() {
         List<ItemStack> result = new ArrayList<>();
-        if ((recipe.operation() == VaccineMakerOperation.FULL
-                || recipe.operation() == VaccineMakerOperation.RANDOM_MUTATION)
-                && recipe.fullResult() != null) {
+        if (recipe.fullResult() != null) {
             result.add(new ItemStack(recipe.fullResult()));
         } else if (recipe.operation() == VaccineMakerOperation.DIRECTED) {
             if (recipe.fixedDirectedCategory() != null

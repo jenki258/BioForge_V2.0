@@ -12,14 +12,21 @@ public class MicroscopeSyncPacket {
     private final String visibility;
     private final List<MicroscopeSymptomEntry> entries;
     private final List<CalibrationSlider> calibrationSliders;
+    private final float[] calibrationValues;
+    private final int assayResultPermille;
 
     public MicroscopeSyncPacket(Map<String, Object> symptoms, String visibility,
                                 List<MicroscopeSymptomEntry> entries,
-                                List<CalibrationSlider> calibrationSliders) {
+                                List<CalibrationSlider> calibrationSliders,
+                                float[] calibrationValues,
+                                int assayResultPermille) {
         this.symptoms = symptoms;
         this.visibility = visibility;
         this.entries = entries;
         this.calibrationSliders = calibrationSliders;
+        this.calibrationValues = calibrationValues == null
+                ? new float[0] : calibrationValues.clone();
+        this.assayResultPermille = assayResultPermille;
     }
 
     public static void encode(MicroscopeSyncPacket msg, FriendlyByteBuf buf) {
@@ -34,6 +41,11 @@ public class MicroscopeSyncPacket {
         buf.writeUtf(msg.visibility);
         buf.writeCollection(msg.entries, (buf2, entry) -> entry.encode(buf2));
         buf.writeCollection(msg.calibrationSliders, (buf2, slider) -> slider.encode(buf2));
+        buf.writeVarInt(msg.calibrationValues.length);
+        for (float value : msg.calibrationValues) {
+            buf.writeFloat(value);
+        }
+        buf.writeInt(msg.assayResultPermille);
     }
 
     public static MicroscopeSyncPacket decode(FriendlyByteBuf buf) {
@@ -49,11 +61,25 @@ public class MicroscopeSyncPacket {
         String vis = buf.readUtf();
         List<MicroscopeSymptomEntry> entries = buf.readList(MicroscopeSymptomEntry::decode);
         List<CalibrationSlider> calib = buf.readList(CalibrationSlider::decode);
-        return new MicroscopeSyncPacket(map, vis, entries, calib);
+        int valueCount = buf.readVarInt();
+        if (valueCount < 0 || valueCount > 64) {
+            throw new IllegalArgumentException(
+                    "Invalid microscope calibration value count: " + valueCount);
+        }
+        float[] calibrationValues = new float[valueCount];
+        for (int index = 0; index < valueCount; index++) {
+            calibrationValues[index] = buf.readFloat();
+        }
+        int assayResult = buf.readInt();
+        return new MicroscopeSyncPacket(
+                map, vis, entries, calib, calibrationValues, assayResult);
     }
 
     public static void handle(MicroscopeSyncPacket msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> MicroscopeClientData.set(msg.symptoms, msg.visibility, msg.entries, msg.calibrationSliders));
+        ctx.get().enqueueWork(() -> MicroscopeClientData.set(msg.symptoms,
+                msg.visibility, msg.entries, msg.calibrationSliders,
+                msg.calibrationValues,
+                msg.assayResultPermille));
         ctx.get().setPacketHandled(true);
     }
 }

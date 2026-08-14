@@ -30,7 +30,7 @@ public final class StrainNamingManager {
 
     public static void discover(LivingEntity target, InfectionData infection) {
         if (!(target.level() instanceof ServerLevel level) || infection == null
-                || !infection.isInfected() || infection.getPathogenType() == null) return;
+                || !infection.isInfected() || infection.getPathogenId() == null) return;
         String fingerprint = StrainFingerprint.ofPayload(
                 StrainData.buildFrom(infection).toPayload());
         ServerPlayer researcher = target instanceof ServerPlayer player ? player : null;
@@ -96,7 +96,7 @@ public final class StrainNamingManager {
 
     private static String currentFingerprint(ServerPlayer player) {
         InfectionData infection = net.jenkimods.bioforge.infection.InfectionCapability.get(player);
-        if (infection == null || !infection.isInfected() || infection.getPathogenType() == null) {
+        if (infection == null || !infection.isInfected() || infection.getPathogenId() == null) {
             return null;
         }
         return StrainFingerprint.ofPayload(StrainData.buildFrom(infection).toPayload());

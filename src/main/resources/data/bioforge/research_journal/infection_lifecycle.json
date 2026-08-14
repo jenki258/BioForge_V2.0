@@ -1,0 +1,11 @@
+{
+  "order": 475,
+  "unlock_items": ["bioforge:live_culture_vial", "bioforge:virus_sample", "bioforge:gene_imprint"],
+  "title": {"text": "INFECTION LIFECYCLE", "color": "dark_red", "bold": true},
+  "content": [
+    {"component":{"text":"A newly acquired infection first enters incubation. Its symptoms and mutation effects remain dormant until incubation finishes; most strains also remain non-contagious during this period.","color":"black"},"line_breaks":2},
+    {"component":{"text":"Climate changes that clock. A strain poorly adapted to heat or cold incubates more slowly there while accumulating adaptation pressure. Enough exposure can produce heat adaptation, cold adaptation, and eventually thermal homeostasis.","color":"black"},"line_breaks":2},
+    {"component":{"text":"Infectivity controls exposure probability. Infection strength also decides whether an incoming strain can displace an established infection. Cure resistance modifies treatment difficulty. Lifespan can be finite or unlimited, while self-destruct genes can terminate a strain after a configured environmental trigger.","color":"black"},"line_breaks":2},
+    {"component":{"text":"Incubation duration is also part of the Vaccine Maker correction matrix. Matching this lifecycle channel improves batch quality just like matching symptoms, transmissions and mutations.","color":"black"},"line_breaks":0}
+  ]
+}

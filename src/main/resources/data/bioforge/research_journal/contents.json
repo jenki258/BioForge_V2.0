@@ -1,0 +1,53 @@
+{
+  "order": 0,
+  "recipes": ["bioforge:research_journal"],
+  "title": {
+    "text": "BIOFORGE\nRESEARCH JOURNAL",
+    "color": "dark_aqua",
+    "bold": true
+  },
+  "content": [
+    {
+      "component": {
+        "text": "A field guide to diagnosis, cultivation, CRISPR and containment.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": { "text": "[Diagnostics]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:diagnostics",
+      "line_breaks": 1
+    },
+    {
+      "component": { "text": "[Blood laboratory]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:blood_laboratory",
+      "line_breaks": 1
+    },
+    {
+      "component": { "text": "[Cultivation]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:cultivation",
+      "line_breaks": 1
+    },
+    {
+      "component": { "text": "[Microscopy]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:microscopy",
+      "line_breaks": 1
+    },
+    {
+      "component": { "text": "[CRISPR & vaccines]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:crispr_and_vaccines",
+      "line_breaks": 1
+    },
+    {
+      "component": { "text": "[Chemistry]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:chemistry",
+      "line_breaks": 1
+    },
+    {
+      "component": { "text": "[Containment]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:containment",
+      "line_breaks": 0
+    }
+  ]
+}

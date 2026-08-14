@@ -1,9 +1,11 @@
 package net.jenkimods.bioforge.infection.network;
 
 import net.jenkimods.bioforge.infection.*;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.*;
@@ -31,10 +33,10 @@ public class InfectionSyncPacket {
     }
 
     public static InfectionSyncPacket fromData(InfectionData data) {
-        List<String> types = data.getInfectionTypes().stream().map(InfectionType::name).toList();
+        List<String> types = data.getTransmissionIds().stream().map(ResourceLocation::toString).toList();
 
         Map<String, Object> symptomMap = new LinkedHashMap<>();
-        for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+        for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {
             SymptomKey<?> key = entry.getValue();
             Object value = data.getSymptom(key);
             if (value != null) {
@@ -44,7 +46,7 @@ public class InfectionSyncPacket {
 
         return new InfectionSyncPacket(
                 data.isInfected(),
-                data.getPathogenType() != null ? data.getPathogenType().name() : "",
+                data.getPathogenId() != null ? data.getPathogenId().toString() : "",
                 types,
                 symptomMap,
                 List.copyOf(data.getSymptoms().getMutations()),
@@ -91,6 +93,7 @@ public class InfectionSyncPacket {
             buf.writeUtf(immunity.fingerprint(), 64);
             buf.writeUtf(immunity.displayName(), StrainImmunity.MAX_NAME_LENGTH);
             buf.writeVarInt(immunity.remainingTicks());
+            buf.writeFloat(immunity.strength());
         }
     }
 
@@ -127,7 +130,8 @@ public class InfectionSyncPacket {
         List<StrainImmunity> immunities = new ArrayList<>(immunityCount);
         for (int i = 0; i < immunityCount; i++) {
             immunities.add(new StrainImmunity(buf.readUtf(64),
-                    buf.readUtf(StrainImmunity.MAX_NAME_LENGTH), buf.readVarInt()));
+                    buf.readUtf(StrainImmunity.MAX_NAME_LENGTH), buf.readVarInt(),
+                    buf.readFloat()));
         }
 
         return new InfectionSyncPacket(infected, pathogenType, types, symptoms, mutations,
@@ -137,10 +141,11 @@ public class InfectionSyncPacket {
     public static void handle(InfectionSyncPacket pkt, Supplier<NetworkEvent.Context> ctxSupplier) {
         NetworkEvent.Context ctx = ctxSupplier.get();
         ctx.enqueueWork(() -> {
-            PathogenType pt = pkt.pathogenType.isEmpty() ? null : PathogenType.fromName(pkt.pathogenType);
-            List<InfectionType> types = new ArrayList<>();
+            ResourceLocation pt = pkt.pathogenType.isEmpty() ? null : parseId(pkt.pathogenType);
+            List<ResourceLocation> types = new ArrayList<>();
             for (String s : pkt.infectionTypes) {
-                types.add(InfectionType.fromName(s));
+                ResourceLocation id = parseId(s);
+                if (id != null) types.add(id);
             }
 
             Map<String, Object> symptoms = pkt.symptoms;
@@ -148,5 +153,10 @@ public class InfectionSyncPacket {
                     pkt.immunities);
         });
         ctx.setPacketHandled(true);
+    }
+
+    private static ResourceLocation parseId(String value) {
+        try { return BioForgeIds.parse(value); }
+        catch (IllegalArgumentException ignored) { return null; }
     }
 }

@@ -1,0 +1,10 @@
+{
+  "order": 220,
+  "unlock_items": ["bioforge:anti_a_vial", "bioforge:anti_b_vial", "bioforge:anti_d_vial", "bioforge:plasma_sample", "bioforge:cell_pellet"],
+  "title": { "text": "BLOOD COMPATIBILITY", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "Anti-A, Anti-B and Anti-D reagents identify ABO and Rh reactions. Record all three instead of guessing from a single result.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "The Centrifuge separates a filled blood tube into plasma and a cellular pellet. Keep the original strain identity through every transfer; infected blood remains infected when moved back into an empty or compatible syringe.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Patient compatibility contributes to treatment response. Strong infections or defensive mutations can still defeat an otherwise close vaccine.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

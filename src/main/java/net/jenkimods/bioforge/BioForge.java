@@ -5,16 +5,30 @@ import net.jenkimods.bioforge.block.*;
 import net.jenkimods.bioforge.client.CentrifugeScreen;
 import net.jenkimods.bioforge.blood.network.NetworkHandler;
 import net.jenkimods.bioforge.client.IncubatorScreen;
+import net.jenkimods.bioforge.client.LaboratoryProcessorScreen;
 import net.jenkimods.bioforge.client.MicroscopeScreen;
 import net.jenkimods.bioforge.client.VaccineMakerScreen;
+import net.jenkimods.bioforge.client.render.CentrifugeBlockEntityRenderer;
+import net.jenkimods.bioforge.client.render.MicroscopeBlockEntityRenderer;
 import net.jenkimods.bioforge.api.vaccine.VaccineMakerPageRegistry;
+import net.jenkimods.bioforge.api.guide.ResearchJournalRegistry;
+import net.jenkimods.bioforge.api.behavior.BioForgeBehaviorRegistry;
 import net.jenkimods.bioforge.config.BioForgeServerConfig;
+import net.jenkimods.bioforge.command.BioForgeTestCommand;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
+import net.jenkimods.bioforge.definition.BioForgeValidateCommand;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionCommand;
 import net.jenkimods.bioforge.crispr.command.CrisprCommand;
 import net.jenkimods.bioforge.infection.command.InfectCommand;
+import net.jenkimods.bioforge.infection.command.InfectionInvulnerabilityCommand;
+import net.jenkimods.bioforge.infection.command.DecontaminationCommand;
 import net.jenkimods.bioforge.infection.command.StrainCommand;
 import net.jenkimods.bioforge.infection.network.InfectionNetworkHandler;
 import net.jenkimods.bioforge.infection.naming.StrainNameNetworkHandler;
+import net.jenkimods.bioforge.infection.spread.AirborneReservoirManager;
+import net.jenkimods.bioforge.infection.spread.TransmissionEngine;
 import net.jenkimods.bioforge.item.bone_saw.BoneSawItem;
+import net.jenkimods.bioforge.item.AreaContaminationScannerItem;
 import net.jenkimods.bioforge.item.bones.BoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.SplitBoneItem;
 import net.jenkimods.bioforge.item.bones.WitheredBoneMarrowItem;
@@ -32,14 +46,21 @@ import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
 import net.jenkimods.bioforge.item.reagents.EthanolItem;
 import net.jenkimods.bioforge.item.reagents.WipeItem;
 import net.jenkimods.bioforge.item.infection.*;
+import net.jenkimods.bioforge.item.guide.ResearchJournalItem;
+import net.jenkimods.bioforge.item.guide.ResearchJournalNetwork;
+import net.jenkimods.bioforge.item.guide.ResearchJournalCommand;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
 import net.jenkimods.bioforge.item.needle.SyringeItem;
 import net.jenkimods.bioforge.item.otoscope.OtoscopeItem;
 import net.jenkimods.bioforge.item.otoscope.OtoscopeNetworkHandler;
 import net.jenkimods.bioforge.item.pulse_oximeter.PulseOximeterItem;
 import net.jenkimods.bioforge.item.pulse_oximeter.PulseOximeterNetworkHandler;
+import net.jenkimods.bioforge.item.protective.BioForgeArmorMaterial;
+import net.jenkimods.bioforge.item.protective.ProtectiveGearItem;
 import net.jenkimods.bioforge.item.reagents.CatalystVialItem;
 import net.jenkimods.bioforge.item.reagents.DecalcificationFluidItem;
+import net.jenkimods.bioforge.item.reagents.DiagnosticReagentItem;
+import net.jenkimods.bioforge.item.reagents.DecontaminationFlaskItem;
 import net.jenkimods.bioforge.item.reagents.ReagentVialItem;
 import net.jenkimods.bioforge.item.reflex_hammer.ReflexHammerItem;
 import net.jenkimods.bioforge.item.reflex_hammer.ReflexHammerNetworkHandler;
@@ -53,27 +74,38 @@ import net.jenkimods.bioforge.item.stethoscope.StethoscopeNetworkHandler;
 import net.jenkimods.bioforge.item.thermometer.ThermometerItem;
 import net.jenkimods.bioforge.item.thermometer.ThermometerNetworkHandler;
 import net.jenkimods.bioforge.item.vaccine.VaccineItem;
+import net.jenkimods.bioforge.item.vaccine.ResistancePillItem;
+import net.jenkimods.bioforge.item.vaccine.SymptomTabletItem;
 import net.jenkimods.bioforge.mutation.command.MutateCommand;
+import net.jenkimods.bioforge.mutation.LegacyMutationBehaviors;
 import net.jenkimods.bioforge.mutation.network.MutationNetworkHandler;
 import net.jenkimods.bioforge.registry.BFCreativeTabs;
+import net.jenkimods.bioforge.registry.BioForgeSounds;
 import net.jenkimods.bioforge.registry.BioForgeEffects;
 import net.jenkimods.bioforge.vaccine.command.VaccineMakeCommand;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeBlockEntity;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeMenu;
 import net.jenkimods.bioforge.world.incubator.IncubatorBlockEntity;
 import net.jenkimods.bioforge.world.incubator.IncubatorMenu;
+import net.jenkimods.bioforge.world.laboratory.LaboratoryProcessRecipeManager;
+import net.jenkimods.bioforge.world.laboratory.LaboratoryProcessorBlockEntity;
+import net.jenkimods.bioforge.world.laboratory.LaboratoryProcessorMenu;
+import net.jenkimods.bioforge.world.laboratory.LaboratoryStation;
 import net.jenkimods.bioforge.world.microscope.MicroscopeBlockEntity;
 import net.jenkimods.bioforge.world.microscope.MicroscopeMenu;
 import net.jenkimods.bioforge.world.microscope.MicroscopeNetwork;
 import net.jenkimods.bioforge.world.vaccine.VaccineMakerBlockEntity;
+import net.jenkimods.bioforge.world.vaccine.VaccineMakerCorrectionNetwork;
 import net.jenkimods.bioforge.world.vaccine.VaccineMakerMenu;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -105,12 +137,129 @@ public class BioForge {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(MENU_TYPES, MODID);
 
+    public static final RegistryObject<Item> ACTIVATED_CARBON = ITEMS.register(
+            "activated_carbon", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> LABORATORY_WASTE = ITEMS.register(
+            "laboratory_waste", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BLACK_STEEL_BLEND = ITEMS.register(
+            "black_steel_blend", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BLACK_STEEL_INGOT = ITEMS.register(
+            "black_steel_ingot", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BLACK_STEEL_NUGGET = ITEMS.register(
+            "black_steel_nugget", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BLACK_STEEL_PLATE = ITEMS.register(
+            "black_steel_plate", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> REINFORCED_GLASS = ITEMS.register(
+            "reinforced_glass", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> AGAR_POWDER = ITEMS.register(
+            "agar_powder", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> SULFURIC_ACID = ITEMS.register(
+            "sulfuric_acid", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> STERILIZING_SOLUTION = ITEMS.register(
+            "sterilizing_solution", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> POLYMER_RESIN = ITEMS.register(
+            "polymer_resin", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> STERILE_POLYMER_SHEET = ITEMS.register(
+            "sterile_polymer_sheet", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> LABORATORY_GLASSWARE = ITEMS.register(
+            "laboratory_glassware", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> STERILE_FILTER = ITEMS.register(
+            "sterile_filter", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> OPTICAL_LENS = ITEMS.register(
+            "optical_lens", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> PRECISION_MECHANISM = ITEMS.register(
+            "precision_mechanism", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> ELECTRONIC_CONTROL_UNIT = ITEMS.register(
+            "electronic_control_unit", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> LABORATORY_FRAME = ITEMS.register(
+            "laboratory_frame", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> BIOMEDICAL_PROCESSOR = ITEMS.register(
+            "biomedical_processor", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> NEUTRALIZING_AGENT = ITEMS.register(
+            "neutralizing_agent", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> SURFACTANT_CONCENTRATE = ITEMS.register(
+            "surfactant_concentrate", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> DECONTAMINATION_FLASK = ITEMS.register(
+            "decontamination_flask", DecontaminationFlaskItem::new);
+    public static final RegistryObject<Item> SEALED_BIOFABRIC = ITEMS.register(
+            "sealed_biofabric", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> STERILE_RUBBER = ITEMS.register(
+            "sterile_rubber", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> ACTIVATED_FILTER = ITEMS.register(
+            "activated_filter", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> RESPIRATOR_VALVE = ITEMS.register(
+            "respirator_valve", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> THERMAL_GEL = ITEMS.register(
+            "thermal_gel", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> INSULATED_LINING = ITEMS.register(
+            "insulated_lining", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> BLACK_STEEL_MESH = ITEMS.register(
+            "black_steel_mesh", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> CHEMICAL_RESISTANT_COATING = ITEMS.register(
+            "chemical_resistant_coating", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> AIRTIGHT_SEAL = ITEMS.register(
+            "airtight_seal", () -> new Item(new Item.Properties()));
+    public static final RegistryObject<Item> WINE_MUST = ITEMS.register(
+            "wine_must", () -> new Item(new Item.Properties().stacksTo(16)));
+    public static final RegistryObject<Item> MEDICAL_MASK = ITEMS.register(
+            "medical_mask", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.PROTECTIVE, ArmorItem.Type.HELMET,
+                    new Item.Properties(), "item.bioforge.protective_gear.mask",
+                    ProtectiveGearItem.WearableStyle.MEDICAL_MASK,
+                    "bioforge:textures/models/armor/medical_mask.png"));
+    public static final RegistryObject<Item> PROTECTIVE_GLOVES = ITEMS.register(
+            "protective_gloves", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.PROTECTIVE, ArmorItem.Type.CHESTPLATE,
+                    new Item.Properties(), "item.bioforge.protective_gear.gloves",
+                    ProtectiveGearItem.WearableStyle.PROTECTIVE_GLOVES,
+                    "bioforge:textures/models/armor/protective_gloves.png"));
+    public static final RegistryObject<Item> ICE_BAG = ITEMS.register(
+            "ice_bag", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.PROTECTIVE, ArmorItem.Type.HELMET,
+                    new Item.Properties(), "item.bioforge.protective_gear.ice_bag",
+                    ProtectiveGearItem.WearableStyle.THERMAL_BAG,
+                    "bioforge:textures/models/armor/ice_bag.png"));
+    public static final RegistryObject<Item> MAGMA_BAG = ITEMS.register(
+            "magma_bag", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.PROTECTIVE, ArmorItem.Type.HELMET,
+                    new Item.Properties().fireResistant(),
+                    "item.bioforge.protective_gear.magma_bag",
+                    ProtectiveGearItem.WearableStyle.THERMAL_BAG,
+                    "bioforge:textures/models/armor/magma_bag.png"));
+    public static final RegistryObject<Item> HAZCURE_HELMET = ITEMS.register(
+            "hazcure_helmet", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.HAZCURE, ArmorItem.Type.HELMET,
+                    new Item.Properties(), "item.bioforge.protective_gear.hazcure"));
+    public static final RegistryObject<Item> HAZCURE_CHESTPLATE = ITEMS.register(
+            "hazcure_chestplate", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.HAZCURE, ArmorItem.Type.CHESTPLATE,
+                    new Item.Properties(), "item.bioforge.protective_gear.hazcure"));
+    public static final RegistryObject<Item> HAZCURE_LEGGINGS = ITEMS.register(
+            "hazcure_leggings", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.HAZCURE, ArmorItem.Type.LEGGINGS,
+                    new Item.Properties(), "item.bioforge.protective_gear.hazcure"));
+    public static final RegistryObject<Item> HAZCURE_BOOTS = ITEMS.register(
+            "hazcure_boots", () -> new ProtectiveGearItem(
+                    BioForgeArmorMaterial.HAZCURE, ArmorItem.Type.BOOTS,
+                    new Item.Properties(), "item.bioforge.protective_gear.hazcure"));
+    public static final RegistryObject<Block> BLACK_STEEL_BLOCK = BLOCKS.register(
+            "black_steel_block", BlackSteelBlock::new);
+    public static final RegistryObject<BlockItem> BLACK_STEEL_BLOCK_ITEM = ITEMS.register(
+            "black_steel_block", () -> new BlockItem(
+                    BLACK_STEEL_BLOCK.get(), new Item.Properties()));
+
     public static final RegistryObject<Item> WOODEN_NEEDLE = ITEMS.register("wooden_needle", () -> new NeedleItem(NeedleItem.Tier.WOODEN));
     public static final RegistryObject<Item> IRON_NEEDLE = ITEMS.register("iron_needle", () -> new NeedleItem(NeedleItem.Tier.IRON));
     public static final RegistryObject<Item> HARDENED_NEEDLE = ITEMS.register("hardened_needle", () -> new NeedleItem(NeedleItem.Tier.HARDENED));
     public static final RegistryObject<Item> ANTI_A_VIAL = ITEMS.register("anti_a_vial", () -> new ReagentVialItem(ReagentVialItem.Type.ANTI_A));
     public static final RegistryObject<Item> ANTI_B_VIAL = ITEMS.register("anti_b_vial", () -> new ReagentVialItem(ReagentVialItem.Type.ANTI_B));
     public static final RegistryObject<Item> ANTI_D_VIAL = ITEMS.register("anti_d_vial", () -> new ReagentVialItem(ReagentVialItem.Type.ANTI_D));
+    public static final RegistryObject<Item> PATHOGEN_REAGENT = ITEMS.register(
+            "pathogen_reagent",
+            () -> new DiagnosticReagentItem(DiagnosticReagentItem.Kind.PATHOGEN));
+    public static final RegistryObject<Item> VISIBILITY_REAGENT = ITEMS.register(
+            "visibility_reagent",
+            () -> new DiagnosticReagentItem(DiagnosticReagentItem.Kind.VISIBILITY));
     public static final RegistryObject<Item> VACCINE = ITEMS.register("vaccine", VaccineItem::new);
     public static final RegistryObject<Item> MUTATION_VACCINE = ITEMS.register("mutation_vaccine",
             () -> new VaccineItem(VaccineItem.Kind.MUTATION));
@@ -121,6 +270,14 @@ public class BioForge {
     public static final RegistryObject<Item> RANDOM_MUTATION_VACCINE =
             ITEMS.register("random_mutation_vaccine",
                     () -> new VaccineItem(VaccineItem.Kind.RANDOM_MUTATION));
+    public static final RegistryObject<Item> VIRAL_SUPPRESSOR_PILL =
+            ITEMS.register("viral_suppressor_pill", ResistancePillItem::new);
+    public static final RegistryObject<Item> VIRAL_INHIBITOR_PILL =
+            ITEMS.register("viral_inhibitor_pill", ResistancePillItem::new);
+    public static final RegistryObject<Item> VIRAL_BLOCKER_PILL =
+            ITEMS.register("viral_blocker_pill", ResistancePillItem::new);
+    public static final RegistryObject<Item> SYMPTOM_TABLET =
+            ITEMS.register("symptom_tablet", SymptomTabletItem::new);
     public static final RegistryObject<Item> CRISPR_CARTRIDGE = ITEMS.register("crispr_cartridge",
             CrisprCartridgeItem::new);
     public static final RegistryObject<Item> CAS_MODULE = ITEMS.register("cas_module",
@@ -143,11 +300,35 @@ public class BioForge {
     public static final RegistryObject<Item> PULSE_OXIMETER = ITEMS.register("pulse_oximeter", PulseOximeterItem::new);
     public static final RegistryObject<Item> CLIPBOARD = ITEMS.register("clipboard", ClipboardItem::new);
     public static final RegistryObject<Item> MEDICAL_REPORT = ITEMS.register("medical_report", MedicalReportItem::new);
+    public static final RegistryObject<Item> RESEARCH_JOURNAL = ITEMS.register(
+            "research_journal", ResearchJournalItem::new);
+    public static final RegistryObject<Item> AREA_CONTAMINATION_SCANNER = ITEMS.register(
+            "area_contamination_scanner", AreaContaminationScannerItem::new);
 
     public static final RegistryObject<Block> CENTRIFUGE = BLOCKS.register("centrifuge", CentrifugeBlock::new);
     public static final RegistryObject<Item> CENTRIFUGE_ITEM = ITEMS.register("centrifuge", () -> new BlockItem(CENTRIFUGE.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<CentrifugeBlockEntity>> CENTRIFUGE_BE = BLOCK_ENTITIES.register("centrifuge", () -> BlockEntityType.Builder.of(CentrifugeBlockEntity::new, CENTRIFUGE.get()).build(null));
     public static final RegistryObject<MenuType<CentrifugeMenu>> CENTRIFUGE_MENU = MENUS.register("centrifuge", () -> net.minecraftforge.common.extensions.IForgeMenuType.create(CentrifugeMenu::new));
+
+    public static final RegistryObject<Block> VIRAL_SCANNER = BLOCKS.register("viral_scanner",
+            () -> new ViralScannerBlock(ViralScannerBlock.Variant.FULL));
+    public static final RegistryObject<Block> CEILING_VIRAL_SCANNER = BLOCKS.register("ceiling_viral_scanner",
+            () -> new ViralScannerBlock(ViralScannerBlock.Variant.CEILING));
+    public static final RegistryObject<Block> OPEN_LEFT_VIRAL_SCANNER = BLOCKS.register("open_left_viral_scanner",
+            () -> new ViralScannerBlock(ViralScannerBlock.Variant.OPEN_LEFT));
+    public static final RegistryObject<Block> OPEN_RIGHT_VIRAL_SCANNER = BLOCKS.register("open_right_viral_scanner",
+            () -> new ViralScannerBlock(ViralScannerBlock.Variant.OPEN_RIGHT));
+    public static final RegistryObject<BlockItem> VIRAL_SCANNER_ITEM = ITEMS.register("viral_scanner",
+            () -> new BlockItem(VIRAL_SCANNER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> CEILING_VIRAL_SCANNER_ITEM = ITEMS.register("ceiling_viral_scanner",
+            () -> new BlockItem(CEILING_VIRAL_SCANNER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> OPEN_LEFT_VIRAL_SCANNER_ITEM = ITEMS.register("open_left_viral_scanner",
+            () -> new BlockItem(OPEN_LEFT_VIRAL_SCANNER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> OPEN_RIGHT_VIRAL_SCANNER_ITEM = ITEMS.register("open_right_viral_scanner",
+            () -> new BlockItem(OPEN_RIGHT_VIRAL_SCANNER.get(), new Item.Properties()));
+    public static final RegistryObject<Block> AIR_VENT = BLOCKS.register("air_vent", AirVentBlock::new);
+    public static final RegistryObject<BlockItem> AIR_VENT_ITEM = ITEMS.register("air_vent",
+            () -> new BlockItem(AIR_VENT.get(), new Item.Properties()));
 
     public static final RegistryObject<Block> MICROBIAL_MAT = BLOCKS.register("microbial_mat", MicrobialMatBlock::new);
     public static final RegistryObject<BlockEntityType<MicrobialMatBlockEntity>> MICROBIAL_MAT_BE =
@@ -214,6 +395,33 @@ public class BioForge {
             ITEMS.register("vaccine_maker",
                     () -> new BlockItem(VACCINE_MAKER.get(), new Item.Properties()));
 
+    public static final RegistryObject<Block> BARREL_PRESS = BLOCKS.register(
+            "barrel_press",
+            () -> new LaboratoryProcessorBlock(LaboratoryStation.BARREL_PRESS));
+    public static final RegistryObject<Block> CHEMICAL_SYNTHESIZER = BLOCKS.register(
+            "chemical_synthesizer",
+            () -> new LaboratoryProcessorBlock(LaboratoryStation.CHEMICAL_SYNTHESIZER));
+    public static final RegistryObject<Block> STERILIZATION_CHAMBER = BLOCKS.register(
+            "sterilization_chamber",
+            () -> new LaboratoryProcessorBlock(LaboratoryStation.STERILIZATION_CHAMBER));
+    public static final RegistryObject<Block> PHARMA_MIXER = BLOCKS.register(
+            "pharma_mixer",
+            () -> new LaboratoryProcessorBlock(LaboratoryStation.PHARMA_MIXER));
+    public static final RegistryObject<BlockItem> BARREL_PRESS_ITEM = ITEMS.register(
+            "barrel_press", () -> new BlockItem(BARREL_PRESS.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> CHEMICAL_SYNTHESIZER_ITEM = ITEMS.register(
+            "chemical_synthesizer", () -> new BlockItem(CHEMICAL_SYNTHESIZER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> STERILIZATION_CHAMBER_ITEM = ITEMS.register(
+            "sterilization_chamber", () -> new BlockItem(STERILIZATION_CHAMBER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockItem> PHARMA_MIXER_ITEM = ITEMS.register(
+            "pharma_mixer", () -> new BlockItem(PHARMA_MIXER.get(), new Item.Properties()));
+    public static final RegistryObject<BlockEntityType<LaboratoryProcessorBlockEntity>> LABORATORY_PROCESSOR_BE =
+            BLOCK_ENTITIES.register("laboratory_processor", () -> BlockEntityType.Builder.of(
+                    LaboratoryProcessorBlockEntity::new, BARREL_PRESS.get(), CHEMICAL_SYNTHESIZER.get(),
+                    STERILIZATION_CHAMBER.get(), PHARMA_MIXER.get()).build(null));
+    public static final RegistryObject<MenuType<LaboratoryProcessorMenu>> LABORATORY_PROCESSOR_MENU =
+            MENUS.register("laboratory_processor", () -> IForgeMenuType.create(LaboratoryProcessorMenu::new));
+
     public static final RegistryObject<Item> CATALYST_VIAL = ITEMS.register("catalyst_vial", CatalystVialItem::new);
     public static final RegistryObject<Item> NUTRIENT_MEDIUM = ITEMS.register("nutrient_medium", NutrientMediumItem::new);
     public static final RegistryObject<Item> VIRUS_SAMPLE = ITEMS.register("virus_sample", VirusSampleItem::new);
@@ -226,11 +434,13 @@ public class BioForge {
         IEventBus modEventBus = context.getModEventBus();
         context.registerConfig(ModConfig.Type.SERVER, BioForgeServerConfig.SPEC,
                 "bioforge-server.toml");
+        LegacyMutationBehaviors.register();
         VaccineMakerPageRegistry.bootstrapBuiltIns();
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
         MENUS.register(modEventBus);
+        BioForgeSounds.SOUNDS.register(modEventBus);
         BioForgeEffects.register(modEventBus);
         BFCreativeTabs.TABS.register(modEventBus);
         modEventBus.addListener(this::onCommonSetup);
@@ -249,30 +459,65 @@ public class BioForge {
             InfectionNetworkHandler.register();
             StrainNameNetworkHandler.register();
             MicroscopeNetwork.register();
+            VaccineMakerCorrectionNetwork.register();
             MutationNetworkHandler.register();
+            ResearchJournalNetwork.register();
         });
     }
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         InfectCommand.register(event.getDispatcher());
+        InfectionInvulnerabilityCommand.register(event.getDispatcher());
         StrainCommand.register(event.getDispatcher());
         MutateCommand.register(event.getDispatcher());
         VaccineMakeCommand.register(event.getDispatcher(), VACCINE);
         CrisprCommand.register(event.getDispatcher());
+        BioForgeValidateCommand.register(event.getDispatcher());
+        BioForgeDefinitionCommand.register(event.getDispatcher());
+        BioForgeTestCommand.register(event.getDispatcher());
+        ResearchJournalCommand.register(event.getDispatcher());
+        DecontaminationCommand.register(event.getDispatcher());
     }
 
     @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event) {}
+    public void onServerStarting(ServerStartingEvent event) {
+        BioForgeDefinitionManager.freezeJavaRegistrations();
+        net.jenkimods.bioforge.mutation.MutationLoader.INSTANCE.freezeJavaRegistrations();
+        net.jenkimods.bioforge.infection.lifecycle.InfectionLifecycleRegistry.INSTANCE.freezeJavaRegistrations();
+        net.jenkimods.bioforge.infection.natural.NaturalInfectionManager.INSTANCE.freezeJavaRegistrations();
+        net.jenkimods.bioforge.crispr.BioForgeResearchData.freezeJavaRegistrations();
+        net.jenkimods.bioforge.world.centrifuge.CentrifugeRecipeManager.INSTANCE.freezeJavaRegistrations();
+        net.jenkimods.bioforge.world.decalcification.DecalcificationRecipeManager.INSTANCE.freezeJavaRegistrations();
+        net.jenkimods.bioforge.world.incubator.CatalystMappingManager.INSTANCE.freezeJavaRegistrations();
+        net.jenkimods.bioforge.world.microscope.MicroscopeSymptomConfig.INSTANCE.freezeJavaRegistrations();
+        LaboratoryProcessRecipeManager.INSTANCE.freezeJavaRegistrations();
+        net.jenkimods.bioforge.api.vaccine.VaccineMakerPageRegistry.freeze();
+        ResearchJournalRegistry.freeze();
+        BioForgeBehaviorRegistry.freeze();
+    }
 
     @SubscribeEvent
-    public void onServerStopping(ServerStoppingEvent event) {}
+    public void onServerStopping(ServerStoppingEvent event) {
+        event.getServer().getAllLevels().forEach(level -> {
+            AirborneReservoirManager.clear(level);
+            AirVentBlock.clear(level);
+        });
+        TransmissionEngine.clearCaches();
+        InfectionNetworkHandler.clearDefinitionSyncState();
+    }
 
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             event.enqueueWork(() -> {
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(
+                        BioForge.CENTRIFUGE_BE.get(),
+                        CentrifugeBlockEntityRenderer::new);
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(
+                        BioForge.MICROSCOPE_BE.get(),
+                        MicroscopeBlockEntityRenderer::new);
                 ResourceLocation filledRL = ResourceLocation.tryBuild(BioForge.MODID, "filled");
                 ResourceLocation reactedRL = ResourceLocation.tryBuild(BioForge.MODID, "reacted");
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SWAB.get(), filledRL, (stack, level, entity, seed) -> SwabItem.isContaminated(stack) ? 1.0f : 0.0f);
@@ -289,6 +534,8 @@ public class BioForge {
                 net.minecraft.client.gui.screens.MenuScreens.register(BioForge.INCUBATOR_MENU.get(), IncubatorScreen::new);
                 net.minecraft.client.gui.screens.MenuScreens.register(
                         BioForge.VACCINE_MAKER_MENU.get(), VaccineMakerScreen::new);
+                net.minecraft.client.gui.screens.MenuScreens.register(
+                        BioForge.LABORATORY_PROCESSOR_MENU.get(), LaboratoryProcessorScreen::new);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.THERMOMETER_ITEM.get(), ResourceLocation.tryBuild(BioForge.MODID, "ready"), (stack, level, entity, seed) -> ThermometerItem.isReady(stack) ? 1.0f : 0.0f);
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SYRINGE.get(), ResourceLocation.tryBuild(BioForge.MODID, "syringe_fill"), (stack, level, entity, seed) -> {int uses = SyringeItem.getUses(stack);return uses / 4.0f;});
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.BLOOD_SLIDE.get(), ResourceLocation.tryBuild(BioForge.MODID, "blood_slide_filled"), (stack, level, entity, seed) -> BloodSlideItem.hasBlood(stack) ? 1.0f : 0.0f);
@@ -297,6 +544,28 @@ public class BioForge {
                         ResourceLocation.tryBuild(BioForge.MODID, "filled"),
                         (stack, level, entity, seed) -> LiveCultureVialItem.hasStrain(stack) ? 1.0f : 0.0f);
             });
+        }
+
+        @SubscribeEvent
+        public static void onRegisterAdditionalModels(
+                ModelEvent.RegisterAdditional event) {
+            event.register(MicroscopeBlockEntityRenderer.KNOB_MODEL);
+            event.register(MicroscopeBlockEntityRenderer.LENS_WHEEL_MODEL);
+            event.register(MicroscopeBlockEntityRenderer.BULB_MODEL);
+        }
+
+        @SubscribeEvent
+        public static void onRegisterLayerDefinitions(
+                net.minecraftforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions event) {
+            event.registerLayerDefinition(
+                    net.jenkimods.bioforge.client.render.ProtectiveGearModel.THERMAL_BAG_LAYER,
+                    net.jenkimods.bioforge.client.render.ProtectiveGearModel::createThermalBagLayer);
+            event.registerLayerDefinition(
+                    net.jenkimods.bioforge.client.render.ProtectiveGearModel.MEDICAL_MASK_LAYER,
+                    net.jenkimods.bioforge.client.render.ProtectiveGearModel::createMedicalMaskLayer);
+            event.registerLayerDefinition(
+                    net.jenkimods.bioforge.client.render.ProtectiveGearModel.PROTECTIVE_GLOVES_LAYER,
+                    net.jenkimods.bioforge.client.render.ProtectiveGearModel::createProtectiveGlovesLayer);
         }
     }
 }

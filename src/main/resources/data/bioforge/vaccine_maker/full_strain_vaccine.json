@@ -4,38 +4,38 @@
   "processing_time": 240,
   "requires_program": true,
   "consume_sample": true,
-  "minimum_quality": 0.35,
+  "minimum_quality": 0,
   "research": {
     "base_quality_cap": 0.85
   },
   "failure": {
-    "mutation_chance": 0.85,
-    "mutation_below_quality": 0.95,
+    "mutation_chance": 0.7,
+    "mutation_below_quality": 0.85,
     "consume_reagent": true
   },
   "inputs": {
     "sample": [
       {
-        "item": "bioforge:virus_sample"
+        "tag": "bioforge:ingredients/bioforge/virus_sample"
       },
       {
-        "item": "bioforge:live_culture_vial"
+        "tag": "bioforge:ingredients/bioforge/live_culture_vial"
       },
       {
-        "item": "bioforge:petri_dish"
+        "tag": "bioforge:ingredients/bioforge/petri_dish"
       }
     ],
     "carrier": {
-      "item": "bioforge:vaccine"
+      "tag": "bioforge:ingredients/bioforge/vaccine"
     },
     "reagent": {
-      "item": "bioforge:nutrient_medium"
+      "tag": "bioforge:ingredients/bioforge/nutrient_medium"
     },
     "cartridge": {
-      "item": "bioforge:crispr_cartridge"
+      "tag": "bioforge:ingredients/bioforge/crispr_cartridge"
     },
     "cas_module": {
-      "item": "bioforge:cas_module"
+      "tag": "bioforge:ingredients/bioforge/cas_module"
     }
   },
   "quality": {

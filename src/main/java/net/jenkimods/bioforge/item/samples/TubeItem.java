@@ -6,8 +6,10 @@ import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
 import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.item.needle.NeedleItem;
 import net.jenkimods.bioforge.item.needle.SyringeItem;
+import net.jenkimods.bioforge.item.vaccine.VaccineItem;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.jenkimods.bioforge.vaccine.VaccineBloodAssay;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -19,6 +21,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -34,7 +37,12 @@ import java.util.Objects;
 public class TubeItem extends Item {
 
     public TubeItem() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(16));
+    }
+
+    @Override
+    public int getMaxStackSize(ItemStack stack) {
+        return stack.hasTag() && BloodSampleUtil.hasBlood(stack) ? 1 : 16;
     }
 
     @Override
@@ -45,12 +53,27 @@ public class TubeItem extends Item {
         ItemStack tool = player.getItemInHand(other);
 
         if (level.isClientSide()) {
-            return hasBlood(slide) && tool.getItem() instanceof SyringeItem
+            return hasBlood(slide) && (tool.getItem() instanceof SyringeItem
+                    || tool.getItem() instanceof VaccineItem)
                     ? InteractionResultHolder.success(slide)
                     : InteractionResultHolder.pass(slide);
         }
 
         if (hasBlood(slide)) {
+            if (tool.getItem() instanceof VaccineItem) {
+                if (!VaccineBloodAssay.createAndConsume(player, slide, tool)) {
+                    player.displayClientMessage(Component.translatable(
+                            "message.bioforge.vaccine.assay_invalid")
+                            .withStyle(ChatFormatting.RED), true);
+                    return InteractionResultHolder.fail(slide);
+                }
+                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL,
+                        SoundSource.PLAYERS, 0.8F, 1.15F);
+                player.displayClientMessage(Component.translatable(
+                        "message.bioforge.vaccine.assay_created")
+                        .withStyle(ChatFormatting.AQUA), true);
+                return InteractionResultHolder.success(slide);
+            }
             return transferBackToSyringe(level, player, slide, tool, other);
         }
 
@@ -68,12 +91,19 @@ public class TubeItem extends Item {
 
         ObfuscatedData data = BloodSampleUtil.getData(tool);
         if (data == null) return InteractionResultHolder.fail(slide);
-        BloodSampleUtil.setData(slide, 1,
+        ItemStack filledTube;
+        if (slide.getCount() > 1) {
+            slide.shrink(1);
+            filledTube = new ItemStack(this);
+        } else {
+            filledTube = slide;
+        }
+        BloodSampleUtil.setData(filledTube, 1,
                 BloodType.fromName(data.typeName()), data.sourceName(), data.subjectUUID());
 
         String infectionStrain = NbtObfuscator.readInfection(tool.getOrCreateTag());
         if (infectionStrain != null && !infectionStrain.isEmpty()) {
-            NbtObfuscator.writeInfection(slide.getOrCreateTag(), infectionStrain);
+            NbtObfuscator.writeInfection(filledTube.getOrCreateTag(), infectionStrain);
         }
 
         if (tool.getItem() instanceof SyringeItem) {
@@ -85,12 +115,21 @@ public class TubeItem extends Item {
         level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
         if (player instanceof ServerPlayer sp)
             sp.sendSystemMessage(Component.translatable("item.bioforge.tube.transferred"));
+        if (filledTube != slide && !player.getInventory().add(filledTube)) {
+            level.addFreshEntity(new ItemEntity(level, player.getX(), player.getY(),
+                    player.getZ(), filledTube));
+        }
         return InteractionResultHolder.success(slide);
     }
 
     private InteractionResultHolder<ItemStack> transferBackToSyringe(
             Level level, Player player, ItemStack tube, ItemStack syringe,
             InteractionHand syringeHand) {
+        if (VaccineBloodAssay.isAssay(tube)) {
+            player.sendSystemMessage(Component.translatable(
+                    "item.bioforge.tube.assay_contaminated"));
+            return InteractionResultHolder.fail(tube);
+        }
         if (!(syringe.getItem() instanceof SyringeItem)) {
             player.sendSystemMessage(Component.translatable(
                     "item.bioforge.tube.need_syringe"));
@@ -161,6 +200,26 @@ public class TubeItem extends Item {
 
         ObfuscatedData data = BloodSampleUtil.getData(stack);
         if (data == null) return;
+
+        VaccineBloodAssay.Data assay = VaccineBloodAssay.read(stack);
+        if (assay != null) {
+            tooltip.add(Component.translatable(assay.scanned()
+                            ? "item.bioforge.tube.assay.scanned"
+                            : "item.bioforge.tube.assay.pending")
+                    .withStyle(ChatFormatting.AQUA));
+            if (assay.scanned()) {
+                tooltip.add(Component.translatable(
+                                "item.bioforge.tube.assay.result",
+                                String.format(java.util.Locale.ROOT, "%.1f%%",
+                                        assay.result() * 100.0F))
+                        .withStyle(ChatFormatting.WHITE));
+            } else {
+                tooltip.add(Component.translatable(
+                                "item.bioforge.tube.assay.microscope_hint")
+                        .withStyle(ChatFormatting.DARK_AQUA));
+            }
+            return;
+        }
 
         tooltip.add(Component.translatable("item.bioforge.tube.filled").withStyle(ChatFormatting.RED));
         tooltip.add(Component.translatable("item.bioforge.tube.source", data.sourceName()).withStyle(ChatFormatting.WHITE));

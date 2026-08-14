@@ -1,0 +1,10 @@
+{
+  "order": 330,
+  "unlock_items": ["bioforge:pathogen_reagent", "bioforge:catalyst_vial", "bioforge:virus_sample"],
+  "title": { "text": "PATHOGEN CLASSES", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "BioForge recognizes bacteria, viruses, fungi, parasites, prions and the rare universal class. Each class has its own color, default profile and compatible routes.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Pathogen Reagent gives a coarse class test without revealing the hidden genome. Catalyst Vials use ordinary materials for most classes; a universal catalyst is an exceptional Nether Star result rather than a routine ingredient.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Class narrows the problem. A named strain, its mutations and its exact sequence still require proper microscopy and records.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

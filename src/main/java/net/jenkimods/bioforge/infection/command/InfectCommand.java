@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
@@ -54,8 +55,11 @@ public class InfectCommand {
                                                                 .suggests((ctx, builder) -> {
                                                                     PathogenType pt = PathogenType.fromName(
                                                                             StringArgumentType.getString(ctx, "pathogen"));
-                                                                    for (InfectionType it : pt.getAllowedTransmissions())
-                                                                        builder.suggest(it.name().toLowerCase());
+                                                                    for (InfectionType it : pt.getAllowedTransmissions()) {
+                                                                        if (BioForgeServerConfig.isTransmissionEnabled(it)) {
+                                                                            builder.suggest(it.name().toLowerCase());
+                                                                        }
+                                                                    }
                                                                     return builder.buildFuture();
                                                                 })
                                                                 .executes(ctx -> execute(ctx.getSource(),
@@ -122,7 +126,10 @@ public class InfectCommand {
         Set<InfectionType> set = EnumSet.noneOf(InfectionType.class);
         for (String part : raw.split(",")) {
             part = part.trim();
-            if (!part.isEmpty()) set.add(InfectionType.fromName(part));
+            if (!part.isEmpty()) {
+                InfectionType type = InfectionType.fromName(part);
+                if (BioForgeServerConfig.isTransmissionEnabled(type)) set.add(type);
+            }
         }
         return set;
     }
@@ -149,13 +156,19 @@ public class InfectCommand {
                                boolean infected, PathogenType pathogenType, Set<InfectionType> types,
                                boolean persistent, List<String> mutationIds) {
         for (InfectionType t : types) {
-            if (!pathogenType.allows(t)) {
+            if (!BioForgeServerConfig.isTransmissionEnabled(t) || !pathogenType.allows(t)) {
                 source.sendFailure(Component.translatable("command.bioforge.infect.incompatible",
                         pathogenType.name(), t.name()));
                 return 0;
             }
         }
         for (LivingEntity entity : targets) {
+            if (infected && InfectionInvulnerability.isEnabled(entity)) {
+                if (entity instanceof ServerPlayer player) InfectionInvulnerability.ensureCured(player);
+                source.sendFailure(Component.translatable("command.bioforge.infectionimmune.blocked",
+                        entity.getDisplayName()));
+                continue;
+            }
             InfectionData data = InfectionCapability.get(entity);
             if (data == null) continue;
             MutationManager.clearMutations(data, entity);
@@ -179,7 +192,7 @@ public class InfectCommand {
 
                 if (persistent && entity instanceof ServerPlayer player) {
                     Map<String, Object> symptomMap = new LinkedHashMap<>();
-                    for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+                    for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {
                         symptomMap.put(e.getKey(), data.getSymptom(e.getValue()));
                     }
                     List<String> muts = new ArrayList<>(data.getSymptoms().getMutations());
@@ -205,7 +218,7 @@ public class InfectCommand {
                                            boolean infected, PathogenType pathogenType, Set<InfectionType> types,
                                            boolean persistent, String symptomsString, List<String> mutationIds) {
         for (InfectionType t : types) {
-            if (!pathogenType.allows(t)) {
+            if (!BioForgeServerConfig.isTransmissionEnabled(t) || !pathogenType.allows(t)) {
                 source.sendFailure(Component.translatable("command.bioforge.infect.incompatible",
                         pathogenType.name(), t.name()));
                 return 0;
@@ -213,6 +226,12 @@ public class InfectCommand {
         }
         Map<String, String> symptomPairs = parseSymptomPairs(symptomsString);
         for (LivingEntity entity : targets) {
+            if (infected && InfectionInvulnerability.isEnabled(entity)) {
+                if (entity instanceof ServerPlayer player) InfectionInvulnerability.ensureCured(player);
+                source.sendFailure(Component.translatable("command.bioforge.infectionimmune.blocked",
+                        entity.getDisplayName()));
+                continue;
+            }
             InfectionData data = InfectionCapability.get(entity);
             if (data == null) continue;
             MutationManager.clearMutations(data, entity);
@@ -226,7 +245,7 @@ public class InfectCommand {
                 for (InfectionType t : types) data.addInfectionType(t);
 
                 for (Map.Entry<String, String> pair : symptomPairs.entrySet()) {
-                    SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(pair.getKey());
+                    SymptomKey<?> key = BioForgeSymptoms.getEnabledSymptomKeys().get(pair.getKey());
                     if (key != null) {
                         Object value = parseSymptomValue(pair.getValue(), key);
                         if (value != null) {
@@ -245,7 +264,7 @@ public class InfectCommand {
 
                 if (persistent && entity instanceof ServerPlayer player) {
                     Map<String, Object> symptomMap = new LinkedHashMap<>();
-                    for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+                    for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {
                         symptomMap.put(e.getKey(), data.getSymptom(e.getValue()));
                     }
                     List<String> muts = new ArrayList<>(data.getSymptoms().getMutations());

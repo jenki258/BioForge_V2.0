@@ -1,5 +1,6 @@
 package net.jenkimods.bioforge.blood.knowledge;
 
+import net.jenkimods.bioforge.blood.BloodType;
 import net.jenkimods.bioforge.world.data.ReagentType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -16,6 +17,7 @@ public class BloodKnowledgeStore extends SavedData {
     private static final int    MAX_ENTRIES = 2000;
 
     private final Map<UUID, LinkedHashMap<UUID, BloodKnowledge>> data = new HashMap<>();
+    private final Map<UUID, String> observedBloodTypes = new HashMap<>();
 
     public static BloodKnowledgeStore get(MinecraftServer server) {
         DimensionDataStorage storage = server.overworld().getDataStorage();
@@ -100,7 +102,9 @@ public class BloodKnowledgeStore extends SavedData {
 
     public void recordReagent(UUID playerUUID, UUID subjectUUID,
                               String subjectName, String subjectType, boolean isSubjectPlayer,
-                              ReagentType reagentType, boolean reacted) {
+                              BloodType bloodType, ReagentType reagentType, boolean reacted) {
+        validateSubjectBloodType(subjectUUID, bloodType);
+        observedBloodTypes.put(subjectUUID, bloodType.name());
         BloodKnowledge k = getOrCreate(
                 playerUUID, subjectUUID, subjectName, subjectType, isSubjectPlayer);
 
@@ -112,6 +116,61 @@ public class BloodKnowledgeStore extends SavedData {
 
         enforceLimit(playerUUID);
         setDirty();
+    }
+
+    public int validateSubjectBloodType(UUID subjectUUID, BloodType currentType) {
+        String previous = observedBloodTypes.get(subjectUUID);
+        if (previous == null) {
+            boolean staleLegacyKnowledge = data.values().stream()
+                    .map(knowledge -> knowledge.get(subjectUUID))
+                    .filter(Objects::nonNull)
+                    .anyMatch(knowledge -> !matchesRecordedReactions(
+                            knowledge, currentType));
+            if (staleLegacyKnowledge) return invalidateSubject(subjectUUID, currentType);
+            observedBloodTypes.put(subjectUUID, currentType.name());
+            setDirty();
+            return 0;
+        }
+        if (previous.equals(currentType.name())) return 0;
+        return invalidateSubject(subjectUUID, currentType);
+    }
+
+    private static boolean matchesRecordedReactions(BloodKnowledge knowledge,
+                                                     BloodType currentType) {
+        if (knowledge.getAntiA() != null && knowledge.getAntiA()
+                != reactsToAntiA(currentType)) return false;
+        if (knowledge.getAntiB() != null && knowledge.getAntiB()
+                != reactsToAntiB(currentType)) return false;
+        return knowledge.getAntiD() == null || knowledge.getAntiD()
+                == reactsToAntiD(currentType);
+    }
+
+    private static boolean reactsToAntiA(BloodType type) {
+        return type == BloodType.A_POSITIVE || type == BloodType.A_NEGATIVE
+                || type == BloodType.AB_POSITIVE || type == BloodType.AB_NEGATIVE;
+    }
+
+    private static boolean reactsToAntiB(BloodType type) {
+        return type == BloodType.B_POSITIVE || type == BloodType.B_NEGATIVE
+                || type == BloodType.AB_POSITIVE || type == BloodType.AB_NEGATIVE;
+    }
+
+    private static boolean reactsToAntiD(BloodType type) {
+        return type.isRhPositive();
+    }
+
+    public int invalidateSubject(UUID subjectUUID, BloodType currentType) {
+        int removed = 0;
+        Iterator<Map.Entry<UUID, LinkedHashMap<UUID, BloodKnowledge>>> players =
+                data.entrySet().iterator();
+        while (players.hasNext()) {
+            LinkedHashMap<UUID, BloodKnowledge> knowledge = players.next().getValue();
+            if (knowledge.remove(subjectUUID) != null) removed++;
+            if (knowledge.isEmpty()) players.remove();
+        }
+        observedBloodTypes.put(subjectUUID, currentType.name());
+        setDirty();
+        return removed;
     }
 
     private void enforceLimit(UUID playerUUID) {
@@ -139,6 +198,14 @@ public class BloodKnowledgeStore extends SavedData {
             playersList.add(playerTag);
         });
         out.put("Players", playersList);
+        ListTag observedList = new ListTag();
+        observedBloodTypes.forEach((subjectUUID, bloodType) -> {
+            CompoundTag observedTag = new CompoundTag();
+            observedTag.putUUID("SubjectUUID", subjectUUID);
+            observedTag.putString("BloodType", bloodType);
+            observedList.add(observedTag);
+        });
+        out.put("ObservedBloodTypes", observedList);
         return out;
     }
 
@@ -155,6 +222,14 @@ public class BloodKnowledgeStore extends SavedData {
                 knowledgeMap.put(k.getSubjectUUID(), k);
             }
             store.data.put(playerUUID, knowledgeMap);
+        }
+        ListTag observedList = tag.getList("ObservedBloodTypes", Tag.TAG_COMPOUND);
+        for (int index = 0; index < observedList.size(); index++) {
+            CompoundTag observedTag = observedList.getCompound(index);
+            if (observedTag.hasUUID("SubjectUUID")) {
+                store.observedBloodTypes.put(observedTag.getUUID("SubjectUUID"),
+                        observedTag.getString("BloodType"));
+            }
         }
         return store;
     }

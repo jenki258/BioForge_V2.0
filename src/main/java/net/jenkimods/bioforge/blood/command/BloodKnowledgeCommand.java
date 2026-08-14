@@ -121,13 +121,13 @@ public class BloodKnowledgeCommand {
 
             store.recordReagent(player.getUUID(), entity.getUUID(),
                     entity.getName().getString(), subjectType, isSubjectPlayer,
-                    ReagentType.ANTI_A, reactsToAntiA(type));
+                    type, ReagentType.ANTI_A, reactsToAntiA(type));
             store.recordReagent(player.getUUID(), entity.getUUID(),
                     entity.getName().getString(), subjectType, isSubjectPlayer,
-                    ReagentType.ANTI_B, reactsToAntiB(type));
+                    type, ReagentType.ANTI_B, reactsToAntiB(type));
             store.recordReagent(player.getUUID(), entity.getUUID(),
                     entity.getName().getString(), subjectType, isSubjectPlayer,
-                    ReagentType.ANTI_D, reactsToAntiD(type));
+                    type, ReagentType.ANTI_D, reactsToAntiD(type));
             updated++;
         }
 

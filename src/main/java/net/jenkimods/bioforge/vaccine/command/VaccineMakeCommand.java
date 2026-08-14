@@ -99,7 +99,7 @@ public final class VaccineMakeCommand {
         }
 
         InfectionData infection = InfectionCapability.get(living);
-        if (infection == null || !infection.isInfected() || infection.getPathogenType() == null) {
+        if (infection == null || !infection.isInfected() || infection.getPathogenId() == null) {
             commandSource.sendFailure(Component.translatable(
                     "command.bioforge.vaccinemake.not_infected", living.getDisplayName()));
             return 0;
@@ -124,7 +124,8 @@ public final class VaccineMakeCommand {
         commandSource.sendSuccess(() -> Component.translatable(
                 "command.bioforge.vaccinemake.success",
                 living.getDisplayName(),
-                infection.getPathogenType().name(),
+                net.jenkimods.bioforge.api.definition.BioForgeIds
+                        .legacyCompatible(infection.getPathogenId()),
                 qualityDisplay,
                 uses), true);
         return 1;

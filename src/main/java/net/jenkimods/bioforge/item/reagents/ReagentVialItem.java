@@ -113,6 +113,7 @@ public class ReagentVialItem extends Item {
                         sourceName,
                         subjectType,
                         isSubjectPlayer,
+                        bloodType,
                         toReagentType(this.type),
                         reacted
                 );

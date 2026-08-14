@@ -29,11 +29,14 @@ import java.util.Optional;
 public class VaccineMakerMenu extends AbstractContainerMenu {
     public static final int PAGE_BUTTON_BASE = 128;
     public static final int MAX_PAGE_COUNT = 64;
+    public static final int CORRECTION_PAGE_BUTTON_BASE = 300;
+    public static final int MAX_CORRECTION_PAGE_COUNT = 64;
     public static final int EXTENSION_BUTTON_BASE = 1000;
 
     private final VaccineMakerBlockEntity blockEntity;
     private final ContainerData data;
     private final DataSlot activePage = DataSlot.standalone();
+    private final DataSlot correctionPage = DataSlot.standalone();
     private final List<VaccineMakerPageDefinition> pages;
     private final List<PageSlot> machineSlotViews = new ArrayList<>();
     private int machineViewCount;
@@ -53,8 +56,14 @@ public class VaccineMakerMenu extends AbstractContainerMenu {
             throw new IllegalStateException(
                     "Vaccine Maker requires 1.." + MAX_PAGE_COUNT + " registered pages");
         }
+        activePage.set(Math.max(0, Math.min(
+                pages.size() - 1, blockEntity.getSelectedPageIndex())));
+        correctionPage.set(Math.max(0, Math.min(
+                MAX_CORRECTION_PAGE_COUNT - 1,
+                blockEntity.getSelectedCorrectionPage())));
         addDataSlots(data);
         addDataSlot(activePage);
+        addDataSlot(correctionPage);
 
         blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(handler -> {
             for (int pageIndex = 0; pageIndex < pages.size(); pageIndex++) {
@@ -101,6 +110,14 @@ public class VaccineMakerMenu extends AbstractContainerMenu {
             int requestedPage = id - PAGE_BUTTON_BASE;
             if (requestedPage < 0 || requestedPage >= pages.size()) return false;
             activePage.set(requestedPage);
+            blockEntity.setSelectedPageIndex(requestedPage);
+            return true;
+        }
+        if (id >= CORRECTION_PAGE_BUTTON_BASE
+                && id < CORRECTION_PAGE_BUTTON_BASE + MAX_CORRECTION_PAGE_COUNT) {
+            int requestedPage = id - CORRECTION_PAGE_BUTTON_BASE;
+            correctionPage.set(requestedPage);
+            blockEntity.setSelectedCorrectionPage(requestedPage);
             return true;
         }
         if (id >= EXTENSION_BUTTON_BASE) {
@@ -111,6 +128,16 @@ public class VaccineMakerMenu extends AbstractContainerMenu {
 
     public void selectPageLocally(int pageIndex) {
         if (pageIndex >= 0 && pageIndex < pages.size()) activePage.set(pageIndex);
+    }
+
+    public void selectCorrectionPageLocally(int pageIndex) {
+        correctionPage.set(Math.max(0, Math.min(
+                MAX_CORRECTION_PAGE_COUNT - 1, pageIndex)));
+    }
+
+    public int getCorrectionPage() {
+        return Math.max(0, Math.min(
+                MAX_CORRECTION_PAGE_COUNT - 1, correctionPage.get()));
     }
 
     public int getActivePageIndex() {

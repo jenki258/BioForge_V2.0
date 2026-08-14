@@ -1,7 +1,8 @@
 {
   "variants": {
-    "": {
-      "model": "bioforge:block/test_block"
-    }
+    "facing=north": { "model": "bioforge:block/centrifuge" },
+    "facing=east":  { "model": "bioforge:block/centrifuge", "y": 90 },
+    "facing=south": { "model": "bioforge:block/centrifuge", "y": 180 },
+    "facing=west":  { "model": "bioforge:block/centrifuge", "y": 270 }
   }
 }

@@ -1,0 +1,33 @@
+{
+  "order": 400,
+  "unlock_items": ["bioforge:microscope", "bioforge:blood_slide", "bioforge:gene_imprint", "bioforge:visibility_reagent"],
+  "title": { "text": "4. MICROSCOPY", "color": "dark_aqua", "bold": true },
+  "content": [
+    {
+      "component": {
+        "text": "Samples have persistent calibration targets. Adjust every control, scan, and compare the evidence.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "The Microscope identifies Gene Imprints and measures vaccine assays without revealing the complete strain automatically.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "Each inserted sample stores its own calibration target. Extreme microscope visibility is detected reliably, medium visibility only sometimes, and very low visibility may require several carefully calibrated scans.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": { "text": "[Return to contents]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:contents",
+      "line_breaks": 0
+    }
+  ]
+}

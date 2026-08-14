@@ -7,14 +7,19 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class InfectionNetworkHandler {
 
-    private static final String PROTOCOL = "3";
+    private static final String PROTOCOL = "5";
     private static SimpleChannel CHANNEL;
     private static int id = 0;
+    private static final Map<UUID, Long> DEFINITION_GENERATIONS = new HashMap<>();
 
     public static void register() {
         CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -30,9 +35,27 @@ public class InfectionNetworkHandler {
                 InfectionSyncPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
+        CHANNEL.registerMessage(id++,
+                DefinitionSyncPacket.class,
+                DefinitionSyncPacket::encode,
+                DefinitionSyncPacket::decode,
+                DefinitionSyncPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
     }
 
     public static <MSG> void sendToPlayer(MSG message, ServerPlayer player) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), message);
+    }
+
+    public static synchronized void sendDefinitionsIfChanged(ServerPlayer player) {
+        long generation = BioForgeDefinitionManager.generation();
+        if (DEFINITION_GENERATIONS.getOrDefault(player.getUUID(), -1L) == generation) return;
+        sendToPlayer(DefinitionSyncPacket.current(), player);
+        DEFINITION_GENERATIONS.put(player.getUUID(), generation);
+    }
+
+    public static synchronized void clearDefinitionSyncState() {
+        DEFINITION_GENERATIONS.clear();
     }
 }

@@ -2,6 +2,8 @@ package net.jenkimods.bioforge.world.vaccine;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.jenkimods.bioforge.api.behavior.BioForgeBehaviorRegistry;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.jenkimods.bioforge.crispr.VaccineTargetCategory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -10,13 +12,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 public record VaccineMakerRecipe(
         ResourceLocation id,
-        VaccineMakerOperation operation,
+        ResourceLocation operationId,
         Ingredient sample,
         Ingredient carrier,
         Ingredient reagent,
@@ -35,6 +38,8 @@ public record VaccineMakerRecipe(
         float reagentWeight,
         int uses,
         float defenseRisk,
+        float resistance,
+        int durationTicks,
         Item fullResult,
         Map<VaccineTargetCategory, Item> directedResults,
         Map<VaccineTargetCategory, ResourceLocation> directedActions,
@@ -43,13 +48,18 @@ public record VaccineMakerRecipe(
         float findingBonus,
         float completeBloodBonus,
         float identifiedImprintBonus,
+        float assayFeedbackBonus,
         boolean consumeReagent,
         boolean consumeReport,
         float errorMutationChance,
         float errorMutationThreshold,
         boolean consumeReagentOnMutation
-) {
+    ) {
     public VaccineMakerRecipe {
+        VaccineMakerOperation operation = VaccineMakerOperation.fromId(operationId);
+        if (operation == null && BioForgeBehaviorRegistry.vaccineOperation(operationId).isEmpty()) {
+            throw new IllegalArgumentException("Unknown Vaccine Maker operation: " + operationId);
+        }
         processingTime = Math.max(1, processingTime);
         minimumQuality = Mth.clamp(minimumQuality, 0.0f, 1.0f);
         if (guideWeights.length != 3) {
@@ -72,9 +82,13 @@ public record VaccineMakerRecipe(
         directedActions = Map.copyOf(directedActions);
         uses = Mth.clamp(uses, 1, 64);
         defenseRisk = Mth.clamp(defenseRisk, 0.0f, 1.0f);
+        resistance = Mth.clamp(Float.isFinite(resistance)
+                ? resistance : 0.0F, 0.0F, 1.0F);
+        durationTicks = Mth.clamp(durationTicks, 1, 20 * 60 * 60 * 24);
         if (!Float.isFinite(baseQualityCap) || !Float.isFinite(findingBonus)
                 || !Float.isFinite(completeBloodBonus)
                 || !Float.isFinite(identifiedImprintBonus)
+                || !Float.isFinite(assayFeedbackBonus)
                 || !Float.isFinite(errorMutationChance)
                 || !Float.isFinite(errorMutationThreshold)) {
             throw new IllegalArgumentException(
@@ -84,12 +98,20 @@ public record VaccineMakerRecipe(
         findingBonus = Mth.clamp(findingBonus, 0.0f, 1.0f);
         completeBloodBonus = Mth.clamp(completeBloodBonus, 0.0f, 1.0f);
         identifiedImprintBonus = Mth.clamp(identifiedImprintBonus, 0.0f, 1.0f);
+        assayFeedbackBonus = Mth.clamp(assayFeedbackBonus, 0.0f, 1.0f);
         errorMutationChance = Mth.clamp(errorMutationChance, 0.0f, 1.0f);
         errorMutationThreshold = Mth.clamp(errorMutationThreshold, 0.0f, 1.0f);
         if ((operation == VaccineMakerOperation.FULL
-                || operation == VaccineMakerOperation.RANDOM_MUTATION)
+                || operation == VaccineMakerOperation.RANDOM_MUTATION
+                || operation == VaccineMakerOperation.RESISTANCE_PILL
+                || operation == VaccineMakerOperation.SYMPTOM_TABLET)
                 && fullResult == null) {
             throw new IllegalArgumentException("Vaccine recipe requires result.item");
+        }
+        if (operation == VaccineMakerOperation.RESISTANCE_PILL
+                && resistance <= 0.0F) {
+            throw new IllegalArgumentException(
+                    "Resistance pill recipe requires result.resistance above zero");
         }
         if (operation == VaccineMakerOperation.DIRECTED
                 && (directedResults.isEmpty() || directedActions.isEmpty())) {
@@ -99,8 +121,11 @@ public record VaccineMakerRecipe(
     }
 
     public static VaccineMakerRecipe fromJson(ResourceLocation id, JsonObject json) {
-        VaccineMakerOperation operation = VaccineMakerOperation.fromName(
-                GsonHelper.getAsString(json, "operation"));
+        ResourceLocation operationId = BioForgeIds.parse(GsonHelper.getAsString(json, "operation"));
+        VaccineMakerOperation operation = VaccineMakerOperation.fromId(operationId);
+        if (operation == null && BioForgeBehaviorRegistry.vaccineOperation(operationId).isEmpty()) {
+            throw new IllegalArgumentException("Unknown Vaccine Maker operation: " + operationId);
+        }
         JsonObject inputs = GsonHelper.getAsJsonObject(json, "inputs");
         Ingredient sample = ingredient(inputs, "sample");
         Ingredient carrier = ingredient(inputs, "carrier");
@@ -160,12 +185,16 @@ public record VaccineMakerRecipe(
                 ? GsonHelper.getAsJsonObject(json, "failure") : new JsonObject();
 
         return new VaccineMakerRecipe(
-                id, operation, sample, carrier, reagent, report, cartridge, cas, profile,
+                id, operationId, sample, carrier, reagent, report, cartridge, cas, profile,
                 GsonHelper.getAsInt(json, "processing_time", 200),
                 GsonHelper.getAsBoolean(json, "requires_program",
-                        operation != VaccineMakerOperation.CLONE),
+                        operation != VaccineMakerOperation.CLONE
+                                && operation != VaccineMakerOperation.RESISTANCE_PILL
+                                && operation != VaccineMakerOperation.SYMPTOM_TABLET),
                 GsonHelper.getAsBoolean(json, "consume_sample",
-                        operation != VaccineMakerOperation.CLONE),
+                        operation != VaccineMakerOperation.CLONE
+                                && operation != VaccineMakerOperation.RESISTANCE_PILL
+                                && operation != VaccineMakerOperation.SYMPTOM_TABLET),
                 GsonHelper.getAsFloat(json, "minimum_quality", 0.0f),
                 guideWeights,
                 GsonHelper.getAsFloat(quality, "cas_module", 0.10f),
@@ -174,11 +203,14 @@ public record VaccineMakerRecipe(
                 GsonHelper.getAsFloat(quality, "reagent", 0.05f),
                 GsonHelper.getAsInt(result, "uses", 1),
                 GsonHelper.getAsFloat(result, "defense_risk", 0.18f),
+                GsonHelper.getAsFloat(result, "resistance", 0.0F),
+                GsonHelper.getAsInt(result, "duration_ticks", 1),
                 fullResult, directedResults, directedActions, fixedCategory,
                 GsonHelper.getAsFloat(research, "base_quality_cap", 1.0f),
                 GsonHelper.getAsFloat(research, "finding_bonus", 0.0f),
                 GsonHelper.getAsFloat(research, "complete_blood_bonus", 0.0f),
                 GsonHelper.getAsFloat(research, "identified_imprint_bonus", 0.0f),
+                GsonHelper.getAsFloat(research, "assay_feedback_bonus", 0.0f),
                 GsonHelper.getAsBoolean(json, "consume_reagent", true),
                 GsonHelper.getAsBoolean(json, "consume_report", false),
                 GsonHelper.getAsFloat(failure, "mutation_chance", 0.0f),
@@ -247,5 +279,10 @@ public record VaccineMakerRecipe(
     public float totalWeight() {
         return guideWeights[0] + guideWeights[1] + guideWeights[2]
                 + casWeight + sampleWeight + carrierWeight + reagentWeight;
+    }
+
+    @Nullable
+    public VaccineMakerOperation operation() {
+        return VaccineMakerOperation.fromId(operationId);
     }
 }

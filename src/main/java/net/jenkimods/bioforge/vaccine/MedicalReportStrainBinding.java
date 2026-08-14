@@ -20,7 +20,7 @@ public final class MedicalReportStrainBinding {
         if (document == null || document.isEmpty() || subject == null) return;
         InfectionData infection = InfectionCapability.get(subject);
         if (infection == null || !infection.isInfected()
-                || infection.getPathogenType() == null) {
+                || infection.getPathogenId() == null) {
             NbtObfuscator.clear(document.getOrCreateTag(), CHANNEL);
             return;
         }

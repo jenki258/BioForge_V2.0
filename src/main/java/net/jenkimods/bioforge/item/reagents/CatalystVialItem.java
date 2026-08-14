@@ -1,9 +1,15 @@
 package net.jenkimods.bioforge.item.reagents;
 
 import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
+import net.jenkimods.bioforge.definition.BioForgeClientDefinitionCache;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.world.incubator.CatalystMappingManager;
+import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -20,6 +26,9 @@ import java.util.Map;
 public class CatalystVialItem extends Item {
 
     private static final int MAX_CHARGES = 1;
+    private static final String CHANNEL = "catalyst_vial";
+    private static final String PATHOGEN_KEY = "Pathogen";
+    private static final String CHARGES_KEY = "Charges";
 
     public CatalystVialItem() {
         super(new Properties().stacksTo(1));
@@ -39,7 +48,7 @@ public class CatalystVialItem extends Item {
         ItemStack reagent = player.getItemInHand(other);
         if (reagent.isEmpty()) return InteractionResultHolder.fail(stack);
 
-        PathogenType pathogen = CatalystMappingManager.INSTANCE.getPathogen(reagent.getItem());
+        ResourceLocation pathogen = CatalystMappingManager.INSTANCE.getPathogenId(reagent.getItem());
         String pathogenName;
 
         if (reagent.getItem() == net.minecraft.world.item.Items.NETHER_STAR) {
@@ -47,7 +56,7 @@ public class CatalystVialItem extends Item {
             if (!player.isCreative()) reagent.shrink(1);
             player.sendSystemMessage(Component.translatable("item.bioforge.catalyst_vial.set_random"));
         } else if (pathogen != null) {
-            pathogenName = pathogen.name();
+            pathogenName = BioForgeIds.legacyCompatible(pathogen);
             if (!player.isCreative()) reagent.shrink(1);
             player.sendSystemMessage(Component.translatable("item.bioforge.catalyst_vial.set", pathogenName));
         } else {
@@ -55,48 +64,74 @@ public class CatalystVialItem extends Item {
             return InteractionResultHolder.fail(stack);
         }
 
-        stack.getOrCreateTag().putString("Pathogen", pathogenName);
-        stack.getOrCreateTag().putInt("Charges", MAX_CHARGES);
+        set(stack, pathogenName, MAX_CHARGES);
         return InteractionResultHolder.success(stack);
     }
 
     public static boolean isSet(ItemStack stack) {
-        return stack.hasTag() && stack.getTag().contains("Pathogen");
+        CompoundTag data = data(stack);
+        return data != null && data.contains(PATHOGEN_KEY);
     }
 
     @Nullable
     public static PathogenType getPathogen(ItemStack stack) {
-        if (stack.hasTag() && stack.getTag().contains("Pathogen")) {
-            String name = stack.getTag().getString("Pathogen");
-            if ("RANDOM".equals(name)) return null;
-            return PathogenType.fromName(name);
+        ResourceLocation id = getPathogenId(stack);
+        if (id == null) return null;
+        PathogenType legacy = BioForgeIds.legacyPathogen(id);
+        return legacy == null ? PathogenType.UNIVERSAL : legacy;
+    }
+
+    @Nullable
+    public static ResourceLocation getPathogenId(ItemStack stack) {
+        CompoundTag data = data(stack);
+        if (data == null || !data.contains(PATHOGEN_KEY)) return null;
+        String name = data.getString(PATHOGEN_KEY);
+        if ("RANDOM".equals(name)) return null;
+        try {
+            return BioForgeIds.parse(name);
+        } catch (IllegalArgumentException exception) {
+            return null;
         }
-        return null;
     }
 
     @Nullable
     public static PathogenType getPathogenOrRandom(ItemStack stack) {
-        if (stack.hasTag() && stack.getTag().contains("Pathogen")) {
-            String name = stack.getTag().getString("Pathogen");
+        ResourceLocation id = getPathogenIdOrRandom(stack);
+        if (id == null) return null;
+        PathogenType legacy = BioForgeIds.legacyPathogen(id);
+        return legacy == null ? PathogenType.UNIVERSAL : legacy;
+    }
+
+    @Nullable
+    public static ResourceLocation getPathogenIdOrRandom(ItemStack stack) {
+        CompoundTag data = data(stack);
+        if (data != null && data.contains(PATHOGEN_KEY)) {
+            String name = data.getString(PATHOGEN_KEY);
             if ("RANDOM".equals(name)) {
-                return CatalystMappingManager.INSTANCE.getRandomPathogen();
+                return CatalystMappingManager.INSTANCE.getRandomPathogenId();
             }
-            return PathogenType.fromName(name);
+            try {
+                return BioForgeIds.parse(name);
+            } catch (IllegalArgumentException exception) {
+                return null;
+            }
         }
         return null;
     }
 
     public static int getCharges(ItemStack stack) {
-        return stack.hasTag() ? stack.getTag().getInt("Charges") : 0;
+        CompoundTag data = data(stack);
+        return data == null ? 0 : data.getInt(CHARGES_KEY);
     }
 
     public static void consumeCharge(ItemStack stack) {
-        if (stack.hasTag()) {
-            int charges = stack.getTag().getInt("Charges") - 1;
+        CompoundTag data = data(stack);
+        if (data != null) {
+            int charges = data.getInt(CHARGES_KEY) - 1;
             if (charges <= 0) {
                 stack.shrink(1);
             } else {
-                stack.getTag().putInt("Charges", charges);
+                set(stack, data.getString(PATHOGEN_KEY), charges);
             }
         }
     }
@@ -110,24 +145,69 @@ public class CatalystVialItem extends Item {
             tooltip.add(Component.literal(" "));
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.mappings_header").withStyle(ChatFormatting.GOLD));
 
-            Map<Item, PathogenType> mappings = CatalystMappingManager.INSTANCE.getAllMappings();
-            for (Map.Entry<Item, PathogenType> entry : mappings.entrySet()) {
+            Map<Item, ResourceLocation> mappings = CatalystMappingManager.INSTANCE.getAllMappingIds();
+            for (Map.Entry<Item, ResourceLocation> entry : mappings.entrySet()) {
                 String itemName = Component.translatable(entry.getKey().getDescriptionId()).getString();
-                String pathogenName = Component.translatable("pathogen.bioforge." + entry.getValue().name().toLowerCase()).getString();
+                String pathogenName = pathogenName(entry.getValue()).getString();
                 tooltip.add(Component.literal("  " + itemName + " → " + pathogenName).withStyle(ChatFormatting.DARK_GRAY));
             }
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.nether_star_hint").withStyle(ChatFormatting.LIGHT_PURPLE));
             return;
         }
 
-        String pathogenName = stack.getTag().getString("Pathogen");
+        CompoundTag data = data(stack);
+        String pathogenName = data == null ? "" : data.getString(PATHOGEN_KEY);
         int charges = getCharges(stack);
         if ("RANDOM".equals(pathogenName)) {
             tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen_random").withStyle(ChatFormatting.LIGHT_PURPLE));
         } else {
-            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen", pathogenName).withStyle(ChatFormatting.DARK_PURPLE));
+            ResourceLocation pathogenId = getPathogenId(stack);
+            tooltip.add(Component.translatable("item.bioforge.catalyst_vial.pathogen",
+                    pathogenId == null ? Component.literal(pathogenName)
+                            : pathogenName(pathogenId)).withStyle(ChatFormatting.DARK_PURPLE));
         }
         tooltip.add(Component.literal(" "));
         tooltip.add(Component.translatable("item.bioforge.catalyst_vial.place_in_incubator").withStyle(ChatFormatting.DARK_GRAY));
+    }
+
+    private static Component pathogenName(ResourceLocation id) {
+        BioForgeClientDefinitionCache.PathogenView client =
+                BioForgeClientDefinitionCache.snapshot().pathogens().get(id);
+        String key = client != null ? client.translationKey()
+                : BioForgeDefinitionManager.pathogen(id)
+                .map(definition -> definition.translationKey())
+                .orElse("pathogen." + id.getNamespace() + "." + id.getPath());
+        return Component.translatable(key);
+    }
+
+    public static void setPathogen(ItemStack stack, ResourceLocation pathogen) {
+        if (pathogen != null) set(stack, pathogen.toString(), MAX_CHARGES);
+    }
+
+    public static void setRandom(ItemStack stack) {
+        set(stack, "RANDOM", MAX_CHARGES);
+    }
+
+    @Nullable
+    private static CompoundTag data(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !stack.hasTag()) return null;
+        CompoundTag root = stack.getTag();
+        CompoundTag hidden = NbtObfuscator.readCompound(root, CHANNEL);
+        if (hidden != null) return hidden;
+        if (!root.contains(PATHOGEN_KEY)) return null;
+        CompoundTag legacy = new CompoundTag();
+        legacy.putString(PATHOGEN_KEY, root.getString(PATHOGEN_KEY));
+        legacy.putInt(CHARGES_KEY, root.getInt(CHARGES_KEY));
+        return legacy;
+    }
+
+    private static void set(ItemStack stack, String pathogen, int charges) {
+        CompoundTag data = new CompoundTag();
+        data.putString(PATHOGEN_KEY, pathogen);
+        data.putInt(CHARGES_KEY, Math.max(0, charges));
+        CompoundTag root = stack.getOrCreateTag();
+        root.remove(PATHOGEN_KEY);
+        root.remove(CHARGES_KEY);
+        NbtObfuscator.writeCompoundDeterministic(root, CHANNEL, data);
     }
 }

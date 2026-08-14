@@ -1,5 +1,9 @@
 package net.jenkimods.bioforge.infection.symptoms;
 
+import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
+import net.jenkimods.bioforge.api.definition.PathogenDefinition;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.*;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.Nullable;
@@ -155,11 +159,21 @@ public final class BioForgeSymptoms {
                 } catch (Exception ignored) {}
             }
         }
+        BioForgeDefinitionManager.dynamicSymptomKeys().forEach(map::putIfAbsent);
         return map;
+    }
+
+    public static Map<String, SymptomKey<?>> getEnabledSymptomKeys() {
+        Map<String, SymptomKey<?>> enabled = new LinkedHashMap<>();
+        getAllSymptomKeys().forEach((id, key) -> {
+            if (BioForgeServerConfig.isSymptomEnabled(id)) enabled.put(id, key);
+        });
+        return enabled;
     }
 
     @Nullable
     private static Object resolveKey(String keyId, CompoundTag tag) {
+        if (!BioForgeServerConfig.isSymptomEnabled(keyId)) return null;
         SymptomKey<?> key = getAllSymptomKeys().get(keyId);
         if (key == null) return null;
         Class<?> type = key.getType();
@@ -175,6 +189,8 @@ public final class BioForgeSymptoms {
                 return tag.getFloat(keyId);
             } else if (type == Integer.class) {
                 return tag.getInt(keyId);
+            } else if (type == String.class) {
+                return tag.getString(keyId);
             }
         } catch (Exception ignored) {}
         return key.getDefaultValue();
@@ -191,6 +207,7 @@ public final class BioForgeSymptoms {
     }
 
     public static void applyDefaultSymptoms(InfectionData data) {
+        if (applyDefinitionDefaults(data)) return;
         PathogenType pathogen = data.getPathogenType();
         if (pathogen == null) pathogen = PathogenType.UNIVERSAL;
         Random rand = new Random();
@@ -198,15 +215,16 @@ public final class BioForgeSymptoms {
         Map<SymptomKey<?>, float[]> ranges = DEFAULT_RANGES.getOrDefault(pathogen, DEFAULT_RANGES.get(PathogenType.UNIVERSAL));
         for (Map.Entry<SymptomKey<?>, float[]> entry : ranges.entrySet()) {
             SymptomKey<?> key = entry.getKey();
+            if (!BioForgeServerConfig.isSymptomEnabled(key.getId())) continue;
             float[] minMax = entry.getValue();
             float value = minMax[0] + rand.nextFloat() * (minMax[1] - minMax[0]);
             setSymptom(data, key, Math.min(1.0f, value));
         }
 
-        data.setSymptom(HEART_RATE, HeartRate.TACHY);
-        data.setSymptom(LUNG_SOUND, LungSound.CRACKLE);
-        data.setSymptom(TEMPERATURE_PLUS, true);
-        data.setSymptom(TEMPERATURE_MINUS, false);
+        setIfEnabled(data, HEART_RATE, HeartRate.TACHY);
+        setIfEnabled(data, LUNG_SOUND, LungSound.CRACKLE);
+        setIfEnabled(data, TEMPERATURE_PLUS, true);
+        setIfEnabled(data, TEMPERATURE_MINUS, false);
 
         float radius = switch (pathogen) {
             case FUNGI -> 25.0f;
@@ -220,8 +238,8 @@ public final class BioForgeSymptoms {
             default -> 100.0f;
         };
 
-        data.setSymptom(COLONY_RADIUS, radius);
-        data.setSymptom(MAX_INFESTED_BLOCKS, maxBlocks);
+        setIfEnabled(data, COLONY_RADIUS, radius);
+        setIfEnabled(data, MAX_INFESTED_BLOCKS, maxBlocks);
 
         MicroscopeVisibility visibility = switch (pathogen) {
             case VIRUS -> MicroscopeVisibility.LOW;
@@ -231,13 +249,68 @@ public final class BioForgeSymptoms {
             case PRION -> MicroscopeVisibility.EXTREME;
             default -> MicroscopeVisibility.NONE;
         };
-        data.setSymptom(MICROSCOPE_VISIBILITY, visibility);
+        setIfEnabled(data, MICROSCOPE_VISIBILITY, visibility);
 
         if (pathogen != null) {
             for (InfectionType t : pathogen.getAllowedTransmissions()) {
-                data.addInfectionType(t);
+                if (BioForgeServerConfig.isTransmissionEnabled(t)) data.addInfectionType(t);
             }
         }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static boolean applyDefinitionDefaults(InfectionData data) {
+        if (data.getPathogenId() == null) return false;
+        PathogenDefinition pathogen = BioForgeDefinitionManager.pathogen(data.getPathogenId()).orElse(null);
+        if (pathogen == null || pathogen.defaultSymptoms().isEmpty()) return false;
+        Random random = new Random();
+        Map<String, SymptomKey<?>> keys = getAllSymptomKeys();
+        for (Map.Entry<net.minecraft.resources.ResourceLocation, PathogenDefinition.DefaultSymptomValue> entry
+                : pathogen.defaultSymptoms().entrySet()) {
+            String storageId = BioForgeDefinitionManager.storageId(entry.getKey());
+            if (!BioForgeServerConfig.isSymptomEnabled(storageId)) continue;
+            SymptomKey key = keys.get(storageId);
+            if (key == null) continue;
+            Object value = definitionValue(key, entry.getValue(), random);
+            if (value != null) data.getSymptoms().set(key, value);
+        }
+        for (net.minecraft.resources.ResourceLocation transmission : pathogen.allowedTransmissions()) {
+            data.addTransmissionId(transmission);
+        }
+        return true;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Nullable
+    private static Object definitionValue(SymptomKey key,
+                                          PathogenDefinition.DefaultSymptomValue configured,
+                                          Random random) {
+        Class<?> type = key.getType();
+        try {
+            if (type == Float.class) {
+                float min = configured.minimum().getAsFloat();
+                float max = configured.maximum().getAsFloat();
+                return min + random.nextFloat() * (max - min);
+            }
+            if (type == Integer.class) {
+                int min = configured.minimum().getAsInt();
+                int max = configured.maximum().getAsInt();
+                return min >= max ? min : min + random.nextInt(max - min + 1);
+            }
+            if (type == Boolean.class) return configured.minimum().getAsBoolean();
+            if (type == String.class) return configured.minimum().getAsString();
+            if (type.isEnum()) {
+                return Enum.valueOf((Class<Enum>) type,
+                        configured.minimum().getAsString().toUpperCase(Locale.ROOT));
+            }
+        } catch (RuntimeException exception) {
+            BioForge.LOGGER.warn("Invalid default symptom value for {}", key.getId());
+        }
+        return key.getDefaultValue();
+    }
+
+    private static <T> void setIfEnabled(InfectionData data, SymptomKey<T> key, T value) {
+        if (BioForgeServerConfig.isSymptomEnabled(key.getId())) data.setSymptom(key, value);
     }
 
     @SuppressWarnings("unchecked")
@@ -251,5 +324,31 @@ public final class BioForgeSymptoms {
 
     public static Map<SymptomKey<?>, float[]> getDefaultRanges(PathogenType pathogen) {
         return DEFAULT_RANGES.getOrDefault(pathogen, DEFAULT_RANGES.get(PathogenType.UNIVERSAL));
+    }
+
+    public static Map<SymptomKey<?>, float[]> getDefaultRanges(
+            net.minecraft.resources.ResourceLocation pathogenId) {
+        PathogenType legacy = net.jenkimods.bioforge.api.definition.BioForgeIds
+                .legacyPathogen(pathogenId);
+        Map<SymptomKey<?>, float[]> ranges = new LinkedHashMap<>(
+                getDefaultRanges(legacy == null ? PathogenType.UNIVERSAL : legacy));
+        PathogenDefinition definition = BioForgeDefinitionManager.pathogen(pathogenId).orElse(null);
+        if (definition == null) return Map.copyOf(ranges);
+        Map<String, SymptomKey<?>> keys = getAllSymptomKeys();
+        definition.defaultSymptoms().forEach((symptomId, configured) -> {
+            try {
+                if (!configured.minimum().isJsonPrimitive()
+                        || !configured.minimum().getAsJsonPrimitive().isNumber()
+                        || !configured.maximum().isJsonPrimitive()
+                        || !configured.maximum().getAsJsonPrimitive().isNumber()) return;
+                SymptomKey<?> key = keys.get(BioForgeDefinitionManager.storageId(symptomId));
+                if (key != null) {
+                    ranges.put(key, new float[]{configured.minimum().getAsFloat(),
+                            configured.maximum().getAsFloat()});
+                }
+            } catch (RuntimeException ignored) {
+            }
+        });
+        return Map.copyOf(ranges);
     }
 }

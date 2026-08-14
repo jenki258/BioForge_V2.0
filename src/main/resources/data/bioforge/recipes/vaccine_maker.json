@@ -1,25 +1,25 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "GCG",
-    "RDR",
-    "III"
+    "FBF",
+    "ENE",
+    "PFP"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glass"
+    "F": {
+      "tag": "bioforge:ingredients/bioforge/laboratory_frame"
     },
-    "C": {
-      "item": "bioforge:centrifuge"
+    "B": {
+      "tag": "bioforge:ingredients/bioforge/biomedical_processor"
     },
-    "R": {
-      "item": "minecraft:redstone"
+    "E": {
+      "tag": "bioforge:ingredients/bioforge/electronic_control_unit"
     },
-    "D": {
-      "item": "minecraft:diamond"
+    "N": {
+      "tag": "bioforge:ingredients/minecraft/nether_star"
     },
-    "I": {
-      "item": "minecraft:iron_block"
+    "P": {
+      "tag": "bioforge:ingredients/bioforge/black_steel_plate"
     }
   },
   "result": {

@@ -1,11 +1,13 @@
 package net.jenkimods.bioforge.config;
 
+import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.vaccine.VaccineRules;
 import net.minecraftforge.common.ForgeConfigSpec;
 
-
-
-
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public final class BioForgeServerConfig {
     public static final ForgeConfigSpec SPEC;
@@ -24,6 +26,52 @@ public final class BioForgeServerConfig {
     private static final ForgeConfigSpec.DoubleValue UNKNOWN_HOST_MULTIPLIER;
     private static final ForgeConfigSpec.ConfigValue<String> DEFENSE_MUTATION;
     private static final ForgeConfigSpec.IntValue STRAIN_IMMUNITY_DURATION;
+    private static final ForgeConfigSpec.BooleanValue SPREADING_ENABLED;
+    private static final ForgeConfigSpec.BooleanValue NATURAL_INFECTIONS_ENABLED;
+    private static final ForgeConfigSpec.BooleanValue SYMPTOMS_ENABLED;
+    private static final ForgeConfigSpec.BooleanValue MUTATIONS_ENABLED;
+    private static final EnumMap<InfectionType, ForgeConfigSpec.BooleanValue> TRANSMISSION_TYPES =
+            new EnumMap<>(InfectionType.class);
+    private static final Map<String, ForgeConfigSpec.BooleanValue> SYMPTOM_TYPES =
+            new LinkedHashMap<>();
+    private static final Map<String, ForgeConfigSpec.BooleanValue> BUILT_IN_MUTATIONS =
+            new LinkedHashMap<>();
+    private static final ForgeConfigSpec.IntValue AIR_ROOM_MAX_VOLUME;
+    private static final ForgeConfigSpec.IntValue AIR_ROOM_MAX_RADIUS;
+    private static final ForgeConfigSpec.IntValue AIR_ROOM_CACHE_TICKS;
+    private static final ForgeConfigSpec.IntValue AIRBORNE_WORK_BUDGET;
+    private static final ForgeConfigSpec.DoubleValue AIR_EXPOSURE_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue OUTDOOR_AIR_MULTIPLIER;
+    private static final ForgeConfigSpec.DoubleValue MEDICAL_MASK_INCOMING_AIR_MULTIPLIER;
+    private static final ForgeConfigSpec.DoubleValue HAZCURE_INCOMING_AIR_MULTIPLIER;
+    private static final ForgeConfigSpec.DoubleValue HAZCURE_INCOMING_CONTACT_MULTIPLIER;
+    private static final ForgeConfigSpec.IntValue AIRBORNE_RESERVOIR_LIFETIME_TICKS;
+    private static final ForgeConfigSpec.IntValue SURFACE_LIFETIME_TICKS;
+    private static final ForgeConfigSpec.IntValue SURFACE_CLEANUP_BUDGET;
+    private static final ForgeConfigSpec.DoubleValue SURFACE_EXPOSURE_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue SURFACE_DEPOSIT_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue ATTACK_EXPOSURE_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue FOOD_EXPOSURE_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue WATER_EXPOSURE_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue BLOOD_EXPOSURE_CHANCE;
+    private static final ForgeConfigSpec.IntValue DECONTAMINATION_RADIUS;
+
+    private static final String[] ORIGINAL_SYMPTOMS = {
+            "heart_rate", "lung_sound", "temperature_plus", "temperature_minus",
+            "otoscope_redness", "otoscope_lesions", "otoscope_secretion",
+            "otoscope_swelling", "reflex_delay", "reflex_strength", "neural_damage",
+            "oxygen_saturation", "perfusion_index", "infection_strength",
+            "colony_radius", "max_infested_blocks", "microscope_visibility"
+    };
+
+    private static final String[] BUILT_IN_MUTATION_IDS = {
+            "bloodborne", "hypervirulence", "necrotic_fever", "neural_decay",
+            "reinforced_vaccine_defense", "spore_cloud", "vaccine_defense",
+            "hypoxic_drift", "respiratory_shedding", "hemorrhagic_lesions",
+            "thermal_instability", "gastrointestinal_shedding", "zoonotic_adaptation",
+            "surface_persistence", "metabolic_overdrive", "analgesic_resistance",
+            "protective_coating"
+    };
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -33,28 +81,28 @@ public final class BioForgeServerConfig {
                 .push("vaccines");
 
         MINIMUM_SIMILARITY = probability(builder,
-                "minimumSimilarity", 0.45,
+                "minimumSimilarity", 0.55,
                 "Minimum strain similarity required for a full vaccine to have any cure chance.");
         SIMILARITY_CURVE_FLOOR = probability(builder,
                 "similarityCurveFloor", 0.40,
                 "Similarity value treated as the bottom of the quadratic cure curve.");
         BASE_POTENCY = nonNegative(builder,
-                "basePotency", 0.95,
+                "basePotency", 1.00,
                 "Base full-vaccine potency before quality, similarity, strength and blood modifiers.");
         MAXIMUM_CURE_CHANCE = probability(builder,
-                "maximumCureChance", 0.85,
+                "maximumCureChance", 0.88,
                 "Hard cap for full-vaccine cure chance after every modifier.");
         STRENGTH_RESISTANCE = nonNegative(builder,
-                "strengthResistance", 2.25,
+                "strengthResistance", 1.80,
                 "How strongly infection_strength reduces full and directed vaccine success.");
         DEFENSE_CURE_MULTIPLIER = probability(builder,
-                "defenseMutationCureMultiplier", 0.35,
+                "defenseMutationCureMultiplier", 0.40,
                 "Cure-chance multiplier while a vaccine-defense/immune-escape mutation is active.");
         DEFENSE_RISK_STRENGTH_SCALE = nonNegative(builder,
-                "defenseRiskStrengthScale", 0.75,
+                "defenseRiskStrengthScale", 0.65,
                 "How infection strength increases the chance of selecting vaccine defense.");
         DEFENSE_RISK_MISMATCH_SCALE = nonNegative(builder,
-                "defenseRiskMismatchScale", 0.50,
+                "defenseRiskMismatchScale", 0.40,
                 "How strain mismatch increases the chance of selecting vaccine defense.");
         STRAIN_IMMUNITY_DURATION = builder.comment(
                         "Duration in ticks of exact-strain immunity granted by a successful full vaccine.",
@@ -81,6 +129,102 @@ public final class BioForgeServerConfig {
                 .define("defenseMutation", VaccineRules.DEFAULT_DEFENSE_MUTATION_ID,
                         value -> value instanceof String string && !string.isBlank());
         builder.pop();
+
+        builder.comment(
+                "Feature switches for modpack authors.",
+                "A disabled built-in feature is ignored by generation, machines and runtime logic.")
+                .push("features");
+
+        builder.push("spreading");
+        SPREADING_ENABLED = builder.comment(
+                        "Master switch for every automatic BioForge infection-spreading mechanic.")
+                .define("enabled", true);
+        NATURAL_INFECTIONS_ENABLED = builder.comment(
+                        "Allow JSON/Java natural host rules to seed infections in newly spawned creatures.")
+                .define("naturalHostInfections", true);
+        builder.push("transmissionTypes");
+        for (InfectionType type : InfectionType.values()) {
+            TRANSMISSION_TYPES.put(type, builder.comment(
+                            "Whether the " + type.name() + " transmission route exists in generated strains and runtime spreading.")
+                    .define(type.name().toLowerCase(Locale.ROOT), true));
+        }
+        builder.pop();
+        builder.push("balance");
+        AIR_ROOM_MAX_VOLUME = builder.comment(
+                        "Maximum number of connected air blocks scanned for one sealed-room calculation.")
+                .defineInRange("airRoomMaxVolume", 2048, 64, 16384);
+        AIR_ROOM_MAX_RADIUS = builder.comment(
+                        "Maximum block radius of a sealed-room calculation around an infectious host.")
+                .defineInRange("airRoomMaxRadius", 12, 3, 32);
+        AIR_ROOM_CACHE_TICKS = builder.comment(
+                        "How long an unchanged room scan stays cached. Block changes invalidate the cache early.")
+                .defineInRange("airRoomCacheTicks", 200, 20, 1200);
+        AIRBORNE_WORK_BUDGET = builder.comment(
+                        "Maximum airborne reservoirs processed per world each second.")
+                .defineInRange("airborneWorkBudget", 128, 1, 4096);
+        AIR_EXPOSURE_CHANCE = probability(builder, "airExposureChancePerSecond", 0.12,
+                "Base infection chance per second at full indoor airborne concentration.");
+        OUTDOOR_AIR_MULTIPLIER = probability(builder, "outdoorAirMultiplier", 0.15,
+                "Multiplier applied to airborne concentration in open or oversized spaces.");
+        MEDICAL_MASK_INCOMING_AIR_MULTIPLIER = probability(builder,
+                "medicalMaskIncomingAirMultiplier", 0.20,
+                "Incoming airborne exposure multiplier while wearing ordinary reducing equipment such as a medical mask.");
+        HAZCURE_INCOMING_AIR_MULTIPLIER = probability(builder,
+                "hazcureIncomingAirMultiplier", 0.0,
+                "Incoming airborne exposure multiplier for a complete HazCure suit. Zero makes the suit fully immune.");
+        HAZCURE_INCOMING_CONTACT_MULTIPLIER = probability(builder,
+                "hazcureIncomingContactMultiplier", 0.0,
+                "Incoming contact and attack exposure multiplier for a complete HazCure suit. Zero makes the suit fully immune.");
+        AIRBORNE_RESERVOIR_LIFETIME_TICKS = builder.comment(
+                        "Maximum lifetime of airborne contamination after its last emission, in ticks.",
+                        "20 ticks = 1 second; the default is 30 minutes of loaded game time.")
+                .defineInRange("airborneReservoirLifetimeTicks", 36_000, 200, 2_147_483_647);
+        SURFACE_LIFETIME_TICKS = builder.comment(
+                        "Base lifetime of contamination on an ordinary block, in ticks.")
+                .defineInRange("surfaceLifetimeTicks", 6000, 20, 2_147_483_647);
+        SURFACE_CLEANUP_BUDGET = builder.comment(
+                        "Maximum expired surface entries removed per world cleanup pass.")
+                .defineInRange("surfaceCleanupBudget", 2048, 1, 65536);
+        SURFACE_EXPOSURE_CHANCE = probability(builder, "surfaceExposureChance", 0.14,
+                "Base infection chance when stepping on, mining or using a contaminated block.");
+        SURFACE_DEPOSIT_CHANCE = probability(builder, "surfaceDepositChancePerSecond", 0.28,
+                "Chance per second for a contact-spreading host to contaminate the block below them.");
+        ATTACK_EXPOSURE_CHANCE = probability(builder, "attackExposureChance", 0.40,
+                "Base infection chance for an ATTACK_BASED hit before strain strength and protection.");
+        FOOD_EXPOSURE_CHANCE = probability(builder, "foodExposureChance", 0.70,
+                "Base infection chance from consuming FOOD_BORNE contaminated food.");
+        WATER_EXPOSURE_CHANCE = probability(builder, "waterExposureChance", 0.65,
+                "Base infection chance from consuming WATER_BORNE contaminated drinks.");
+        BLOOD_EXPOSURE_CHANCE = probability(builder, "bloodExposureChance", 0.90,
+                "Base infection chance from direct infected-blood exposure.");
+        DECONTAMINATION_RADIUS = builder.comment(
+                        "Radius cleaned by decontamination splash fluid. Radius 2 produces a 5x5x5 cube.")
+                .defineInRange("decontaminationRadius", 2, 0, 16);
+        builder.pop().pop();
+
+        builder.push("symptoms");
+        SYMPTOMS_ENABLED = builder.comment(
+                        "Master switch for built-in symptom gameplay effects and generated symptom data.")
+                .define("enabled", true);
+        builder.push("builtIns");
+        for (String id : ORIGINAL_SYMPTOMS) {
+            SYMPTOM_TYPES.put(id, builder.comment(
+                            "Whether the built-in symptom '" + id + "' is generated, displayed and applied.")
+                    .define(id, true));
+        }
+        builder.pop().pop();
+
+        builder.push("mutations");
+        MUTATIONS_ENABLED = builder.comment(
+                        "Master switch for all mutation selection, interaction and gameplay effects.")
+                .define("enabled", true);
+        builder.push("builtIns");
+        for (String id : BUILT_IN_MUTATION_IDS) {
+            BUILT_IN_MUTATIONS.put(id, builder.comment(
+                            "Whether the built-in mutation '" + id + "' is available.")
+                    .define(id, true));
+        }
+        builder.pop().pop().pop();
         SPEC = builder.build();
     }
 
@@ -105,6 +249,66 @@ public final class BioForgeServerConfig {
 
     public static int strainImmunityDurationTicks() {
         return STRAIN_IMMUNITY_DURATION.get();
+    }
+
+    public static boolean spreadingEnabled() {
+        return SPREADING_ENABLED.get();
+    }
+
+    public static boolean naturalInfectionsEnabled() {
+        return NATURAL_INFECTIONS_ENABLED.get();
+    }
+
+    public static boolean isTransmissionEnabled(InfectionType type) {
+        if (type == null || !spreadingEnabled()) return false;
+        ForgeConfigSpec.BooleanValue value = TRANSMISSION_TYPES.get(type);
+        return value == null || value.get();
+    }
+
+    public static boolean symptomsEnabled() {
+        return SYMPTOMS_ENABLED.get();
+    }
+
+    public static boolean isSymptomEnabled(String id) {
+        if (id == null || !symptomsEnabled()) return false;
+        ForgeConfigSpec.BooleanValue value = SYMPTOM_TYPES.get(normalizeId(id));
+        return value == null || value.get();
+    }
+
+    public static boolean mutationsEnabled() {
+        return MUTATIONS_ENABLED.get();
+    }
+
+    public static boolean isMutationEnabled(String id) {
+        if (id == null || !mutationsEnabled()) return false;
+        ForgeConfigSpec.BooleanValue value = BUILT_IN_MUTATIONS.get(normalizeId(id));
+        return value == null || value.get();
+    }
+
+    public static int airRoomMaxVolume() { return AIR_ROOM_MAX_VOLUME.get(); }
+    public static int airRoomMaxRadius() { return AIR_ROOM_MAX_RADIUS.get(); }
+    public static int airRoomCacheTicks() { return AIR_ROOM_CACHE_TICKS.get(); }
+    public static int airborneWorkBudget() { return AIRBORNE_WORK_BUDGET.get(); }
+    public static float airExposureChance() { return AIR_EXPOSURE_CHANCE.get().floatValue(); }
+    public static float outdoorAirMultiplier() { return OUTDOOR_AIR_MULTIPLIER.get().floatValue(); }
+    public static float medicalMaskIncomingAirMultiplier() { return MEDICAL_MASK_INCOMING_AIR_MULTIPLIER.get().floatValue(); }
+    public static float hazcureIncomingAirMultiplier() { return HAZCURE_INCOMING_AIR_MULTIPLIER.get().floatValue(); }
+    public static float hazcureIncomingContactMultiplier() { return HAZCURE_INCOMING_CONTACT_MULTIPLIER.get().floatValue(); }
+    public static int airborneReservoirLifetimeTicks() { return AIRBORNE_RESERVOIR_LIFETIME_TICKS.get(); }
+    public static int surfaceLifetimeTicks() { return SURFACE_LIFETIME_TICKS.get(); }
+    public static int surfaceCleanupBudget() { return SURFACE_CLEANUP_BUDGET.get(); }
+    public static float surfaceExposureChance() { return SURFACE_EXPOSURE_CHANCE.get().floatValue(); }
+    public static float surfaceDepositChance() { return SURFACE_DEPOSIT_CHANCE.get().floatValue(); }
+    public static float attackExposureChance() { return ATTACK_EXPOSURE_CHANCE.get().floatValue(); }
+    public static float foodExposureChance() { return FOOD_EXPOSURE_CHANCE.get().floatValue(); }
+    public static float waterExposureChance() { return WATER_EXPOSURE_CHANCE.get().floatValue(); }
+    public static float bloodExposureChance() { return BLOOD_EXPOSURE_CHANCE.get().floatValue(); }
+    public static int decontaminationRadius() { return DECONTAMINATION_RADIUS.get(); }
+
+    private static String normalizeId(String id) {
+        String normalized = id.trim().toLowerCase(Locale.ROOT);
+        int separator = normalized.indexOf(':');
+        return separator >= 0 ? normalized.substring(separator + 1) : normalized;
     }
 
     private static ForgeConfigSpec.DoubleValue probability(

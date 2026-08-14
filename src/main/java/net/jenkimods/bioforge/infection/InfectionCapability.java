@@ -1,6 +1,7 @@
 package net.jenkimods.bioforge.infection;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 @Mod.EventBusSubscriber(modid = BioForge.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class InfectionCapability {
+    private static final String NBT_CHANNEL = "entity_infection";
 
     public static final Capability<InfectionData> INFECTION_CAP =
             CapabilityManager.get(new CapabilityToken<>() {});
@@ -61,12 +63,16 @@ public class InfectionCapability {
 
         @Override
         public CompoundTag serializeNBT() {
-            return impl.serializeNBT();
+            CompoundTag encoded = new CompoundTag();
+            NbtObfuscator.writeCompoundDeterministic(
+                    encoded, NBT_CHANNEL, impl.serializeNBT());
+            return encoded;
         }
 
         @Override
         public void deserializeNBT(CompoundTag nbt) {
-            impl.deserializeNBT(nbt);
+            CompoundTag decoded = NbtObfuscator.readCompound(nbt, NBT_CHANNEL);
+            impl.deserializeNBT(decoded == null ? nbt : decoded);
         }
     }
 }

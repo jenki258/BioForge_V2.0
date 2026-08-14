@@ -6,33 +6,33 @@
   "consume_sample": true,
   "consume_reagent": true,
   "consume_report": false,
-  "minimum_quality": 0.35,
+  "minimum_quality": 0,
   "inputs": {
     "sample": [
       {
-        "item": "bioforge:virus_sample"
+        "tag": "bioforge:ingredients/bioforge/virus_sample"
       },
       {
-        "item": "bioforge:live_culture_vial"
+        "tag": "bioforge:ingredients/bioforge/live_culture_vial"
       },
       {
-        "item": "bioforge:petri_dish"
+        "tag": "bioforge:ingredients/bioforge/petri_dish"
       }
     ],
     "carrier": {
-      "item": "bioforge:vaccine"
+      "tag": "bioforge:ingredients/bioforge/vaccine"
     },
     "reagent": {
-      "item": "bioforge:nutrient_medium"
+      "tag": "bioforge:ingredients/bioforge/nutrient_medium"
     },
     "report": {
-      "item": "bioforge:medical_report"
+      "tag": "bioforge:ingredients/bioforge/medical_report"
     },
     "cartridge": {
-      "item": "bioforge:crispr_cartridge"
+      "tag": "bioforge:ingredients/bioforge/crispr_cartridge"
     },
     "cas_module": {
-      "item": "bioforge:cas_module"
+      "tag": "bioforge:ingredients/bioforge/cas_module"
     }
   },
   "quality": {
@@ -52,8 +52,8 @@
     "complete_blood_bonus": 0.045
   },
   "failure": {
-    "mutation_chance": 0.85,
-    "mutation_below_quality": 0.95,
+    "mutation_chance": 0.6,
+    "mutation_below_quality": 0.8,
     "consume_reagent": true
   },
   "result": {

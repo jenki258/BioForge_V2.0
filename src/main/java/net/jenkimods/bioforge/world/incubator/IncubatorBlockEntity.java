@@ -1,6 +1,11 @@
 package net.jenkimods.bioforge.world.incubator;
 
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
+import net.jenkimods.bioforge.api.definition.PathogenDefinition;
+import net.jenkimods.bioforge.api.definition.SymptomDefinition;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
@@ -149,10 +154,11 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
     private void process(IncubatorRecipe recipe, RandomSource random) {
         ItemStack primary = items.getStackInSlot(0);
         String sourceStrain = recipe.getSourceStrain(primary);
-        PathogenType generatedPathogen = null;
+        ResourceLocation generatedPathogen = null;
         if (recipe.operation() == IncubatorOperation.GENERATE_STRAIN) {
-            generatedPathogen = CatalystVialItem.getPathogenOrRandom(primary);
-            if (generatedPathogen == null) {
+            generatedPathogen = CatalystVialItem.getPathogenIdOrRandom(primary);
+            if (generatedPathogen == null
+                    || BioForgeDefinitionManager.pathogen(generatedPathogen).isEmpty()) {
                 return;
             }
         }
@@ -208,20 +214,58 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    private static StrainData generateRandomStrain(PathogenType pathogen, RandomSource random) {
+    private static StrainData generateRandomStrain(ResourceLocation pathogenId, RandomSource random) {
         StrainData strain = StrainData.createEmpty();
-        strain.setPathogen(pathogen);
+        strain.setPathogenId(pathogenId);
         strain.setColonyId(UUID.randomUUID());
-        List<InfectionType> allowed = new ArrayList<>(pathogen.getAllowedTransmissions());
+        PathogenType pathogen = BioForgeIds.legacyPathogen(pathogenId);
+        PathogenDefinition pathogenDefinition =
+                BioForgeDefinitionManager.pathogen(pathogenId).orElse(null);
+        List<ResourceLocation> allowed = pathogenDefinition == null
+                ? pathogen == null ? new ArrayList<>() : pathogen.getAllowedTransmissions().stream()
+                .filter(BioForgeServerConfig::isTransmissionEnabled)
+                .map(BioForgeIds::transmission)
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new))
+                : pathogenDefinition.allowedTransmissions().stream()
+                .filter(id -> {
+                    InfectionType legacy = BioForgeIds.legacyTransmission(id);
+                    return legacy == null || BioForgeServerConfig.isTransmissionEnabled(legacy);
+                })
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
         if (!allowed.isEmpty()) {
             for (int index = allowed.size() - 1; index > 0; index--) {
                 Collections.swap(allowed, index, random.nextInt(index + 1));
             }
             int count = 1 + random.nextInt(allowed.size());
-            for (int i = 0; i < count; i++) strain.getInfectionTypes().add(allowed.get(i));
+            for (int i = 0; i < count; i++) strain.getTransmissionIds().add(allowed.get(i));
         }
-        Map<SymptomKey<?>, float[]> ranges = BioForgeSymptoms.getDefaultRanges(pathogen);
-        for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+        if (pathogen == null && pathogenDefinition != null) {
+            pathogenDefinition.defaultSymptoms().forEach((symptomId, configured) -> {
+                String storageId = BioForgeDefinitionManager.storageId(symptomId);
+                if (!BioForgeServerConfig.isSymptomEnabled(storageId)) return;
+                SymptomDefinition symptom = BioForgeDefinitionManager.symptom(symptomId).orElse(null);
+                if (symptom == null) return;
+                try {
+                    String value = switch (symptom.valueType()) {
+                        case FLOAT -> String.valueOf(configured.minimum().getAsFloat()
+                                + random.nextFloat() * (configured.maximum().getAsFloat()
+                                - configured.minimum().getAsFloat()));
+                        case INTEGER -> {
+                            int min = configured.minimum().getAsInt();
+                            int max = configured.maximum().getAsInt();
+                            yield String.valueOf(min + (max <= min ? 0 : random.nextInt(max - min + 1)));
+                        }
+                        case BOOLEAN -> String.valueOf(configured.minimum().getAsBoolean());
+                        case STRING, ENUM -> configured.minimum().getAsString();
+                    };
+                    strain.getSymptoms().put(storageId, value);
+                } catch (RuntimeException ignored) {
+                }
+            });
+            return strain;
+        }
+        Map<SymptomKey<?>, float[]> ranges = BioForgeSymptoms.getDefaultRanges(pathogenId);
+        for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {
             SymptomKey<?> key = entry.getValue();
             String keyId = entry.getKey();
             if (key.getType() == Float.class) {

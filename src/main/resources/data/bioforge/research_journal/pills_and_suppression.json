@@ -1,0 +1,27 @@
+{
+  "order": 540,
+  "unlock_items": ["bioforge:symptom_tablet", "bioforge:viral_suppressor_pill", "bioforge:viral_inhibitor_pill", "bioforge:viral_blocker_pill"],
+  "recipes": [
+    { "type": "vaccine_maker", "id": "bioforge:symptom_tablet" },
+    { "type": "vaccine_maker", "id": "bioforge:viral_suppressor_pill" },
+    { "type": "vaccine_maker", "id": "bioforge:viral_inhibitor_pill" },
+    { "type": "vaccine_maker", "id": "bioforge:viral_blocker_pill" }
+  ],
+  "title": { "text": "PILLS & SUPPRESSION", "color": "dark_aqua", "bold": true },
+  "content": [
+    {
+      "component": {
+        "text": "Resistance pills temporarily reduce infection risk from one exact strain. They are shorter and less decisive than a successful vaccine, but they can protect a team during containment work.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "Symptom suppressants disable one configured symptom for a limited time without curing the infection. Tablet color identifies its target family; quality and infection strength change the effective duration.",
+        "color": "black"
+      },
+      "line_breaks": 0
+    }
+  ]
+}

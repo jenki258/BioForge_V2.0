@@ -1,0 +1,94 @@
+package net.jenkimods.bioforge.item.guide;
+
+import net.jenkimods.bioforge.api.guide.ResearchJournalPageView;
+import net.jenkimods.bioforge.api.guide.ResearchJournalRecipeView;
+import net.jenkimods.bioforge.client.ResearchJournalClient;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+public record ResearchJournalOpenPacket(List<ResearchJournalPageView> pages) {
+    public ResearchJournalOpenPacket {
+        pages = List.copyOf(pages);
+    }
+
+    public static void encode(ResearchJournalOpenPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeVarInt(packet.pages().size());
+        for (ResearchJournalPageView page : packet.pages()) {
+            buffer.writeResourceLocation(page.id());
+            buffer.writeComponent(page.title());
+            buffer.writeComponent(page.body());
+            buffer.writeBoolean(page.unlocked());
+            buffer.writeVarInt(page.recipes().size());
+            for (ResearchJournalRecipeView recipe : page.recipes()) {
+                buffer.writeResourceLocation(recipe.id());
+                buffer.writeComponent(recipe.station());
+                buffer.writeVarInt(recipe.width());
+                buffer.writeVarInt(recipe.height());
+                buffer.writeVarInt(recipe.ingredients().size());
+                for (List<net.minecraft.world.item.ItemStack> choices : recipe.ingredients()) {
+                    buffer.writeVarInt(choices.size());
+                    choices.forEach(buffer::writeItem);
+                }
+                buffer.writeVarInt(recipe.results().size());
+                recipe.results().forEach(buffer::writeItem);
+            }
+        }
+    }
+
+    public static ResearchJournalOpenPacket decode(FriendlyByteBuf buffer) {
+        int count = buffer.readVarInt();
+        List<ResearchJournalPageView> pages = new ArrayList<>(count);
+        for (int index = 0; index < count; index++) {
+            var id = buffer.readResourceLocation();
+            var title = buffer.readComponent();
+            var body = buffer.readComponent();
+            boolean unlocked = buffer.readBoolean();
+            int recipeCount = buffer.readVarInt();
+            List<ResearchJournalRecipeView> recipes = new ArrayList<>(recipeCount);
+            for (int recipeIndex = 0; recipeIndex < recipeCount; recipeIndex++) {
+                var recipeId = buffer.readResourceLocation();
+                var station = buffer.readComponent();
+                int width = buffer.readVarInt();
+                int height = buffer.readVarInt();
+                int ingredientCount = buffer.readVarInt();
+                List<List<net.minecraft.world.item.ItemStack>> ingredients =
+                        new ArrayList<>(ingredientCount);
+                for (int ingredientIndex = 0; ingredientIndex < ingredientCount;
+                     ingredientIndex++) {
+                    int choiceCount = buffer.readVarInt();
+                    List<net.minecraft.world.item.ItemStack> choices =
+                            new ArrayList<>(choiceCount);
+                    for (int choice = 0; choice < choiceCount; choice++) {
+                        choices.add(buffer.readItem());
+                    }
+                    ingredients.add(choices);
+                }
+                int resultCount = buffer.readVarInt();
+                List<net.minecraft.world.item.ItemStack> results =
+                        new ArrayList<>(resultCount);
+                for (int result = 0; result < resultCount; result++) {
+                    results.add(buffer.readItem());
+                }
+                recipes.add(new ResearchJournalRecipeView(recipeId, station,
+                        width, height, ingredients, results));
+            }
+            pages.add(new ResearchJournalPageView(
+                    id, title, body, unlocked, recipes));
+        }
+        return new ResearchJournalOpenPacket(pages);
+    }
+
+    public static void handle(ResearchJournalOpenPacket packet,
+                              Supplier<NetworkEvent.Context> contextSupplier) {
+        NetworkEvent.Context context = contextSupplier.get();
+        context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                () -> () -> ResearchJournalClient.open(packet.pages())));
+        context.setPacketHandled(true);
+    }
+}

@@ -1,0 +1,10 @@
+{
+  "order": 420,
+  "unlock_items": ["bioforge:microscope", "bioforge:visibility_reagent", "bioforge:blood_slide", "bioforge:gene_imprint"],
+  "title": { "text": "CALIBRATION & SCANS", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "Every newly inserted specimen receives its own hidden calibration target. Focus, stage and optical controls retain their positions when the microscope screen is closed.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Adjust the controls until the indicators agree, then scan. Correct positions are preserved with that specimen instead of being rerolled every time it is inserted.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Visibility Reagent has a detection chance based on microscope visibility: very low samples are difficult, medium samples are uncertain and extreme samples are reliable. Vaccine blood assays reveal one combined quality result, not the separate hidden corrections.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

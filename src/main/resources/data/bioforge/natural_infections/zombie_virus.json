@@ -1,0 +1,37 @@
+{
+  "strains": [
+    {
+      "id": "bioforge:zombie_necrotic_virus",
+      "pathogen": "bioforge:virus",
+      "transmissions": ["bioforge:attack_based", "bioforge:contact_based"],
+      "symptoms": {
+        "infection_strength": "0.68",
+        "temperature_minus": "true",
+        "oxygen_saturation": "0.82",
+        "neural_damage": "0.22",
+        "microscope_visibility": "MEDIUM"
+      },
+      "mutations": ["flesh_cravings", "scanner_evasion"],
+      "rare_mutations": [
+        {"mutation": "climbing", "chance": 0.035},
+        {"mutation": "strong_skin", "chance": 0.025}
+      ],
+      "lifecycle_profile": "bioforge:fast_virus"
+    }
+  ],
+  "rules": [
+    {
+      "id": "bioforge:zombie_virus_reservoir",
+      "entities": [
+        "minecraft:zombie",
+        "minecraft:husk",
+        "minecraft:drowned",
+        "minecraft:zombie_villager"
+      ],
+      "chance": 1.0,
+      "strains": [
+        {"strain": "bioforge:zombie_necrotic_virus", "weight": 1}
+      ]
+    }
+  ]
+}

@@ -11,7 +11,6 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 public class VirusSampleItem extends Item {
 
@@ -32,15 +31,8 @@ public class VirusSampleItem extends Item {
         StrainData strain = getStrain(stack);
         if (strain != null) {
             tooltip.add(Component.translatable("item.bioforge.virus_sample.filled").withStyle(ChatFormatting.DARK_RED));
-            if (strain.getPathogen() != null) {
-                tooltip.add(Component.translatable("item.bioforge.virus_sample.pathogen", strain.getPathogen().name())
-                        .withStyle(ChatFormatting.DARK_PURPLE));
-            }
-            tooltip.add(Component.literal(" "));
-            tooltip.add(Component.translatable("item.bioforge.virus_sample.stats").withStyle(ChatFormatting.GRAY));
-            for (Map.Entry<String, String> entry : strain.getSymptoms().entrySet()) {
-                tooltip.add(Component.literal("  " + entry.getKey() + ": " + entry.getValue()).withStyle(ChatFormatting.DARK_GRAY));
-            }
+            tooltip.add(Component.translatable("item.bioforge.virus_sample.sealed_profile")
+                    .withStyle(ChatFormatting.DARK_GRAY));
             tooltip.add(Component.literal(" "));
             tooltip.add(Component.translatable("item.bioforge.virus_sample.use_in_incubator").withStyle(ChatFormatting.DARK_GRAY));
             tooltip.add(Component.translatable("item.bioforge.virus_sample.use_with_live_culture").withStyle(ChatFormatting.DARK_GRAY));

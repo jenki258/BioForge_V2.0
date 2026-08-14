@@ -3,11 +3,14 @@ package net.jenkimods.bioforge.client.vaccine;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.api.vaccine.VaccineMakerPageDefinition;
 import net.jenkimods.bioforge.client.VaccineMakerScreen;
+import net.jenkimods.bioforge.registry.BioForgeSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
@@ -31,6 +34,12 @@ public final class VaccineMakerTabButton extends AbstractButton {
     @Override
     public void onPress() {
         screen.selectPage(pageIndex);
+    }
+
+    @Override
+    public void playDownSound(SoundManager soundManager) {
+        soundManager.play(SimpleSoundInstance.forUI(
+                BioForgeSounds.UI_BUTTON.get(), 1.0F, 0.6F));
     }
 
     @Override

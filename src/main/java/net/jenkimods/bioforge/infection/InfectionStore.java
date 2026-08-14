@@ -3,6 +3,8 @@ package net.jenkimods.bioforge.infection;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.Nullable;
@@ -64,10 +66,12 @@ public class InfectionStore extends SavedData {
             @Nullable PathogenType pathogenType,
             List<InfectionType> infectionTypes,
             Map<String, Object> symptoms,
-            List<String> mutations
+            List<String> mutations,
+            @Nullable ResourceLocation pathogenId,
+            List<ResourceLocation> transmissionIds
     ) {
         public static final InfectionRecord NONE = new InfectionRecord(
-                false, false, null, List.of(), Map.of(), List.of()
+                false, false, null, List.of(), Map.of(), List.of(), null, List.of()
         );
 
         public InfectionRecord(boolean infected, boolean persistent, @Nullable PathogenType pathogenType,
@@ -75,14 +79,26 @@ public class InfectionStore extends SavedData {
             this(infected, persistent, pathogenType, infectionTypes, symptoms, List.of());
         }
 
+        public InfectionRecord(boolean infected, boolean persistent, @Nullable PathogenType pathogenType,
+                               List<InfectionType> infectionTypes, Map<String, Object> symptoms,
+                               List<String> mutations) {
+            this(infected, persistent, pathogenType, List.copyOf(infectionTypes), Map.copyOf(symptoms),
+                    List.copyOf(mutations), pathogenType == null ? null : BioForgeIds.pathogen(pathogenType),
+                    infectionTypes.stream().map(BioForgeIds::transmission).toList());
+        }
+
         public CompoundTag toNbt() {
             CompoundTag tag = new CompoundTag();
             tag.putBoolean("Infected", infected);
             tag.putBoolean("Persistent", persistent);
+            tag.putInt("BioForgeDataVersion", 2);
             if (pathogenType != null) tag.putString("PathogenType", pathogenType.name());
+            if (pathogenId != null) tag.putString("PathogenId", pathogenId.toString());
             StringJoiner joiner = new StringJoiner(",");
             for (InfectionType t : infectionTypes) joiner.add(t.name());
             tag.putString("InfectionTypes", joiner.toString());
+            tag.putString("TransmissionIds", String.join(",",
+                    transmissionIds.stream().map(ResourceLocation::toString).toList()));
 
             CompoundTag symptomTag = new CompoundTag();
             for (Map.Entry<String, Object> entry : symptoms.entrySet()) {
@@ -106,6 +122,10 @@ public class InfectionStore extends SavedData {
                 tag.putBoolean(keyId, b);
             } else if (value instanceof Float f) {
                 tag.putFloat(keyId, f);
+            } else if (value instanceof Integer i) {
+                tag.putInt(keyId, i);
+            } else if (value instanceof String s) {
+                tag.putString(keyId, s);
             }
         }
 
@@ -113,6 +133,9 @@ public class InfectionStore extends SavedData {
             boolean infected = tag.getBoolean("Infected");
             boolean persistent = tag.getBoolean("Persistent");
             PathogenType pt = tag.contains("PathogenType") ? PathogenType.fromName(tag.getString("PathogenType")) : null;
+            ResourceLocation pathogenId = tag.contains("PathogenId")
+                    ? ResourceLocation.tryParse(tag.getString("PathogenId"))
+                    : pt == null ? null : BioForgeIds.pathogen(pt);
             List<InfectionType> types = new ArrayList<>();
             if (tag.contains("InfectionTypes")) {
                 String raw = tag.getString("InfectionTypes");
@@ -120,10 +143,19 @@ public class InfectionStore extends SavedData {
                     if (!s.isEmpty()) types.add(InfectionType.fromName(s));
                 }
             }
+            List<ResourceLocation> transmissionIds = new ArrayList<>();
+            if (tag.contains("TransmissionIds")) {
+                for (String value : tag.getString("TransmissionIds").split(",")) {
+                    ResourceLocation id = ResourceLocation.tryParse(value.trim());
+                    if (id != null) transmissionIds.add(id);
+                }
+            } else {
+                types.stream().map(BioForgeIds::transmission).forEach(transmissionIds::add);
+            }
 
             Map<String, Object> symptoms = new LinkedHashMap<>();
             CompoundTag symptomTag = tag.getCompound("Symptoms");
-            for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+            for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {
                 String keyId = entry.getKey();
                 SymptomKey<?> key = entry.getValue();
                 if (symptomTag.contains(keyId)) {
@@ -142,7 +174,9 @@ public class InfectionStore extends SavedData {
                 }
             }
 
-            return new InfectionRecord(infected, persistent, pt, types, symptoms, mutations);
+            return new InfectionRecord(infected, persistent, pt, List.copyOf(types),
+                    Map.copyOf(symptoms), List.copyOf(mutations), pathogenId,
+                    List.copyOf(transmissionIds));
         }
     }
 }

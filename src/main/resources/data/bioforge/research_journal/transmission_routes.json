@@ -1,0 +1,10 @@
+{
+  "order": 460,
+  "unlock_items": ["bioforge:gene_imprint", "bioforge:medical_mask", "bioforge:protective_gloves", "bioforge:area_contamination_scanner"],
+  "title": { "text": "TRANSMISSION ROUTES", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "Air-borne spread follows connected room space and does not freely pass through walls. Food-borne and water-borne infection follows food, recipes, potions and drinks. Blood spread follows contaminated blood and needles.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Contact-based strains contaminate blocks that are touched, mined or stepped on. Attack-based strains spread through combat contact. Animal strains can enter livestock and follow their drops. Environmental strains build reservoirs in the world.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Routes interact: airborne plus environmental traits can establish a room reservoir, while persistent contact traits keep surfaces dangerous. Masks reduce incoming air risk and block outgoing air spread; gloves block outgoing contact spread.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

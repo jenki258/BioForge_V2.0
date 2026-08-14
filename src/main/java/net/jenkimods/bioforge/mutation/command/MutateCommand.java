@@ -168,6 +168,7 @@ public final class MutateCommand {
             case MISSING_REQUIREMENT -> "required mutation is missing";
             case CONFLICT -> "conflicts with an existing mutation";
             case INVALID_EFFECT -> "definition contains an invalid effect";
+            case IMMUNE -> "target has complete infection immunity";
             default -> "mutation could not be applied";
         };
         source.sendFailure(Component.literal(target.getDisplayName().getString()

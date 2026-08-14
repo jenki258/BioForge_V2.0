@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.vaccine.DirectedVaccineAction;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionProfile;
 import net.jenkimods.bioforge.world.vaccine.VaccineMakerRecipe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -15,7 +16,6 @@ import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,7 +30,16 @@ public final class BioForgeResearchData {
     private static volatile Map<ResourceLocation, CrisprCasModuleDefinition> casModules = Map.of();
     private static volatile Map<ResourceLocation, CrisprAssayDefinition> assays = Map.of();
     private static volatile Map<ResourceLocation, DirectedVaccineAction> actions = Map.of();
+    private static volatile Map<ResourceLocation, VaccineCorrectionProfile>
+            correctionProfiles = Map.of();
     private static volatile List<VaccineMakerRecipe> recipes = List.of();
+    private static final Map<ResourceLocation, CrisprGuideProfile> JAVA_GUIDE_PROFILES = new LinkedHashMap<>();
+    private static final Map<ResourceLocation, CrisprCasModuleDefinition> JAVA_CAS_MODULES = new LinkedHashMap<>();
+    private static final Map<ResourceLocation, CrisprAssayDefinition> JAVA_ASSAYS = new LinkedHashMap<>();
+    private static final Map<ResourceLocation, DirectedVaccineAction> JAVA_ACTIONS = new LinkedHashMap<>();
+    private static final Map<ResourceLocation, VaccineCorrectionProfile> JAVA_CORRECTION_PROFILES = new LinkedHashMap<>();
+    private static final Map<ResourceLocation, VaccineMakerRecipe> JAVA_RECIPES = new LinkedHashMap<>();
+    private static boolean javaRegistrationsFrozen;
 
     private BioForgeResearchData() {}
 
@@ -40,6 +49,7 @@ public final class BioForgeResearchData {
         event.addListener(new CasModuleReloadListener());
         event.addListener(new AssayReloadListener());
         event.addListener(new ActionReloadListener());
+        event.addListener(new CorrectionProfileReloadListener());
         event.addListener(new RecipeReloadListener());
     }
 
@@ -59,6 +69,15 @@ public final class BioForgeResearchData {
         return Optional.ofNullable(assays.get(id));
     }
 
+    public static Optional<VaccineCorrectionProfile> correctionProfile(
+            ResourceLocation id) {
+        return Optional.ofNullable(correctionProfiles.get(id));
+    }
+
+    public static Set<ResourceLocation> correctionProfileIds() {
+        return Set.copyOf(correctionProfiles.keySet());
+    }
+
     public static List<VaccineMakerRecipe> recipes() {
         return recipes;
     }
@@ -75,6 +94,34 @@ public final class BioForgeResearchData {
         return Set.copyOf(actions.keySet());
     }
 
+    public static synchronized void registerGuideProfile(CrisprGuideProfile definition) {
+        registerJava(JAVA_GUIDE_PROFILES, definition.id(), definition, "CRISPR guide profile");
+    }
+
+    public static synchronized void registerCasModule(CrisprCasModuleDefinition definition) {
+        registerJava(JAVA_CAS_MODULES, definition.id(), definition, "CRISPR Cas module");
+    }
+
+    public static synchronized void registerAssay(CrisprAssayDefinition definition) {
+        registerJava(JAVA_ASSAYS, definition.id(), definition, "CRISPR assay");
+    }
+
+    public static synchronized void registerAction(DirectedVaccineAction definition) {
+        registerJava(JAVA_ACTIONS, definition.id(), definition, "directed vaccine action");
+    }
+
+    public static synchronized void registerCorrectionProfile(VaccineCorrectionProfile definition) {
+        registerJava(JAVA_CORRECTION_PROFILES, definition.id(), definition, "vaccine correction profile");
+    }
+
+    public static synchronized void registerVaccineMakerRecipe(VaccineMakerRecipe recipe) {
+        registerJava(JAVA_RECIPES, recipe.id(), recipe, "Vaccine Maker recipe");
+    }
+
+    public static synchronized void freezeJavaRegistrations() {
+        javaRegistrationsFrozen = true;
+    }
+
     private static final class GuideProfileReloadListener extends SimpleJsonResourceReloadListener {
         private GuideProfileReloadListener() {
             super(GSON, "crispr/guide_profiles");
@@ -89,6 +136,7 @@ public final class BioForgeResearchData {
                             json -> loaded.put(entry.getKey(),
                                     CrisprGuideProfile.fromJson(entry.getKey(), json)),
                             "CRISPR guide profile"));
+            mergeJava(loaded, JAVA_GUIDE_PROFILES);
             guideProfiles = Map.copyOf(loaded);
             BioForge.LOGGER.info("Loaded {} CRISPR guide profiles", loaded.size());
         }
@@ -108,6 +156,7 @@ public final class BioForgeResearchData {
                             json -> loaded.put(entry.getKey(),
                                     DirectedVaccineAction.fromJson(entry.getKey(), json)),
                             "directed vaccine action"));
+            mergeJava(loaded, JAVA_ACTIONS);
             actions = Map.copyOf(loaded);
             BioForge.LOGGER.info("Loaded {} directed vaccine actions", loaded.size());
         }
@@ -127,6 +176,7 @@ public final class BioForgeResearchData {
                             json -> loaded.put(entry.getKey(),
                                     CrisprCasModuleDefinition.fromJson(entry.getKey(), json)),
                             "CRISPR Cas module"));
+            mergeJava(loaded, JAVA_CAS_MODULES);
             casModules = Map.copyOf(loaded);
             BioForge.LOGGER.info("Loaded {} CRISPR Cas modules", loaded.size());
         }
@@ -146,6 +196,7 @@ public final class BioForgeResearchData {
                             json -> loaded.put(entry.getKey(),
                                     CrisprAssayDefinition.fromJson(entry.getKey(), json)),
                             "CRISPR assay"));
+            mergeJava(loaded, JAVA_ASSAYS);
             assays = Map.copyOf(loaded);
             BioForge.LOGGER.info("Loaded {} CRISPR assays", loaded.size());
         }
@@ -159,14 +210,40 @@ public final class BioForgeResearchData {
         @Override
         protected void apply(Map<ResourceLocation, JsonElement> entries,
                              ResourceManager resourceManager, ProfilerFiller profiler) {
-            List<VaccineMakerRecipe> loaded = new ArrayList<>();
+            Map<ResourceLocation, VaccineMakerRecipe> loaded = new LinkedHashMap<>();
             entries.entrySet().stream().sorted(Map.Entry.comparingByKey())
                     .forEach(entry -> parse(entry.getKey(), entry.getValue(),
-                            json -> loaded.add(VaccineMakerRecipe.fromJson(entry.getKey(), json)),
+                            json -> loaded.put(entry.getKey(), VaccineMakerRecipe.fromJson(entry.getKey(), json)),
                             "Vaccine Maker recipe"));
-            loaded.sort(Comparator.comparing(recipe -> recipe.id().toString()));
-            recipes = List.copyOf(loaded);
-            BioForge.LOGGER.info("Loaded {} Vaccine Maker recipes", loaded.size());
+            mergeJava(loaded, JAVA_RECIPES);
+            recipes = loaded.values().stream()
+                    .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
+                    .toList();
+            BioForge.LOGGER.info("Loaded {} Vaccine Maker recipes", recipes.size());
+        }
+    }
+
+    private static final class CorrectionProfileReloadListener
+            extends SimpleJsonResourceReloadListener {
+        private CorrectionProfileReloadListener() {
+            super(GSON, "vaccine_correction_profiles");
+        }
+
+        @Override
+        protected void apply(Map<ResourceLocation, JsonElement> entries,
+                             ResourceManager resourceManager, ProfilerFiller profiler) {
+            Map<ResourceLocation, VaccineCorrectionProfile> loaded =
+                    new LinkedHashMap<>();
+            entries.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                    .forEach(entry -> parse(entry.getKey(), entry.getValue(),
+                            json -> loaded.put(entry.getKey(),
+                                    VaccineCorrectionProfile.fromJson(
+                                            entry.getKey(), json)),
+                            "vaccine correction profile"));
+            mergeJava(loaded, JAVA_CORRECTION_PROFILES);
+            correctionProfiles = Map.copyOf(loaded);
+            BioForge.LOGGER.info(
+                    "Loaded {} vaccine correction profiles", loaded.size());
         }
     }
 
@@ -180,5 +257,19 @@ public final class BioForgeResearchData {
         } catch (RuntimeException exception) {
             BioForge.LOGGER.error("Could not load {} {}", type, id, exception);
         }
+    }
+
+    private static <T> void registerJava(Map<ResourceLocation, T> registry, ResourceLocation id,
+                                         T definition, String type) {
+        if (javaRegistrationsFrozen) throw new IllegalStateException("BioForge research registries are frozen");
+        if (id == null || definition == null) throw new IllegalArgumentException(type + " cannot be null");
+        if (registry.putIfAbsent(id, definition) != null) {
+            throw new IllegalArgumentException("Duplicate Java " + type + " " + id);
+        }
+    }
+
+    private static <T> void mergeJava(Map<ResourceLocation, T> loaded,
+                                      Map<ResourceLocation, T> javaDefinitions) {
+        javaDefinitions.forEach(loaded::putIfAbsent);
     }
 }

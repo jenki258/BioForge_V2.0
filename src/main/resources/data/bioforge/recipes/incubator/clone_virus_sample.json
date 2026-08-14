@@ -1,7 +1,7 @@
 {
   "type": "bioforge:incubator",
-  "primary_input": "bioforge:virus_sample",
-  "secondary_input": "bioforge:live_culture_vial",
+  "primary_input": "#bioforge:ingredients/bioforge/virus_sample",
+  "secondary_input": "#bioforge:ingredients/bioforge/live_culture_vial",
   "output": "bioforge:live_culture_vial",
   "operation": "copy_sample_strain",
   "processing_time": 200,

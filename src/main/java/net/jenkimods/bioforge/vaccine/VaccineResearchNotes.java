@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Locale;
 
 
 
@@ -102,7 +101,7 @@ public final class VaccineResearchNotes {
         ListTag pages = tag.getList("pages", Tag.TAG_STRING);
         String page = "BIOFORGE / CRISPR\n"
                 + "Batch " + sampleFingerprint(samplePayload) + "\n"
-                + "Quality " + String.format(Locale.ROOT, "%.1f%%", quality * 100.0f) + "\n"
+                + "Efficacy requires blood assay\n"
                 + "gRNA-1 " + guide(sequence, 0) + "\n"
                 + "gRNA-2 " + guide(sequence, 1) + "\n"
                 + "gRNA-3 " + guide(sequence, 2) + "\n"
@@ -117,8 +116,7 @@ public final class VaccineResearchNotes {
         ListTag pages = tag.getList("pages", Tag.TAG_STRING);
         String page = "BIOFORGE / CRISPR\n"
                 + "Batch " + data.sampleFingerprint() + "\n"
-                + "Quality " + String.format(Locale.ROOT, "%.1f%%",
-                data.quality() * 100.0f) + "\n"
+                + "Efficacy requires blood assay\n"
                 + "gRNA-1 " + data.guideOne() + "\n"
                 + "gRNA-2 " + data.guideTwo() + "\n"
                 + "gRNA-3 " + data.guideThree() + "\n"

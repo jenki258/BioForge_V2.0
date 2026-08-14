@@ -40,7 +40,7 @@ public record DirectedVaccineProfile(
     }
 
     public boolean isValid() {
-        return !strainPayload.isBlank() && strain().getPathogen() != null
+        return !strainPayload.isBlank() && strain().getPathogenId() != null
                 && category != null && target != null && !target.isBlank()
                 && actionId != null && remainingUses > 0;
     }

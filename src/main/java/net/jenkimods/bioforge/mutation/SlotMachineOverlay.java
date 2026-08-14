@@ -1,6 +1,7 @@
 package net.jenkimods.bioforge.mutation;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.registry.BioForgeSounds;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -209,7 +210,8 @@ public class SlotMachineOverlay {
                     reelVelocity[i] = 0f;
                     stoppedCount++;
                     mc.getSoundManager().play(
-                            SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_HAT.get(), 0.7f, 1.3f - i * 0.1f)
+                            SimpleSoundInstance.forUI(BioForgeSounds.UI_SATISFYING.get(),
+                                    1.05F - i * 0.08F, 0.7F)
                     );
                     screenShakeX = (RAND.nextFloat() - 0.5f) * 2f;
                     screenShakeY = (RAND.nextFloat() - 0.5f) * 2f;
@@ -220,7 +222,8 @@ public class SlotMachineOverlay {
                 revealed = true; revealTime = now;
                 screenShakeX = (RAND.nextFloat() - 0.5f) * 5f;
                 screenShakeY = (RAND.nextFloat() - 0.5f) * 5f;
-                mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.PLAYER_LEVELUP, 0.8f, 1.4f));
+                mc.getSoundManager().play(SimpleSoundInstance.forUI(
+                        BioForgeSounds.GENES_COMPLETE.get(), 1.0F, 0.85F));
                 for (int i = 0; i < 24; i++) {
                     float x = panelX + RAND.nextFloat() * panelW;
                     float y = panelY + RAND.nextFloat() * panelH;

@@ -1,9 +1,11 @@
 package net.jenkimods.bioforge.item.needle;
 
 import net.jenkimods.bioforge.blood.*;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledge;
 import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
 import net.jenkimods.bioforge.infection.*;
+import net.jenkimods.bioforge.infection.spread.ProtectiveEquipment;
 import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.jenkimods.bioforge.util.NbtObfuscator.ObfuscatedData;
@@ -54,6 +56,9 @@ public class SyringeItem extends Item {
 
         if (level.isClientSide()) return super.use(level, player, hand);
         if (!(player instanceof ServerPlayer sp)) return InteractionResultHolder.pass(stack);
+        if (ProtectiveEquipment.blocksSyringes(player)) {
+            return InteractionResultHolder.fail(stack);
+        }
 
         Long lastMobTick = lastMobInjectionTick.get(sp.getUUID());
         if (lastMobTick != null && (System.currentTimeMillis() - lastMobTick) < 50) {
@@ -95,6 +100,7 @@ public class SyringeItem extends Item {
         Level level = player.level();
         if (level.isClientSide()) return super.interactLivingEntity(stack, player, living, hand);
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.FAIL;
+        if (ProtectiveEquipment.blocksSyringes(living)) return InteractionResult.FAIL;
 
         if (!BloodSampleUtil.hasBlood(stack)) return InteractionResult.PASS;
 
@@ -114,6 +120,7 @@ public class SyringeItem extends Item {
 
     public boolean tryExtractBlood(ItemStack stack, LivingEntity target, ServerPlayer attacker) {
         if (BloodSampleUtil.hasBlood(stack)) return false;
+        if (ProtectiveEquipment.blocksSyringes(target)) return false;
         if (!NeedleItem.entityHasBlood(target)) return false;
 
         BloodData targetData = BloodCapability.get(target);
@@ -154,8 +161,9 @@ public class SyringeItem extends Item {
     private static void captureInfection(ItemStack stack, LivingEntity entity) {
         InfectionData inf = InfectionCapability.get(entity);
         if (inf == null || !inf.isInfected()) return;
-        Set<InfectionType> types = inf.getInfectionTypes();
-        if (!types.contains(InfectionType.BLOOD)) return;
+        if (!BioForgeServerConfig.isTransmissionEnabled(InfectionType.BLOOD)) return;
+        if (!net.jenkimods.bioforge.definition.BioForgeDefinitionManager
+                .hasTransmissionBehavior(inf, InfectionType.BLOOD)) return;
         String strain = buildStrainPayload(inf);
         NbtObfuscator.writeInfection(stack.getOrCreateTag(), strain);
     }
@@ -171,8 +179,12 @@ public class SyringeItem extends Item {
         String strainRaw = NbtObfuscator.readInfection(stack.getOrCreateTag());
         if (strainRaw == null || strainRaw.isEmpty()) return;
         StrainData strain = StrainData.parse(strainRaw);
+        if (!BioForgeServerConfig.isTransmissionEnabled(InfectionType.BLOOD)
+                || !net.jenkimods.bioforge.definition.BioForgeDefinitionManager
+                .hasTransmissionBehavior(strain, InfectionType.BLOOD)) return;
         InfectionData data = InfectionCapability.get(target);
-        if (data != null) {
+        if (data != null && target.getRandom().nextFloat()
+                < BioForgeServerConfig.bloodExposureChance()) {
             strain.applyToEntity(data, target);
         }
     }

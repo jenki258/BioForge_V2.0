@@ -1,6 +1,7 @@
 package net.jenkimods.bioforge.item.crispr;
 
 import net.jenkimods.bioforge.crispr.VaccineTargetCategory;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.jenkimods.bioforge.crispr.CrisprDisplayNames;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
@@ -82,7 +83,7 @@ public class GeneImprintItem extends Item {
 
     public static boolean captureUnknown(ItemStack stack, StrainData strain, RandomSource random) {
         if (!(stack.getItem() instanceof GeneImprintItem)
-                || strain == null || strain.getPathogen() == null) {
+                || strain == null || strain.getPathogenId() == null) {
             return false;
         }
         List<Candidate> candidates = allCandidates(strain);
@@ -113,9 +114,31 @@ public class GeneImprintItem extends Item {
         NbtObfuscator.writeCompound(root, CHANNEL, tag);
     }
 
+    public static boolean copy(ItemStack source, ItemStack destination) {
+        Data data = read(source);
+        if (data == null || !isBlank(destination)) return false;
+        write(destination, data);
+        return true;
+    }
+
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        InteractionHand otherHand = hand == InteractionHand.MAIN_HAND
+                ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+        ItemStack other = player.getItemInHand(otherHand);
+        if (other.getItem() instanceof GeneImprintItem) {
+            ItemStack source = read(stack) != null ? stack : other;
+            ItemStack destination = source == stack ? other : stack;
+            if (copy(source, destination)) {
+                if (!level.isClientSide()) {
+                    player.displayClientMessage(Component.translatable(
+                            "message.bioforge.gene_imprint.copied")
+                            .withStyle(ChatFormatting.AQUA), true);
+                }
+                return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+            }
+        }
         if (!level.isClientSide()) {
             player.displayClientMessage(Component.translatable(
                     read(stack) == null
@@ -154,7 +177,8 @@ public class GeneImprintItem extends Item {
         List<String> values = new ArrayList<>();
         switch (category) {
             case MUTATION -> values.addAll(strain.getMutationIds());
-            case TRANSMISSION -> strain.getInfectionTypes().forEach(type -> values.add(type.name()));
+            case TRANSMISSION -> strain.getTransmissionIds()
+                    .forEach(type -> values.add(BioForgeIds.legacyCompatible(type)));
             case SYMPTOM -> strain.getSymptoms().forEach((id, value) -> {
                 var key = BioForgeSymptoms.getAllSymptomKeys().get(id);
                 if (key == null || !value.equals(serialize(key.getDefaultValue()))) {
@@ -188,6 +212,8 @@ public class GeneImprintItem extends Item {
                     .withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.translatable("item.bioforge.gene_imprint.extract")
                     .withStyle(ChatFormatting.DARK_GRAY));
+            tooltip.add(Component.translatable("item.bioforge.gene_imprint.copy_hint")
+                    .withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
         tooltip.add(Component.translatable("item.bioforge.gene_imprint.fingerprint",
@@ -205,5 +231,7 @@ public class GeneImprintItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.gene_imprint.target",
                         CrisprDisplayNames.target(data.category(), data.target()))
                 .withStyle(ChatFormatting.WHITE));
+        tooltip.add(Component.translatable("item.bioforge.gene_imprint.copy_hint")
+                .withStyle(ChatFormatting.DARK_GRAY));
     }
 }

@@ -23,7 +23,7 @@ import java.util.UUID;
 public final class VaccineProfile {
     public static final String ROOT_TAG = "BioForgeVaccine";
     private static final String CHANNEL = "vaccine";
-    public static final int CURRENT_VERSION = 1;
+    public static final int CURRENT_VERSION = 2;
     public static final int MAX_PAYLOAD_LENGTH = 32_767;
     public static final int MAX_USES = 64;
 
@@ -34,6 +34,7 @@ public final class VaccineProfile {
     private static final String DEFENSE_RISK_TAG = "DefenseMutationChance";
     private static final String BATCH_ID_TAG = "BatchId";
     private static final String CREATED_AT_TAG = "CreatedAt";
+    private static final String CRISPR_SEQUENCE_TAG = "CrisprSequence";
 
     private final String strainPayload;
     private final float quality;
@@ -41,20 +42,31 @@ public final class VaccineProfile {
     private final float defenseMutationChance;
     private final UUID batchId;
     private final long createdAt;
+    private final String crisprSequence;
 
     public VaccineProfile(String strainPayload, float quality, int remainingUses,
                           float defenseMutationChance, UUID batchId, long createdAt) {
+        this(strainPayload, quality, remainingUses, defenseMutationChance,
+                batchId, createdAt, "");
+    }
+
+    public VaccineProfile(String strainPayload, float quality, int remainingUses,
+                          float defenseMutationChance, UUID batchId, long createdAt,
+                          String crisprSequence) {
         this.strainPayload = Objects.requireNonNull(strainPayload, "strainPayload");
         this.quality = sanitizeProbability(quality, 0.75f);
         this.remainingUses = Mth.clamp(remainingUses, 1, MAX_USES);
         this.defenseMutationChance = sanitizeProbability(defenseMutationChance, 0.18f);
         this.batchId = Objects.requireNonNull(batchId, "batchId");
         this.createdAt = Math.max(0L, createdAt);
+        this.crisprSequence = crisprSequence != null
+                && crisprSequence.matches("[ACGTN]{60}")
+                ? crisprSequence : "";
     }
 
     public static VaccineProfile capture(InfectionData data, float quality, int uses,
                                          float defenseMutationChance, long gameTime) {
-        if (data == null || !data.isInfected() || data.getPathogenType() == null) {
+        if (data == null || !data.isInfected() || data.getPathogenId() == null) {
             throw new IllegalArgumentException("Cannot create a vaccine from a clean infection profile");
         }
         StrainData strain = StrainData.buildFrom(data);
@@ -90,14 +102,19 @@ public final class VaccineProfile {
         return createdAt;
     }
 
+    public String crisprSequence() {
+        return crisprSequence;
+    }
+
     public VaccineProfile withRemainingUses(int uses) {
-        return new VaccineProfile(strainPayload, quality, uses, defenseMutationChance, batchId, createdAt);
+        return new VaccineProfile(strainPayload, quality, uses, defenseMutationChance,
+                batchId, createdAt, crisprSequence);
     }
 
     public boolean isValid() {
         if (strainPayload.isBlank() || strainPayload.length() > MAX_PAYLOAD_LENGTH) return false;
         StrainData parsed = strain();
-        return parsed.getPathogen() != null && remainingUses > 0;
+        return parsed.getPathogenId() != null && remainingUses > 0;
     }
 
     public void write(ItemStack stack) {
@@ -109,6 +126,9 @@ public final class VaccineProfile {
         vaccineTag.putFloat(DEFENSE_RISK_TAG, defenseMutationChance);
         vaccineTag.putUUID(BATCH_ID_TAG, batchId);
         vaccineTag.putLong(CREATED_AT_TAG, createdAt);
+        if (!crisprSequence.isBlank()) {
+            vaccineTag.putString(CRISPR_SEQUENCE_TAG, crisprSequence);
+        }
         CompoundTag root = stack.getOrCreateTag();
         root.remove(ROOT_TAG);
         NbtObfuscator.writeCompound(root, CHANNEL, vaccineTag);
@@ -142,7 +162,8 @@ public final class VaccineProfile {
         long createdAt = vaccineTag.getLong(CREATED_AT_TAG);
 
         VaccineProfile result =
-                new VaccineProfile(payload, quality, uses, defenseRisk, batch, createdAt);
+                new VaccineProfile(payload, quality, uses, defenseRisk, batch, createdAt,
+                        version >= 2 ? vaccineTag.getString(CRISPR_SEQUENCE_TAG) : "");
         return result.isValid() ? result : null;
     }
 

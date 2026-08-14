@@ -62,7 +62,8 @@ public final class StrainImmunityInventoryOverlay {
         List<StrainImmunity> immunities = source.stream()
                 .map(immunity -> new StrainImmunity(immunity.fingerprint(),
                         immunity.displayName(),
-                        (int) Math.max(0L, immunity.remainingTicks() - elapsed)))
+                        (int) Math.max(0L, immunity.remainingTicks() - elapsed),
+                        immunity.strength()))
                 .filter(StrainImmunity::isActive)
                 .sorted(Comparator.comparing(StrainImmunity::displayName))
                 .toList();
@@ -85,10 +86,7 @@ public final class StrainImmunityInventoryOverlay {
         tooltip.add(Component.translatable("gui.bioforge.immunity.title", immunities.size())
                 .withStyle(ChatFormatting.AQUA));
         for (StrainImmunity immunity : immunities) {
-            tooltip.add(Component.translatable("gui.bioforge.immunity.entry",
-                    immunityName(immunity),
-                    StringUtil.formatTickDuration(immunity.remainingTicks()))
-                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(protectionEntry(immunity));
         }
         graphics.renderTooltip(minecraft.font, tooltip, Optional.empty(),
                 event.getMouseX(), event.getMouseY());
@@ -120,10 +118,7 @@ public final class StrainImmunityInventoryOverlay {
         tooltip.add(Component.translatable("gui.bioforge.immunity.title", immunities.size())
                 .withStyle(ChatFormatting.AQUA));
         for (StrainImmunity immunity : immunities) {
-            tooltip.add(Component.translatable("gui.bioforge.immunity.entry",
-                    immunityName(immunity),
-                    StringUtil.formatTickDuration(immunity.remainingTicks()))
-                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(protectionEntry(immunity));
         }
         event.getGuiGraphics().renderTooltip(minecraft.font, tooltip, Optional.empty(),
                 event.getMouseX(), event.getMouseY());
@@ -138,5 +133,19 @@ public final class StrainImmunityInventoryOverlay {
             return Component.translatable("gui.bioforge.immunity.uncatalogued");
         }
         return Component.literal(stored);
+    }
+
+    private static Component protectionEntry(StrainImmunity immunity) {
+        if (immunity.strength() >= 0.999F) {
+            return Component.translatable("gui.bioforge.immunity.entry",
+                    immunityName(immunity),
+                    StringUtil.formatTickDuration(immunity.remainingTicks()))
+                    .withStyle(ChatFormatting.GRAY);
+        }
+        return Component.translatable("gui.bioforge.resistance.entry",
+                immunityName(immunity),
+                Math.round(immunity.strength() * 100.0F),
+                StringUtil.formatTickDuration(immunity.remainingTicks()))
+                .withStyle(ChatFormatting.GOLD);
     }
 }

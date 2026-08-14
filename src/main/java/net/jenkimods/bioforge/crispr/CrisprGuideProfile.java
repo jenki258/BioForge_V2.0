@@ -3,6 +3,7 @@ package net.jenkimods.bioforge.crispr;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -78,7 +79,7 @@ public record CrisprGuideProfile(
     }
 
     public String deriveSequence(StrainData strain) {
-        if (strain == null || strain.getPathogen() == null) return "";
+        if (strain == null || strain.getPathogenId() == null) return "";
         StringBuilder result = new StringBuilder(BASE_COUNT);
         for (GuideRole role : guides) {
             String canonical = canonicalize(strain, role.sources());
@@ -120,9 +121,11 @@ public record CrisprGuideProfile(
         for (String selector : selectors) {
             switch (selector) {
                 case "pathogen" -> result.add("pathogen="
-                        + (strain.getPathogen() == null ? "UNKNOWN" : strain.getPathogen().name()));
-                case "transmission" -> result.add("transmission=" + strain.getInfectionTypes()
-                        .stream().map(Enum::name).sorted().reduce((a, b) -> a + "," + b).orElse(""));
+                        + (strain.getPathogenId() == null ? "UNKNOWN"
+                        : BioForgeIds.legacyCompatible(strain.getPathogenId())));
+                case "transmission" -> result.add("transmission=" + strain.getTransmissionIds()
+                        .stream().map(BioForgeIds::legacyCompatible).sorted()
+                        .reduce((a, b) -> a + "," + b).orElse(""));
                 case "symptoms" -> result.add("symptoms=" + strain.getSymptoms().entrySet().stream()
                         .sorted(Map.Entry.comparingByKey())
                         .map(entry -> entry.getKey() + "=" + entry.getValue())
@@ -130,7 +133,8 @@ public record CrisprGuideProfile(
                 case "mutations" -> result.add("mutations=" + strain.getMutationIds().stream()
                         .sorted(Comparator.naturalOrder()).reduce((a, b) -> a + "," + b).orElse(""));
                 case "core" -> result.add("core="
-                        + (strain.getPathogen() == null ? "UNKNOWN" : strain.getPathogen().name())
+                        + (strain.getPathogenId() == null ? "UNKNOWN"
+                        : BioForgeIds.legacyCompatible(strain.getPathogenId()))
                         + ";" + strain.getSymptoms().entrySet().stream()
                         .filter(entry -> entry.getKey().equals("infection_strength")
                                 || entry.getKey().equals("colony_radius")

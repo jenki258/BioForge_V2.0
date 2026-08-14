@@ -1,0 +1,41 @@
+{
+  "order": 200,
+  "unlock_items": ["bioforge:wooden_needle", "bioforge:iron_needle", "bioforge:syringe", "bioforge:tube", "bioforge:centrifuge"],
+  "recipes": ["bioforge:wooden_needle", "bioforge:iron_needle", "bioforge:hardened_needle", "bioforge:syringe", "bioforge:tube", "bioforge:blood_slide", "bioforge:anti_a_vial", "bioforge:anti_b_vial", "bioforge:anti_d_vial", "bioforge:bone_saw", "bioforge:decalcification_fluid", "bioforge:centrifuge"],
+  "title": { "text": "2. BLOOD LAB", "color": "dark_aqua", "bold": true },
+  "content": [
+    {
+      "component": {
+        "text": "Collect blood with a needle or Syringe, then transfer it to a Test Tube.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "The Centrifuge separates blood into Plasma and Cell Pellet. Anti-A, Anti-B and Anti-D reagents reveal the blood profile.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "Blood can carry a blood-borne infection, so sterilize empty tools before reuse.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "Never assume that matching ABO type is enough. Rh compatibility and strain-specific mutations can change vaccine performance, while infected blood preserves the exact strain for assays and culture work.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": { "text": "[Return to contents]", "color": "dark_aqua", "underlined": true },
+      "link": "bioforge:contents",
+      "line_breaks": 0
+    }
+  ]
+}

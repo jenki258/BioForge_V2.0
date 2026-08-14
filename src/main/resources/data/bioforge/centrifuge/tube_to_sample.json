@@ -1,8 +1,14 @@
 {
-  "input": "bioforge:tube",
+  "input": "#bioforge:ingredients/bioforge/tube",
   "outputs": [
-    { "item": "bioforge:plasma_sample", "weight": 1 },
-    { "item": "bioforge:cell_pellet",  "weight": 1 }
+    {
+      "item": "bioforge:plasma_sample",
+      "weight": 1
+    },
+    {
+      "item": "bioforge:cell_pellet",
+      "weight": 1
+    }
   ],
   "copy_blood_data": true,
   "copy_infection": true,

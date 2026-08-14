@@ -1,0 +1,28 @@
+{
+  "order": 450,
+  "unlock_items": ["bioforge:gene_imprint", "bioforge:virus_sample", "bioforge:live_culture_vial", "bioforge:random_mutation_vaccine"],
+  "title": { "text": "MUTATIONS", "color": "dark_aqua", "bold": true },
+  "content": [
+    {
+      "component": {
+        "text": "Mutations may alter symptoms, host abilities, transmission routes, environmental survival and treatment resistance. Some are beneficial to the host while making the strain more difficult to contain.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "Mutations can require, conflict with, remove or strengthen one another. Vaccine Defense combined with Hypervirulence can form Reinforced Vaccine Defense; respiratory and spore traits can create stronger airborne strains.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "A random mutation treatment never identifies its result. Return the changed strain to the laboratory and verify it instead of trusting the animation.",
+        "color": "black"
+      },
+      "line_breaks": 0
+    }
+  ]
+}

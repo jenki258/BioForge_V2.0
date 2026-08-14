@@ -1,14 +1,21 @@
 {
   "type": "minecraft:crafting_shapeless",
+  "category": "misc",
   "ingredients": [
     {
-      "item": "minecraft:paper"
+      "tag": "bioforge:ingredients/bioforge/sterile_polymer_sheet"
     },
     {
-      "item": "minecraft:redstone"
+      "tag": "bioforge:ingredients/minecraft/paper"
     },
     {
-      "item": "minecraft:amethyst_shard"
+      "tag": "bioforge:ingredients/minecraft/redstone"
+    },
+    {
+      "tag": "bioforge:ingredients/minecraft/amethyst_shard"
+    },
+    {
+      "tag": "bioforge:ingredients/bioforge/sterile_filter"
     }
   ],
   "result": {

@@ -2,6 +2,8 @@ package net.jenkimods.bioforge.client;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.item.vaccine.VaccineItem;
+import net.jenkimods.bioforge.vaccine.SymptomTabletProfile;
+import net.jenkimods.bioforge.item.reagents.DiagnosticReagentItem;
 import net.jenkimods.bioforge.vaccine.VaccineProfile;
 import net.jenkimods.bioforge.vaccine.DirectedVaccineProfile;
 import net.minecraft.nbt.CompoundTag;
@@ -37,12 +39,19 @@ public class VialColorHandler {
                 BioForge.ANTI_B_VIAL.get(),
                 BioForge.ANTI_D_VIAL.get()
         );
+        event.register(VialColorHandler::getDiagnosticReagentColor,
+                BioForge.PATHOGEN_REAGENT.get(),
+                BioForge.VISIBILITY_REAGENT.get());
         event.register(VialColorHandler::getVaccineColor,
                 BioForge.VACCINE.get(),
                 BioForge.MUTATION_VACCINE.get(),
                 BioForge.TRANSMISSION_VACCINE.get(),
                 BioForge.SYMPTOM_VACCINE.get(),
                 BioForge.RANDOM_MUTATION_VACCINE.get());
+        event.register(VialColorHandler::getSymptomTabletColor,
+                BioForge.SYMPTOM_TABLET.get());
+        event.register((stack, tintIndex) -> tintIndex == 1 ? 0x7A193D : 0xFFFFFF,
+                BioForge.WINE_MUST.get());
     }
 
     private static int getVialColor(ItemStack stack, int tintIndex) {
@@ -60,6 +69,11 @@ public class VialColorHandler {
         return reacted ? COLOR_POSITIVE_HUMAN : COLOR_NEGATIVE_HUMAN;
     }
 
+    private static int getDiagnosticReagentColor(ItemStack stack, int tintIndex) {
+        return tintIndex == 1
+                ? DiagnosticReagentItem.getLiquidColor(stack) : 0xFFFFFF;
+    }
+
     private static int getVaccineColor(ItemStack stack, int tintIndex) {
         if (tintIndex != 1) return 0xFFFFFF;
 
@@ -69,16 +83,54 @@ public class VialColorHandler {
         if (profile == null && directed == null) return defaultColor(kind);
 
         String payload = profile != null ? profile.strainPayload() : directed.strainPayload();
-        float quality = profile != null ? profile.quality() : directed.quality();
         int hash = canonicalVisualPayload(payload).hashCode();
 
 
 
         float hue = baseHue(kind) + unitByte(hash) * 0.08f - 0.04f;
         float saturation = clamp(0.62f + unitByte(hash >>> 8) * 0.20f, 0.0f, 1.0f);
-        float brightness = clamp(0.48f + quality * 0.42f
-                + (unitByte(hash >>> 16) - 0.5f) * 0.08f, 0.0f, 1.0f);
+        float brightness = clamp(0.72f
+                + (unitByte(hash >>> 16) - 0.5f) * 0.12f, 0.0f, 1.0f);
         return hsvToRgb(hue, saturation, brightness);
+    }
+
+    private static int getSymptomTabletColor(ItemStack stack, int tintIndex) {
+        if (tintIndex != 0) return 0xFFFFFF;
+        SymptomTabletProfile profile = SymptomTabletProfile.read(stack);
+        if (profile == null) return 0xD8D2C4;
+        String symptom = profile.symptomId();
+        if (symptom.contains("temperature_plus") || symptom.contains("fever")
+                || symptom.contains("heat")) return qualityColor(0xE45B3C, profile.quality());
+        if (symptom.contains("temperature_minus") || symptom.contains("cold")
+                || symptom.contains("chill")) return qualityColor(0x59C7E8, profile.quality());
+        if (symptom.contains("oxygen") || symptom.contains("lung")
+                || symptom.contains("respir")) return qualityColor(0x4CA9D9, profile.quality());
+        if (symptom.contains("heart") || symptom.contains("blood")
+                || symptom.contains("perfusion")) return qualityColor(0xD94B63, profile.quality());
+        if (symptom.contains("neural") || symptom.contains("reflex")) {
+            return qualityColor(0x8C6DDB, profile.quality());
+        }
+        if (symptom.contains("lesion") || symptom.contains("redness")) {
+            return qualityColor(0xB94747, profile.quality());
+        }
+        if (symptom.contains("secretion")) return qualityColor(0x75B85A, profile.quality());
+        if (symptom.contains("swelling")) return qualityColor(0xD6A84B, profile.quality());
+        if (symptom.contains("infection_strength")) {
+            return qualityColor(0xA43A73, profile.quality());
+        }
+        int hash = symptom.hashCode();
+        float hue = unitByte(hash) * 0.82F;
+        float saturation = 0.55F + unitByte(hash >>> 8) * 0.25F;
+        float brightness = 0.72F + profile.quality() * 0.18F;
+        return hsvToRgb(hue, saturation, brightness);
+    }
+
+    private static int qualityColor(int rgb, float quality) {
+        float factor = 0.72F + clamp(quality, 0.0F, 1.0F) * 0.28F;
+        int red = Math.min(255, Math.round(((rgb >>> 16) & 0xFF) * factor));
+        int green = Math.min(255, Math.round(((rgb >>> 8) & 0xFF) * factor));
+        int blue = Math.min(255, Math.round((rgb & 0xFF) * factor));
+        return (red << 16) | (green << 8) | blue;
     }
 
     private static VaccineItem.Kind visualKind(ItemStack stack,

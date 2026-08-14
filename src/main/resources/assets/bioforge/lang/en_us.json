@@ -4,12 +4,35 @@
   "itemGroup.bioforge.reagents_tab":  "BioForge - Reagents",
   "itemGroup.bioforge.machinery_tab": "BioForge - Machinery",
   "itemGroup.bioforge.samples_tab":   "BioForge - Samples",
+  "itemGroup.bioforge.materials_tab": "BioForge - Materials",
+
+  "item.bioforge.activated_carbon": "Activated Carbon",
+  "item.bioforge.laboratory_waste": "Laboratory Waste",
+  "item.bioforge.black_steel_blend": "Black Steel Blend",
+  "item.bioforge.black_steel_ingot": "Black Steel Ingot",
+  "item.bioforge.black_steel_nugget": "Black Steel Nugget",
+  "item.bioforge.black_steel_plate": "Black Steel Plate",
+  "item.bioforge.reinforced_glass": "Reinforced Glass",
+  "item.bioforge.agar_powder": "Agar Powder",
+  "item.bioforge.sulfuric_acid": "Sulfuric Acid",
+  "item.bioforge.sterilizing_solution": "Sterilizing Solution",
+  "item.bioforge.polymer_resin": "Polymer Resin",
+  "item.bioforge.sterile_polymer_sheet": "Sterile Polymer Sheet",
+  "item.bioforge.laboratory_glassware": "Laboratory Glassware",
+  "item.bioforge.sterile_filter": "Sterile Filter",
+  "item.bioforge.optical_lens": "Optical Lens",
+  "item.bioforge.precision_mechanism": "Precision Mechanism",
+  "item.bioforge.electronic_control_unit": "Electronic Control Unit",
+  "item.bioforge.laboratory_frame": "Laboratory Frame",
+  "item.bioforge.biomedical_processor": "Biomedical Processor",
+  "block.bioforge.black_steel_block": "Black Steel Block",
+  "block.bioforge.colony_core": "Colony Core",
 
   "key.bioforge.reflex_strike": "Reflex Hammer Strike",
   "key.categories.bioforge": "BioForge",
 
   "item.bioforge.wooden_needle":   "Wooden Needle",
-  "item.bioforge.iron_needle":     "Iron Needle",
+  "item.bioforge.iron_needle":     "Black Steel Needle",
   "item.bioforge.hardened_needle": "Hardened Needle",
   "item.bioforge.needle.tooltip.use_self": "Right-click to draw your own blood",
   "item.bioforge.needle.tooltip.use_other": "Attack a mob to collect its blood",
@@ -20,6 +43,20 @@
   "item.bioforge.anti_a_vial": "Anti-A Reagent",
   "item.bioforge.anti_b_vial": "Anti-B Reagent",
   "item.bioforge.anti_d_vial": "Anti-D Reagent",
+  "item.bioforge.pathogen_reagent": "Pathogen Reagent",
+  "item.bioforge.visibility_reagent": "Visibility Reagent",
+
+  "item.bioforge.pathogen_reagent.description": "Identifies the pathogen class in infected blood",
+  "item.bioforge.pathogen_reagent.result": "Detected pathogen: %s",
+  "item.bioforge.pathogen_reagent.negative": "No pathogen detected",
+  "item.bioforge.visibility_reagent.description": "Tests how readily an infection reacts to contrast reagent",
+  "item.bioforge.visibility_reagent.result": "Reaction intensity: %s",
+  "item.bioforge.visibility_reagent.negative": "No visible reaction",
+  "item.bioforge.visibility_reagent.inconclusive": "A weak infection may produce a false negative",
+  "item.bioforge.diagnostic_reagent.instructions": "Hold a blood sample in the other hand and right-click",
+  "item.bioforge.diagnostic_reagent.no_sample": "Hold a filled blood sample in your other hand.",
+  "item.bioforge.diagnostic_reagent.already_used": "This reagent has already been used.",
+  "item.bioforge.diagnostic_reagent.spent": "Single use — spent",
 
   "item.bioforge.needle.tooltip.source":      "Name: %s",
   "item.bioforge.needle.tooltip.blood_type":  "Blood type: %s",
@@ -282,6 +319,7 @@
   "item.bioforge.swab.tooltip.contaminated": "Contains a sample",
   "item.bioforge.swab.tooltip.used": "Sample already transferred",
   "item.bioforge.swab.collected_self": "Sample collected from yourself.",
+  "item.bioforge.swab.collected_clean_self": "Clean control sample collected from yourself.",
   "item.bioforge.swab.collected": "Sample collected from %s",
   "item.bioforge.swab.blocked": "%s cannot be swabbed",
   "item.bioforge.petri_dish.harvested": "Sample collected from dish.",
@@ -339,6 +377,11 @@
   "item.bioforge.tube.syringe_full": "The syringe is already full.",
   "item.bioforge.tube.transferred_to_syringe": "Blood transferred from the tube back into the syringe.",
   "item.bioforge.tube.tooltip.return_to_syringe": "Right-click with an empty or same-type syringe in the other hand",
+  "item.bioforge.tube.assay_contaminated": "This blood is part of a vaccine assay and cannot be returned to a syringe.",
+  "item.bioforge.tube.assay.pending": "Vaccinated blood assay: unscanned",
+  "item.bioforge.tube.assay.scanned": "Vaccinated blood assay: scanned",
+  "item.bioforge.tube.assay.result": "Measured efficacy: %s",
+  "item.bioforge.tube.assay.microscope_hint": "Calibrate and scan this sample in a microscope",
 
   "item.bioforge.plasma_sample": "Plasma Sample",
   "item.bioforge.plasma_sample.empty": "Empty plasma sample",
@@ -383,14 +426,30 @@
   "microscope.symptom.perfusion_index": "Perfusion Index",
   "microscope.symptom.colony_radius": "Colony Radius",
   "microscope.symptom.max_infested_blocks": "Infestation Capacity",
+  "microscope.value.present": "Detected",
+  "microscope.value.absent": "Not detected",
   "microscope.symptom.microscope_visibility": "Microscope Visibility",
+  "microscope.symptom.microscope_visibility.none": "Undetectable",
+  "microscope.symptom.microscope_visibility.very_low": "Trace",
+  "microscope.symptom.microscope_visibility.low": "Low",
+  "microscope.symptom.microscope_visibility.medium": "Medium",
+  "microscope.symptom.microscope_visibility.high": "High",
+  "microscope.symptom.microscope_visibility.extreme": "Extreme",
+  "microscope.symptom.growth_stage": "Culture Growth Stage",
   "microscope.calibration.brightness": "Brightness",
   "microscope.calibration.zoom": "Zoom",
   "microscope.calibration.saturation": "Saturation",
   "microscope.calibration.contrast": "Contrast",
   "microscope.calibration.focus": "Focus",
   "microscope.calibration.spectrum": "Spectrum",
+  "microscope.calibration.phase": "Phase alignment",
+  "microscope.calibration.stability": "Signal stability",
   "gui.bioforge.microscope.identify": "SCAN",
+  "gui.bioforge.microscope.scan": "SCAN",
+  "gui.bioforge.microscope.assay.pending": "CALIBRATE",
+  "gui.bioforge.microscope.assay.result": "EFFICACY",
+  "message.bioforge.microscope.calibration_incomplete": "The microscope calibration is incomplete.",
+  "message.bioforge.microscope.assay_complete": "Vaccine blood assay completed.",
 
   "block.bioforge.incubator": "Incubator",
 
@@ -404,7 +463,7 @@
   "item.bioforge.catalyst_vial.invalid_reagent": "That item does not contain a valid pathogen!",
   "item.bioforge.catalyst_vial.already_set": "This catalyst vial already contains a pathogen – it cannot be changed.",
   "item.bioforge.catalyst_vial.mappings_header": "Reagents:",
-  "item.bioforge.catalyst_vial.nether_star_hint": "Nether Star → Random pathogen",
+  "item.bioforge.catalyst_vial.nether_star_hint": "Nether Star → Random pathogen (rare Universal chance)",
   "item.bioforge.catalyst_vial.place_in_incubator": "Place in the Incubator with Nutrient Medium to grow a virus.",
 
   "item.bioforge.nutrient_medium": "Nutrient Medium",
@@ -415,6 +474,7 @@
   "item.bioforge.virus_sample.filled": "Virus Sample",
   "item.bioforge.virus_sample.pathogen": "Pathogen: %s",
   "item.bioforge.virus_sample.stats": "Strain stats:",
+  "item.bioforge.virus_sample.sealed_profile": "Genetic profile sealed; use laboratory equipment for analysis",
   "item.bioforge.virus_sample.use_in_incubator": "Place in Incubator top slot to grow into Live Culture Vials.",
   "item.bioforge.virus_sample.use_with_live_culture": "Place empty Live Culture Vials in the bottom slots.",
   "item.bioforge.virus_sample.tooltip": "Created in the Incubator using a Catalyst Vial and Nutrient Medium.",
@@ -437,6 +497,19 @@
   "item.bioforge.dirty_culture_vial.tooltip.clean": "Clean it with Ethanol or a Wipe to reuse.",
 
   "item.bioforge.ethanol": "Ethanol",
+  "subtitles.bioforge.symptom.cough": "Someone coughs",
+  "subtitles.bioforge.symptom.sneeze": "Someone sneezes",
+  "subtitles.bioforge.symptom.paranoia_voice": "Indistinct voices whisper",
+  "subtitles.bioforge.machine.disinfecting": "Equipment is disinfected",
+  "subtitles.bioforge.machine.genes_complete": "Gene synthesis completes",
+  "subtitles.bioforge.machine.emergency": "Laboratory alarm sounds",
+  "subtitles.bioforge.machine.testing_complete": "Analysis completes",
+  "subtitles.bioforge.machine.centrifuge": "Centrifuge spins up",
+  "subtitles.bioforge.machine.liquid_pour": "Liquid pours",
+  "subtitles.bioforge.machine.chemicals_complete": "Chemical process completes",
+  "subtitles.bioforge.ui.button": "Interface button clicks",
+  "subtitles.bioforge.ui.satisfying": "Mutation reel locks",
+  "item.bioforge.wine_must": "Wine Must",
   "item.bioforge.ethanol.cleaned": "Culture Vial cleaned!",
   "item.bioforge.ethanol.syringe_cleaned": "Syringe infection wiped clean.",
   "item.bioforge.ethanol.syringe_not_empty": "Syringe must be empty of blood first.",
@@ -459,7 +532,7 @@
 
   "item.bioforge.vaccine": "Strain Vaccine",
   "item.bioforge.vaccine.empty": "Unconfigured vaccine",
-  "item.bioforge.vaccine.empty_hint": "Use as the carrier in a Vaccine Maker; admins may also use /bioforge vaccinemake",
+  "item.bioforge.vaccine.empty_hint": "Use as the carrier in a Vaccine Maker.",
   "item.bioforge.vaccine.pathogen": "Target pathogen: %s",
   "item.bioforge.vaccine.quality": "Batch quality: %s",
   "item.bioforge.vaccine.uses": "Doses remaining: %s",
@@ -467,6 +540,7 @@
   "item.bioforge.vaccine.defense_risk": "Base immune-escape risk on failure: %s",
   "item.bioforge.vaccine.use": "Right-click yourself or use directly on another living entity",
   "item.bioforge.vaccine.match_hint": "Compares pathogen, transmission, symptoms, and mutations",
+  "item.bioforge.vaccine.assay_hint": "Use with a blood-filled tube to prepare a hidden efficacy assay",
   "item.bioforge.vaccine.immunity_hint": "Successful use grants temporary immunity to this exact strain",
   "item.bioforge.vaccine.strength_hint": "Stronger infections are harder to cure",
   "item.bioforge.vaccine.failure_hint": "A failed dose may select for vaccine defense",
@@ -491,6 +565,8 @@
   "message.bioforge.vaccine.immunized_hidden": "%s now has temporary exact-strain immunity.",
   "message.bioforge.vaccine.resisted_hidden": "%s showed no conclusive therapeutic response.",
   "message.bioforge.vaccine.mismatch_hidden": "%s rejected the batch profile.",
+  "message.bioforge.vaccine.assay_created": "Vaccinated blood assay prepared. Calibrate it in a microscope.",
+  "message.bioforge.vaccine.assay_invalid": "This vaccine and blood tube cannot form a new assay.",
 
   "command.bioforge.vaccinemake.not_living": "%s is not a living vaccine source.",
   "command.bioforge.vaccinemake.not_infected": "%s does not have an infection to profile.",
@@ -503,6 +579,17 @@
   "item.bioforge.transmission_vaccine": "Transmission Vaccine",
   "item.bioforge.symptom_vaccine": "Symptom Vaccine",
   "item.bioforge.random_mutation_vaccine": "Random Mutation Vaccine",
+  "item.bioforge.viral_suppressor_pill": "Viral Suppressor Pill",
+  "item.bioforge.viral_inhibitor_pill": "Viral Inhibitor Pill",
+  "item.bioforge.viral_blocker_pill": "Viral Blocker Pill",
+  "item.bioforge.resistance_pill.blank": "Unencoded prophylactic compound",
+  "item.bioforge.resistance_pill.blank_hint": "Encode this pill for a strain in the Vaccine Maker",
+  "item.bioforge.resistance_pill.target": "Target strain signature: %s",
+  "item.bioforge.resistance_pill.strength": "Exposure resistance: %s%%",
+  "item.bioforge.resistance_pill.duration": "Protection duration: %s",
+  "item.bioforge.resistance_pill.warning": "Prophylactic only: does not cure an active infection",
+  "message.bioforge.resistance_pill.blank": "This pill has no encoded strain target.",
+  "message.bioforge.resistance_pill.applied": "Exact-strain resistance active: %s%%.",
   "item.bioforge.random_mutation_vaccine.encoded": "Experimental mutagenic dose",
   "item.bioforge.random_mutation_vaccine.warning": "Introduces one unknown compatible mutation into a matching active infection",
   "item.bioforge.crispr_cartridge": "CRISPR gRNA Cartridge",
@@ -521,6 +608,8 @@
   "item.bioforge.cas_module.cycle": "Right-click to cycle the loaded Cas/PAM definition",
   "item.bioforge.gene_imprint": "Gene Imprint",
   "item.bioforge.gene_imprint.empty": "Blank gene imprint",
+  "item.bioforge.gene_imprint.copy_hint": "Right-click while holding a blank Gene Imprint in the other hand to copy",
+  "message.bioforge.gene_imprint.copied": "Gene Imprint copied.",
   "item.bioforge.gene_imprint.capture": "Use on an infected entity to record a target",
   "item.bioforge.gene_imprint.category": "Target class: %s",
   "item.bioforge.gene_imprint.target": "Target gene: %s",
@@ -533,12 +622,14 @@
   "item.bioforge.crispr_notes.blank": "Blank CRISPR research medium",
   "item.bioforge.crispr_notes.batch": "Strain signature: %s",
   "item.bioforge.crispr_notes.quality": "Recorded quality: %s",
+  "item.bioforge.crispr_notes.assay_required": "Efficacy not measured; blood assay required",
   "item.bioforge.crispr_notes.hint_template": "Install all 15 cartridges to restore these 60 bases in the Vaccine Maker",
   "item.bioforge.crispr_notes.hint_copy": "Hold paper in the other hand and right-click to clone",
   "item.bioforge.crispr_notes.hint_book": "Hold a Book and Quill in the other hand to append the data",
   "vaccine.category.mutation": "Mutation",
   "vaccine.category.transmission": "Transmission",
   "vaccine.category.symptom": "Symptom",
+  "gui.bioforge.research.unknown": "Unknown target",
   "item.bioforge.directed_vaccine.category": "Directed edit: %s",
   "item.bioforge.directed_vaccine.target": "Gene target: %s",
   "item.bioforge.directed_vaccine.auto_opposite": "Removes/reduces the target if present; introduces it if absent",
@@ -587,10 +678,10 @@
   "gui.bioforge.vaccine_maker.quality.optimal": "OPTIMAL",
   "gui.bioforge.vaccine_maker.quality.research": "RESEARCH",
   "gui.bioforge.vaccine_maker.quality.record_only": "LOGGED ONLY",
-  "gui.bioforge.vaccine_maker.status.0": "Insert a valid JSON recipe",
+  "gui.bioforge.vaccine_maker.status.0": "Insert materials for a valid synthesis protocol",
   "gui.bioforge.vaccine_maker.status.1": "Sequence ready",
   "gui.bioforge.vaccine_maker.status.2": "Synthesis in progress",
-  "gui.bioforge.vaccine_maker.status.3": "Quality below recipe minimum",
+  "gui.bioforge.vaccine_maker.status.3": "The current synthesis parameters were rejected",
   "gui.bioforge.vaccine_maker.status.4": "Output slot is occupied",
   "gui.bioforge.vaccine_maker.status.5": "Sequence destabilized; source strain changed",
   "gui.bioforge.vaccine_maker.status.extract": "Gene extraction mode; target remains unknown",
@@ -600,6 +691,21 @@
   "gui.bioforge.vaccine_maker.page.crispr": "CRISPR",
   "gui.bioforge.vaccine_maker.page.journal": "JOURNAL",
   "gui.bioforge.vaccine_maker.page.craft": "SYNTHESIS",
+  "gui.bioforge.vaccine_maker.page.correction": "CORRECTION",
+  "gui.bioforge.vaccine_maker.correction.title": "ANTIGEN CORRECTION MATRIX",
+  "gui.bioforge.vaccine_maker.correction.loading": "Reading programmed targets...",
+  "gui.bioforge.vaccine_maker.correction.empty": "Insert a viable strain sample",
+  "gui.bioforge.vaccine_maker.correction.hint": "Tune every channel. The machine does not reveal the correct state or calculate a visible result.",
+  "gui.bioforge.vaccine_maker.correction.selector": "%s channel: %s. Programmed value: %s (state %s of %s). Click either side or scroll to change it.",
+  "gui.bioforge.vaccine_maker.correction.selector_percentage": "%s channel: %s. Programmed value: %s. Adjusts in exact 1%% steps.",
+  "gui.bioforge.vaccine_maker.correction.false": "False",
+  "gui.bioforge.vaccine_maker.correction.true": "True",
+  "gui.bioforge.vaccine_maker.correction.page": "MATRIX %s / %s",
+  "gui.bioforge.vaccine_maker.correction.pathogen": "Pathogen Architecture",
+  "gui.bioforge.vaccine_maker.correction.family.symptom": "Symptom",
+  "gui.bioforge.vaccine_maker.correction.family.mutation": "Mutation",
+  "gui.bioforge.vaccine_maker.correction.family.transmission": "Transmission",
+  "gui.bioforge.vaccine_maker.correction.family.pathogen": "Pathogen",
   "gui.bioforge.vaccine_maker.crispr.hint": "Scroll cartridge bases to edit",
   "gui.bioforge.vaccine_maker.crispr.base_tooltip": "gRNA %s, fragment %s, base %s: %s. Scroll here to change this base.",
   "gui.bioforge.vaccine_maker.crispr.document.template": "TEMPLATE",
@@ -618,6 +724,9 @@
   "gui.bioforge.vaccine_maker.details": "DETAILS",
   "gui.bioforge.vaccine_maker.journal.inputs": "RESEARCH JOURNAL",
   "gui.bioforge.vaccine_maker.journal.readout": "Batch %s / quality %s",
+  "gui.bioforge.vaccine_maker.journal.readout.hidden": "Batch %s / efficacy unmeasured",
+  "gui.bioforge.vaccine_maker.assay.required.short": "ASSAY REQ.",
+  "gui.bioforge.vaccine_maker.assay.required.tooltip": "Synthesis works without an assay, but batch efficacy stays hidden and its quality remains research-limited until tested.",
   "gui.bioforge.vaccine_maker.journal.clinical": "Clinical report: %s/7 findings",
   "gui.bioforge.vaccine_maker.journal.ready": "Blank medium ready for a new machine readout",
   "gui.bioforge.vaccine_maker.journal.empty": "Insert paper, a Book and Quill, CRISPR Notes, or a Medical Report",
@@ -625,6 +734,8 @@
   "gui.bioforge.vaccine_maker.craft.no_report": "No verified clinical report: quality remains research-limited",
   "gui.bioforge.vaccine_maker.craft.report": "Clinical evidence: %s/7 recorded finding groups",
   "gui.bioforge.vaccine_maker.craft.no_report.short": "REPORT: NONE",
+  "gui.bioforge.vaccine_maker.craft.assay": "Assay feedback loaded. Compatible calibrated results can improve the next batch; incompatible feedback is ignored without identifying the mismatch.",
+  "gui.bioforge.vaccine_maker.craft.assay.short": "ASSAY: LOADED",
   "gui.bioforge.vaccine_maker.craft.report.short": "REPORT: %s/7",
   "gui.bioforge.vaccine_maker.craft.document.short": "WRITE MEDIUM",
   "gui.bioforge.vaccine_maker.craft.document": "This blank document can record the programmed CRISPR sequence on the CRISPR tab.",
@@ -633,6 +744,7 @@
   "gui.bioforge.strain_naming.title": "CATALOGUE NEW INFECTION",
   "gui.bioforge.strain_naming.description": "You are its first recorded host. Assign a permanent research name.",
   "gui.bioforge.strain_naming.field": "Infection name",
+  "gui.bioforge.strain_naming.random": "RANDOM",
   "gui.bioforge.strain_naming.save": "CATALOGUE",
   "gui.bioforge.strain_naming.later": "LATER",
   "message.bioforge.strain.gui_named": "The infection was added to the research catalogue.",
@@ -647,7 +759,7 @@
   "command.bioforge.strain.duplicate_name": "Another strain is already catalogued as '%s'.",
   "command.bioforge.strain.naming_locked": "This strain was already named, or you are not its first recorded researcher.",
   "command.bioforge.strain.named": "Strain %s was catalogued as '%s'.",
-  "command.bioforge.strain.renamed": "Operator renamed strain %s to '%s'.",
+  "command.bioforge.strain.renamed": "Strain %s was renamed to '%s'.",
   "command.bioforge.strain.unknown": "No saved strain has fingerprint %s.",
   "command.bioforge.strain.list_header": "Saved BioForge strains: %s",
   "command.bioforge.strain.list_entry": "[%s] %s — first researcher: %s",
@@ -661,9 +773,11 @@
   "gui.bioforge.vaccine_maker.craft.notes.mismatch.short": "WRONG NOTES",
   "gui.bioforge.vaccine_maker.craft.notes.mismatch": "These CRISPR Notes were recorded from a different strain.",
   "gui.bioforge.vaccine_maker.status.crispr": "Program the three gRNA guides; scroll individual bases to edit",
+  "gui.bioforge.vaccine_maker.status.correction": "Program the hidden antigen-response matrix; validate the finished vaccine through a blood assay",
   "gui.bioforge.vaccine_maker.status.journal": "Review or record the documentation used by this batch",
   "gui.bioforge.vaccine_maker.status.short.extract": "EXTRACT READY",
   "gui.bioforge.vaccine_maker.status.short.crispr": "PROGRAMMING",
+  "gui.bioforge.vaccine_maker.status.short.correction": "CORRECTION",
   "gui.bioforge.vaccine_maker.status.short.record": "LOG READY",
   "gui.bioforge.vaccine_maker.status.short.write": "WRITE READY",
   "gui.bioforge.vaccine_maker.status.short.template": "TEMPLATE READY",
@@ -671,7 +785,7 @@
   "gui.bioforge.vaccine_maker.status.short.0": "NO RECIPE",
   "gui.bioforge.vaccine_maker.status.short.1": "READY",
   "gui.bioforge.vaccine_maker.status.short.2": "RUNNING",
-  "gui.bioforge.vaccine_maker.status.short.3": "LOW QUALITY",
+  "gui.bioforge.vaccine_maker.status.short.3": "REJECTED",
   "gui.bioforge.vaccine_maker.status.short.4": "OUTPUT FULL",
   "gui.bioforge.vaccine_maker.status.short.5": "DESTABILIZED",
   "gui.bioforge.vaccine_maker.slot.cartridge": "gRNA %s cartridge, fragment %s",
@@ -685,10 +799,18 @@
   "jei.bioforge.vaccine_maker.operation.full": "Full strain vaccine",
   "jei.bioforge.vaccine_maker.operation.directed": "Directed gene vaccine",
   "jei.bioforge.vaccine_maker.operation.random_mutation": "Random mutation vaccine",
+  "jei.bioforge.vaccine_maker.operation.resistance_pill": "Strain resistance pill",
   "jei.bioforge.vaccine_maker.operation.clone": "Vaccine cloning",
   "jei.bioforge.vaccine_maker.time": "Processing time: %s ticks",
   "jei.bioforge.vaccine_maker.minimum_quality": "Minimum quality: %s%%",
   "jei.bioforge.vaccine_maker.program": "Program 15 CRISPR cartridges (3 x 20 bases)",
+  "jei.bioforge.category.chemical_synthesizer": "Chemical Synthesizer",
+  "jei.bioforge.category.barrel_press": "Barrel Press",
+  "jei.bioforge.category.pharma_mixer": "Pharma Mixer",
+  "jei.bioforge.category.sterilization_chamber": "Sterilization Chamber",
+  "jei.bioforge.laboratory.time": "Processing time: %s ticks",
+  "jei.bioforge.laboratory.waste.short": "WASTE",
+  "jei.bioforge.laboratory.sterilization.generic": "Also removes infection from contaminated items in place",
   "command.bioforge.crispr.definitions": "CRISPR data: %s guide profile(s), %s Cas module(s), %s action(s), %s Vaccine Maker recipe(s).",
   "command.bioforge.crispr.invalid_cartridge": "Sequence %s is not valid for profile %s.",
   "command.bioforge.crispr.cartridge_success": "Created cartridge %s with sequence %s for %s.",
@@ -696,12 +818,154 @@
   "command.bioforge.crispr.cas_success": "Created Cas/PAM module %s.",
   "command.bioforge.crispr.invalid_action": "Category %s cannot use action %s.",
   "command.bioforge.crispr.directed_success": "Created %s vaccine for %s using action %s.",
-  "effect.bioforge.strain_immunity": "Strain Immunity",
-  "gui.bioforge.immunity.title": "Active strain immunities: %s",
+  "effect.bioforge.strain_immunity": "Strain Protection",
+  "gui.bioforge.immunity.title": "Active strain protections: %s",
   "gui.bioforge.immunity.uncatalogued": "Uncatalogued infection",
   "item.bioforge.live_culture_vial.sealed_profile": "Genetic profile sealed; use laboratory equipment for analysis",
   "message.bioforge.random_mutation_vaccine.applied": "%s developed an unknown mutation.",
   "message.bioforge.random_mutation_vaccine.no_target": "%s has no compatible mutation available.",
   "message.bioforge.random_mutation_vaccine.mismatch": "The experimental dose does not match %s's active infection.",
-  "gui.bioforge.immunity.entry": "%s — %s"
+  "gui.bioforge.immunity.entry": "%s — %s",
+  "gui.bioforge.resistance.entry": "%s — %s%% resistance — %s"
+, "item.bioforge.neutralizing_agent": "Neutralizing Agent"
+, "item.bioforge.surfactant_concentrate": "Surfactant Concentrate"
+, "item.bioforge.decontamination_flask": "Decontamination Flask"
+, "item.bioforge.decontamination_flask.tooltip": "Throw to decontaminate a %s-block-wide cube"
+, "item.bioforge.sealed_biofabric": "Sealed Biofabric"
+, "item.bioforge.sterile_rubber": "Sterile Rubber"
+, "item.bioforge.activated_filter": "Activated Biofilter"
+, "item.bioforge.respirator_valve": "Respirator Valve"
+, "item.bioforge.thermal_gel": "Biphasic Thermal Gel"
+, "item.bioforge.insulated_lining": "Insulated Lining"
+, "item.bioforge.black_steel_mesh": "Black Steel Mesh"
+, "item.bioforge.chemical_resistant_coating": "Chemical-Resistant Coating"
+, "item.bioforge.airtight_seal": "Airtight Seal"
+, "item.bioforge.medical_mask": "Medical Mask"
+, "item.bioforge.protective_gloves": "Protective Gloves"
+, "item.bioforge.ice_bag": "Ice Bag Harness"
+, "item.bioforge.magma_bag": "Magma Bag Harness"
+, "item.bioforge.hazcure_helmet": "HazCure Helmet"
+, "item.bioforge.hazcure_chestplate": "HazCure Chestpiece"
+, "item.bioforge.hazcure_leggings": "HazCure Leggings"
+, "item.bioforge.hazcure_boots": "HazCure Boots"
+, "item.bioforge.protective_gear.mask": "Blocks outward airborne spread and reduces inward exposure by 80%"
+, "item.bioforge.protective_gear.gloves": "Blocks outward contact and attack contamination"
+, "item.bioforge.protective_gear.ice_bag": "Prevents heat and fever damage while worn"
+, "item.bioforge.protective_gear.magma_bag": "Prevents chill and hypothermia damage while worn"
+, "item.bioforge.protective_gear.hazcure": "Full set: blocks incoming and outgoing airborne, contact and attack infection"
+, "item.bioforge.protective_gear.hazcure_set": "Blocks outward spread, syringes, heat and chill; all four pieces are required"
+, "item.bioforge.symptom_tablet": "Symptom Suppressant Tablet"
+, "item.bioforge.symptom_tablet.blank": "Unprogrammed symptom tablet"
+, "item.bioforge.symptom_tablet.vaccine_maker": "Program with an identified symptom Gene Imprint in the Vaccine Maker"
+, "item.bioforge.symptom_tablet.duration": "Base suppression: %s"
+, "item.bioforge.symptom_tablet.not_cure": "Suppresses a penalty; does not cure or hide the symptom"
+, "message.bioforge.symptom_tablet.blank": "This tablet has no active symptom program."
+, "message.bioforge.symptom_tablet.applied": "%s suppressed for %s."
+, "jei.bioforge.vaccine_maker.operation.symptom_tablet": "Programmed symptom suppressant"
+, "item.bioforge.research_journal": "BioForge Research Journal"
+, "item.bioforge.area_contamination_scanner": "Area Contamination Scanner"
+, "item.bioforge.area_contamination_scanner.tooltip": "Scans air and contaminated surfaces within %s blocks"
+, "item.bioforge.area_contamination_scanner.visualization": "Yellow/red marks surfaces; blue marks contaminated air"
+, "item.bioforge.area_contamination_scanner.privacy": "Reports hazard only; does not identify a strain"
+, "item.bioforge.area_contamination_scanner.result": "Hazard: %s | surfaces: %s | air reservoirs: %s"
+, "item.bioforge.area_contamination_scanner.level.clean": "CLEAN"
+, "item.bioforge.area_contamination_scanner.level.low": "LOW"
+, "item.bioforge.area_contamination_scanner.level.medium": "MEDIUM"
+, "item.bioforge.area_contamination_scanner.level.high": "HIGH"
+, "item.bioforge.area_contamination_scanner.level.critical": "CRITICAL"
+, "block.bioforge.chemical_synthesizer": "Chemical Synthesizer"
+, "block.bioforge.barrel_press": "Barrel Press"
+, "block.bioforge.sterilization_chamber": "Sterilization Chamber"
+, "block.bioforge.pharma_mixer": "Pharma Mixer"
+, "advancement.bioforge.root.title": "BioForge Research"
+, "advancement.bioforge.root.description": "Begin a documented career in biomedical research"
+, "advancement.bioforge.field_diagnostics.title": "Field Diagnostics"
+, "advancement.bioforge.field_diagnostics.description": "Assemble the essential non-invasive diagnostic tools"
+, "advancement.bioforge.complete_exam.title": "Complete Examination"
+, "advancement.bioforge.complete_exam.description": "Record a full patient examination in a Medical Report"
+, "advancement.bioforge.black_steel.title": "Black Steel"
+, "advancement.bioforge.black_steel.description": "Produce the alloy that supports advanced laboratory equipment"
+, "advancement.bioforge.laboratory_engineering.title": "Laboratory Engineering"
+, "advancement.bioforge.laboratory_engineering.description": "Build a laboratory frame and electronic controller"
+, "advancement.bioforge.centrifuge.title": "Separation Science"
+, "advancement.bioforge.centrifuge.description": "Construct a Centrifuge"
+, "advancement.bioforge.blood_typing.title": "Know the Donor"
+, "advancement.bioforge.blood_typing.description": "Prepare all three blood typing reagents"
+, "advancement.bioforge.incubator.title": "Controlled Growth"
+, "advancement.bioforge.incubator.description": "Construct an Incubator"
+, "advancement.bioforge.live_culture.title": "Living Evidence"
+, "advancement.bioforge.live_culture.description": "Cultivate a live pathogen culture"
+, "advancement.bioforge.environmental_case.title": "The Laboratory Escaped"
+, "advancement.bioforge.environmental_case.description": "Recover a contaminated environmental sample"
+, "advancement.bioforge.microscope.title": "Look Closer"
+, "advancement.bioforge.microscope.description": "Construct and calibrate a Microscope"
+, "advancement.bioforge.gene_imprint.title": "Gene Imprint"
+, "advancement.bioforge.gene_imprint.description": "Isolate a usable genetic clue"
+, "advancement.bioforge.chemical_synthesizer.title": "Applied Chemistry"
+, "advancement.bioforge.chemical_synthesizer.description": "Build a Chemical Synthesizer"
+, "advancement.bioforge.barrel_press.title": "First Pressing"
+, "advancement.bioforge.barrel_press.description": "Build a Barrel Press and begin alcohol production"
+, "advancement.bioforge.sterilization_chamber.title": "Aseptic Technique"
+, "advancement.bioforge.sterilization_chamber.description": "Build a Sterilization Chamber"
+, "advancement.bioforge.pharma_mixer.title": "Pharmaceutical Production"
+, "advancement.bioforge.pharma_mixer.description": "Complete the laboratory production chain with a Pharma Mixer"
+, "advancement.bioforge.vaccine_maker.title": "Reverse the Strain"
+, "advancement.bioforge.vaccine_maker.description": "Build a Vaccine Maker after identifying genetic evidence"
+, "advancement.bioforge.crispr_program.title": "Programmed Intervention"
+, "advancement.bioforge.crispr_program.description": "Document a CRISPR template and prepare a guide cartridge"
+, "advancement.bioforge.strain_vaccine.title": "A Fighting Chance"
+, "advancement.bioforge.strain_vaccine.description": "Synthesize a full-strain vaccine"
+, "advancement.bioforge.containment.title": "Containment Protocol"
+, "advancement.bioforge.containment.description": "Prepare to locate invisible airborne and surface hazards"
+, "advancement.bioforge.decontamination.title": "Clean Room"
+, "advancement.bioforge.decontamination.description": "Prepare a field decontamination flask"
+, "item.bioforge.research_journal.tooltip": "A persistent tablet for BioForge discoveries"
+, "item.bioforge.research_journal.progression": "New research unlocks after obtaining related items"
+, "gui.bioforge.research_journal.title": "BIOFORGE RESEARCH TABLET"
+, "gui.bioforge.research_journal.progress": "Research %s/%s"
+, "gui.bioforge.research_journal.locked_title": "UNDISCOVERED RESEARCH"
+, "gui.bioforge.research_journal.locked_short": "LOCKED"
+, "gui.bioforge.research_journal.locked_body": "This entry has not been discovered. Obtain or craft related BioForge equipment to unlock it permanently."
+, "gui.bioforge.research_journal.empty": "No research entries are loaded."
+, "gui.bioforge.research_journal.scroll_hint": "Scroll for more"
+, "gui.bioforge.research_journal.recipes": "CRAFTING RECIPES"
+, "gui.bioforge.research_journal.recipe.ingredients": "Ingredients (compatible alternatives may apply)"
+, "toast.bioforge.research_journal.activated": "Research Tablet Activated"
+, "toast.bioforge.research_journal.unlocked": "New BioForge Research"
+, "toast.bioforge.research_journal.ready": "Future discoveries will now be recorded"
+, "gui.bioforge.vaccine_maker.correction.reset": "RESET"
+, "gui.bioforge.vaccine_maker.correction.read": "READ"
+, "gui.bioforge.vaccine_maker.correction.write": "WRITE"
+, "gui.bioforge.vaccine_maker.correction.reset.hint": "Restore every matrix channel to the deterministic starting program for this strain."
+, "gui.bioforge.vaccine_maker.correction.read.hint": "Import matching CRISPR matrix notes, or convert matching clinical readings into the corresponding channels."
+, "gui.bioforge.vaccine_maker.correction.write.hint": "Record the complete programmed matrix onto paper, CRISPR notes, or a Book and Quill."
+, "message.bioforge.vaccine_maker.correction.no_sample": "Insert a viable strain sample first."
+, "message.bioforge.vaccine_maker.correction.reset": "Antigen matrix restored to its initial program."
+, "message.bioforge.vaccine_maker.correction.template_mismatch": "These matrix notes belong to another strain."
+, "message.bioforge.vaccine_maker.correction.report_mismatch": "This medical report is not bound to the inserted strain."
+, "message.bioforge.vaccine_maker.correction.no_readings": "The document contains no compatible clinical readings."
+, "message.bioforge.vaccine_maker.correction.imported": "Imported %s compatible matrix channels."
+, "message.bioforge.vaccine_maker.correction.no_medium": "Insert paper, CRISPR notes, or a Book and Quill."
+, "message.bioforge.vaccine_maker.correction.recorded": "Recorded %s antigen matrix channels."
+, "item.bioforge.crispr_notes.correction_batch": "Matrix strain signature: %s"
+, "item.bioforge.crispr_notes.correction_entries": "Programmed antigen channels: %s"
+, "block.bioforge.viral_scanner": "Viral Scanner Gate"
+, "block.bioforge.ceiling_viral_scanner": "Ceiling Viral Scanner"
+, "block.bioforge.open_left_viral_scanner": "Open-Left Viral Scanner"
+, "block.bioforge.open_right_viral_scanner": "Open-Right Viral Scanner"
+, "gui.bioforge.research_journal.station.crafting": "CRAFTING TABLE"
+, "gui.bioforge.vaccine_maker.correction.family.lifecycle": "INCUBATION"
+, "gui.bioforge.vaccine_maker.correction.incubation_period": "Incubation period"
+, "command.bioforge.researchtablet.unknown_page": "Unknown Research Tablet page: %s"
+, "command.bioforge.researchtablet.add": "Added page %s to %s player(s); %s records changed."
+, "command.bioforge.researchtablet.remove": "Removed page %s from %s player(s); %s records changed."
+, "command.bioforge.researchtablet.add_all": "Added every Research Tablet page to %s player(s); %s records changed."
+, "command.bioforge.researchtablet.remove_all": "Removed every Research Tablet page from %s player(s); %s records changed."
+, "message.bioforge.mutation.flesh_cravings.reject": "Your altered metabolism rejects anything but meat."
+, "block.bioforge.air_vent": "Air Vent"
+, "command.bioforge.decontaminate.success": "Removed %2$s contaminated surfaces for %1$s in radius %3$s around %4$s %5$s %6$s."
+, "command.bioforge.infectionimmune.enabled": "Enabled complete infection immunity for %s player(s) and cured them."
+, "command.bioforge.infectionimmune.disabled": "Disabled complete infection immunity for %s player(s)."
+, "command.bioforge.infectionimmune.status": "%s of %s selected player(s) have complete infection immunity enabled."
+, "command.bioforge.infectionimmune.blocked": "%s has complete infection immunity and cannot be infected."
 }

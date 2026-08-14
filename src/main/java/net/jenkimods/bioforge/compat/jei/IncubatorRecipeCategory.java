@@ -25,7 +25,8 @@ public final class IncubatorRecipeCategory implements IRecipeCategory<IncubatorR
             RecipeType.create(BioForge.MODID, "incubator", IncubatorRecipeWrapper.class);
 
     private static final ResourceLocation GUI_TEXTURE =
-            Objects.requireNonNull(ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/incubator.png"));
+            Objects.requireNonNull(ResourceLocation.tryBuild(
+                    BioForge.MODID, "textures/gui/laboratory/incubator.png"));
     private static final int WIDTH = 176;
     private static final int HEIGHT = 106;
     private static final int PRIMARY_X = 80;

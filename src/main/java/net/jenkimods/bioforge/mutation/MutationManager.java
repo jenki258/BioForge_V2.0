@@ -1,15 +1,23 @@
 package net.jenkimods.bioforge.mutation;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.api.behavior.BioForgeBehaviorRegistry;
+import net.jenkimods.bioforge.api.behavior.MutationEffectContext;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.jenkimods.bioforge.infection.InfectionCapability;
 import net.jenkimods.bioforge.infection.InfectionData;
 import net.jenkimods.bioforge.infection.InfectionEventHandler;
+import net.jenkimods.bioforge.infection.InfectionInvulnerability;
 import net.jenkimods.bioforge.infection.InfectionStore;
 import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
+import net.jenkimods.bioforge.infection.spread.ProtectiveEquipment;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
+import net.jenkimods.bioforge.infection.symptoms.SymptomSuppression;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,12 +30,14 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +73,8 @@ public final class MutationManager {
         INCOMPATIBLE,
         MISSING_REQUIREMENT,
         CONFLICT,
-        INVALID_EFFECT
+        INVALID_EFFECT,
+        IMMUNE
     }
 
     private MutationManager() {}
@@ -80,6 +91,10 @@ public final class MutationManager {
 
     public static ApplyResult applyMutation(MutationDefinition definition, InfectionData data,
                                             LivingEntity entity, boolean force) {
+        if (InfectionInvulnerability.isEnabled(entity)) {
+            if (entity instanceof ServerPlayer player) InfectionInvulnerability.ensureCured(player);
+            return ApplyResult.IMMUNE;
+        }
         if (data != null && data.isInfected() && resetRuntimeEffectsAfterReload(entity)) {
             refreshContinuousEffects(data, entity);
         }
@@ -95,8 +110,10 @@ public final class MutationManager {
         Set<String> before = mutationSnapshot(data);
 
         data.getSymptoms().addMutation(definition.id());
-        runEffects(definition, MutationDefinition.Trigger.APPLY, data, entity, true);
-        runEffects(definition, MutationDefinition.Trigger.CONTINUOUS, data, entity, true);
+        if (data.isInfectionActive()) {
+            runEffects(definition, MutationDefinition.Trigger.APPLY, data, entity, true);
+            runEffects(definition, MutationDefinition.Trigger.CONTINUOUS, data, entity, true);
+        }
         reconcileInteractions(before, data, entity, true, false);
         mutationDataChanged(data, entity);
         StrainNamingManager.discover(entity, data);
@@ -105,11 +122,12 @@ public final class MutationManager {
 
     public static ApplyResult validateApplication(MutationDefinition definition, InfectionData data, boolean force) {
         if (definition == null) return ApplyResult.UNKNOWN;
+        if (!BioForgeServerConfig.isMutationEnabled(definition.id())) return ApplyResult.DISABLED;
         if (data == null || !data.isInfected()) return ApplyResult.NOT_INFECTED;
         if (data.getSymptoms().hasMutation(definition.id())) return ApplyResult.ALREADY_PRESENT;
         if (force) return ApplyResult.APPLIED;
         if (!definition.enabled()) return ApplyResult.DISABLED;
-        if (!definition.isCompatible(data.getPathogenType())) return ApplyResult.INCOMPATIBLE;
+        if (!definition.isCompatible(data.getPathogenId())) return ApplyResult.INCOMPATIBLE;
         if (!definition.requirementsMet(data)) return ApplyResult.MISSING_REQUIREMENT;
         if (definition.conflictsWith(data) || conflictsFromOwnedMutation(definition, data)) {
             return ApplyResult.CONFLICT;
@@ -140,7 +158,7 @@ public final class MutationManager {
                     }
                 }
                 case "add_infection_type", "remove_infection_type" -> {
-                    if (parseInfectionType(target) == null) {
+                    if (parseTransmissionId(target) == null) {
                         BioForge.LOGGER.warn("Mutation {} references unknown infection type {}", definition.id(), target);
                         return false;
                     }
@@ -173,6 +191,16 @@ public final class MutationManager {
                         BioForge.LOGGER.warn("Mutation {} references unknown sound {}", definition.id(), target);
                         return false;
                     }
+                    String gameEventName = effect.stringValue("game_event", "");
+                    if (!gameEventName.isBlank()) {
+                        ResourceLocation gameEventId = ResourceLocation.tryParse(gameEventName);
+                        if (gameEventId == null
+                                || !BuiltInRegistries.GAME_EVENT.containsKey(gameEventId)) {
+                            BioForge.LOGGER.warn("Mutation {} references unknown game event {}",
+                                    definition.id(), gameEventName);
+                            return false;
+                        }
+                    }
                 }
                 case "damage" -> {
                     if (!target.isEmpty() && !Set.of("generic", "magic", "wither", "on_fire", "drown")
@@ -181,8 +209,19 @@ public final class MutationManager {
                         return false;
                     }
                 }
+                case "heal", "exhaustion", "ignite" -> {
+                }
                 default -> {
-
+                    try {
+                        BioForgeBehaviorRegistry.mutationEffect(BioForgeIds.parse(effect.type()))
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                        "Missing mutation effect handler " + effect.type()))
+                                .validate(effect.parameters());
+                    } catch (RuntimeException exception) {
+                        BioForge.LOGGER.warn("Mutation {} has invalid custom effect {}: {}",
+                                definition.id(), effect.type(), exception.getMessage());
+                        return false;
+                    }
                 }
             }
         }
@@ -227,7 +266,7 @@ public final class MutationManager {
 
 
     public static void refreshContinuousEffects(InfectionData data, LivingEntity entity) {
-        if (data == null || !data.isInfected()) return;
+        if (data == null || !data.isInfectionActive()) return;
         resetRuntimeEffectsAfterReload(entity);
         Set<String> before = mutationSnapshot(data);
         for (String id : List.copyOf(data.getSymptoms().getMutations())) {
@@ -241,13 +280,35 @@ public final class MutationManager {
         }
     }
 
+    public static void activateIncubatedMutations(InfectionData data, LivingEntity entity) {
+        if (data == null || !data.isInfectionActive()) return;
+        resetRuntimeEffectsAfterReload(entity);
+        Set<String> before = mutationSnapshot(data);
+        boolean changed = false;
+        for (String id : List.copyOf(data.getSymptoms().getMutations())) {
+            MutationDefinition definition = MutationLoader.INSTANCE.getMutation(id).orElse(null);
+            if (definition == null || !definition.enabled()
+                    || !definition.isCompatible(data.getPathogenId())) continue;
+            changed |= runEffects(definition, MutationDefinition.Trigger.APPLY, data, entity, true);
+            changed |= runEffects(definition, MutationDefinition.Trigger.CONTINUOUS, data, entity, true);
+        }
+        changed |= runActiveInteractionEffects(MutationDefinition.Trigger.APPLY, data, entity, true);
+        changed |= runActiveInteractionEffects(MutationDefinition.Trigger.CONTINUOUS, data, entity, true);
+        changed |= reconcileInteractions(before, data, entity, true, true);
+        if (changed || !before.equals(mutationSnapshot(data))) mutationDataChanged(data, entity);
+    }
+
     private static void refreshMutation(MutationDefinition definition, InfectionData data, LivingEntity entity) {
-        if (!definition.enabled() || !definition.isCompatible(data.getPathogenType())) return;
+        if (!definition.enabled() || !definition.isCompatible(data.getPathogenId())) return;
         runEffects(definition, MutationDefinition.Trigger.CONTINUOUS, data, entity, true);
     }
 
     public static void tickMutations(InfectionData data, LivingEntity entity) {
-        if (data == null || !data.isInfected()) return;
+        if (InfectionInvulnerability.isEnabled(entity)) {
+            if (entity instanceof ServerPlayer player) InfectionInvulnerability.ensureCured(player);
+            return;
+        }
+        if (data == null || !data.isInfectionActive()) return;
         boolean definitionsReloaded = resetRuntimeEffectsAfterReload(entity);
         if (data.getSymptoms().getMutations().isEmpty()) return;
         if (definitionsReloaded) {
@@ -258,7 +319,7 @@ public final class MutationManager {
         for (String id : List.copyOf(data.getSymptoms().getMutations())) {
             MutationDefinition definition = MutationLoader.INSTANCE.getMutation(id).orElse(null);
             if (definition == null) continue;
-            if (!definition.enabled() || !definition.isCompatible(data.getPathogenType())) {
+            if (!definition.enabled() || !definition.isCompatible(data.getPathogenId())) {
                 cleanUpContinuousEffects(definition, data, entity);
                 continue;
             }
@@ -278,6 +339,12 @@ public final class MutationManager {
 
     private static boolean runEffects(MutationDefinition definition, MutationDefinition.Trigger trigger,
                                       InfectionData data, LivingEntity entity, boolean immediate) {
+        for (String tag : definition.tags()) {
+            if (tag.startsWith("suppressible:")
+                    && SymptomSuppression.isSuppressed(entity, tag.substring("suppressible:".length()))) {
+                return false;
+            }
+        }
         boolean infectionDataChanged = false;
         List<MutationDefinition.Effect> effects = definition.effects();
         for (int index = 0; index < effects.size(); index++) {
@@ -291,9 +358,9 @@ public final class MutationManager {
             }
             try {
                 if (!shouldRun(effect, definition, data, entity, index, immediate)) continue;
-                Object before = infectionDataState(effect, data);
+                Object before = infectionDataState(effect, definition, data, entity, index);
                 executeEffect(effect, definition, data, entity, index);
-                Object after = infectionDataState(effect, data);
+                Object after = infectionDataState(effect, definition, data, entity, index);
                 infectionDataChanged |= !Objects.equals(before, after);
             } catch (RuntimeException exception) {
                 BioForge.LOGGER.error("Failed to execute effect {} of mutation {}: {}",
@@ -326,10 +393,11 @@ public final class MutationManager {
             boolean immediate) {
         boolean infectionDataChanged = false;
         Set<String> owned = mutationSnapshot(data);
-        for (MutationDefinition definition : MutationLoader.INSTANCE.getAllMutations()) {
-            if (!owned.contains(definition.id())
-                    || !definition.enabled()
-                    || !definition.isCompatible(data.getPathogenType())) {
+        for (String mutationId : owned) {
+            MutationDefinition definition = MutationLoader.INSTANCE
+                    .getMutation(mutationId).orElse(null);
+            if (definition == null || !definition.enabled()
+                    || !definition.isCompatible(data.getPathogenId())) {
                 continue;
             }
             List<MutationDefinition.Interaction> interactions = definition.interactions();
@@ -357,9 +425,9 @@ public final class MutationManager {
             int runtimeIndex = interactionEffectIndex(interactionIndex, effectIndex);
             try {
                 if (!shouldRun(effect, definition, data, entity, runtimeIndex, immediate)) continue;
-                Object before = infectionDataState(effect, data);
+                Object before = infectionDataState(effect, definition, data, entity, runtimeIndex);
                 executeEffect(effect, definition, data, entity, runtimeIndex);
-                Object after = infectionDataState(effect, data);
+                Object after = infectionDataState(effect, definition, data, entity, runtimeIndex);
                 infectionDataChanged |= !Objects.equals(before, after);
             } catch (RuntimeException exception) {
                 BioForge.LOGGER.error(
@@ -510,17 +578,28 @@ public final class MutationManager {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Nullable
-    private static Object infectionDataState(MutationDefinition.Effect effect, InfectionData data) {
+    private static Object infectionDataState(MutationDefinition.Effect effect,
+                                             MutationDefinition definition, InfectionData data,
+                                             LivingEntity entity, int effectIndex) {
         return switch (effect.type()) {
             case "modify_symptom", "set_symptom" -> {
                 SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(effect.target());
                 yield key == null ? null : data.getSymptoms().get((SymptomKey) key);
             }
             case "add_infection_type", "remove_infection_type" -> {
-                InfectionType type = parseInfectionType(effect.target());
-                yield type == null ? null : data.getInfectionTypes().contains(type);
+                ResourceLocation type = parseTransmissionId(effect.target());
+                yield type == null ? null : data.getTransmissionIds().contains(type);
             }
-            default -> null;
+            default -> {
+                try {
+                    yield BioForgeBehaviorRegistry.mutationEffect(BioForgeIds.parse(effect.type()))
+                            .map(handler -> handler.state(new MutationEffectContext(
+                                    effect, definition, data, entity, effectIndex)))
+                            .orElse(null);
+                } catch (IllegalArgumentException ignored) {
+                    yield null;
+                }
+            }
         };
     }
 
@@ -551,8 +630,8 @@ public final class MutationManager {
         if (!entityType.isEmpty() && !actualType.toString().equals(entityType)) return false;
 
         String requiredType = effect.stringValue("requires_infection_type", "");
-        InfectionType parsedType = requiredType.isEmpty() ? null : parseInfectionType(requiredType);
-        if (!requiredType.isEmpty() && (parsedType == null || !data.getInfectionTypes().contains(parsedType))) {
+        ResourceLocation parsedType = requiredType.isEmpty() ? null : parseTransmissionId(requiredType);
+        if (!requiredType.isEmpty() && (parsedType == null || !data.getTransmissionIds().contains(parsedType))) {
             return false;
         }
         String requiredMutation = effect.stringValue("requires_mutation", "").toLowerCase(Locale.ROOT);
@@ -612,12 +691,12 @@ public final class MutationManager {
                 }
             }
             case "add_infection_type" -> {
-                InfectionType type = parseInfectionType(target);
-                if (type != null) data.addInfectionType(type);
+                ResourceLocation type = parseTransmissionId(target);
+                if (type != null) data.addTransmissionId(type);
             }
             case "remove_infection_type" -> {
-                InfectionType type = parseInfectionType(target);
-                if (type != null) data.removeInfectionType(type);
+                ResourceLocation type = parseTransmissionId(target);
+                if (type != null) data.removeTransmissionId(type);
             }
             case "potion_effect" -> applyPotionEffect(effect, entity);
             case "spawn_particle" -> {
@@ -670,14 +749,51 @@ public final class MutationManager {
                 if (sound != null && !level.isClientSide()) {
                     float volume = Math.max(0.0f, Math.min(16.0f,
                             effect.floatValue("volume", 1.0f)));
+                    volume *= symptomSoundMultiplier(entity, soundId);
                     float pitch = Math.max(0.01f, Math.min(2.0f,
                             effect.floatValue("pitch", 1.0f)));
                     level.playSound(null, entity.blockPosition(), sound,
                             parseSoundSource(effect.stringValue("sound_source", "hostile")), volume, pitch);
+                    String gameEventName = effect.stringValue("game_event", "");
+                    if (!gameEventName.isBlank()) {
+                        ResourceLocation gameEventId = ResourceLocation.tryParse(gameEventName);
+                        GameEvent gameEvent = gameEventId == null ? null
+                                : BuiltInRegistries.GAME_EVENT.get(gameEventId);
+                        if (gameEvent != null
+                                && shouldEmitSymptomVibration(entity, soundId)) {
+                            level.gameEvent(entity, gameEvent, entity.blockPosition());
+                        }
+                    }
                 }
             }
-            default -> BioForge.LOGGER.warn("Unknown mutation effect type: {}", effect.type());
+            default -> BioForgeBehaviorRegistry.mutationEffect(BioForgeIds.parse(effect.type()))
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Unknown mutation effect type: " + effect.type()))
+                    .execute(new MutationEffectContext(effect, definition, data, entity, effectIndex));
         }
+    }
+
+    private static float symptomSoundMultiplier(LivingEntity entity,
+                                                @Nullable ResourceLocation soundId) {
+        if (!isMuffledSymptomSound(soundId)) return 1.0F;
+        if (ProtectiveEquipment.hasFullHazcureSuit(entity)) return 0.12F;
+        return entity.getItemBySlot(EquipmentSlot.HEAD).is(BioForge.MEDICAL_MASK.get())
+                ? 0.35F : 1.0F;
+    }
+
+    private static boolean shouldEmitSymptomVibration(
+            LivingEntity entity, @Nullable ResourceLocation soundId) {
+        if (!isMuffledSymptomSound(soundId)) return true;
+        if (ProtectiveEquipment.hasFullHazcureSuit(entity)) return false;
+        return !entity.getItemBySlot(EquipmentSlot.HEAD).is(BioForge.MEDICAL_MASK.get())
+                || entity.getRandom().nextFloat() < 0.25F;
+    }
+
+    private static boolean isMuffledSymptomSound(@Nullable ResourceLocation soundId) {
+        if (soundId == null) return false;
+        String path = soundId.getPath();
+        return path.equals("symptom.cough") || path.equals("symptom.sneeze")
+                || path.equals("entity.player.breath");
     }
 
     private static float applyNumberOperation(float current, float value, String operation,
@@ -859,18 +975,28 @@ public final class MutationManager {
     }
 
     private static int defaultInterval(String effectType) {
-        return switch (effectType) {
+        int builtIn = switch (effectType) {
             case "spawn_particle" -> 20;
             case "potion_effect", "attribute_modifier" -> 100;
-            default -> 20;
+            default -> -1;
         };
+        if (builtIn > 0) return builtIn;
+        try {
+            return Math.max(1, BioForgeBehaviorRegistry.mutationEffect(BioForgeIds.parse(effectType))
+                    .map(net.jenkimods.bioforge.api.behavior.MutationEffectHandler::defaultInterval)
+                    .orElse(20));
+        } catch (IllegalArgumentException ignored) {
+            return 20;
+        }
     }
 
     @Nullable
-    private static InfectionType parseInfectionType(String name) {
+    private static ResourceLocation parseTransmissionId(String name) {
         if (name == null || name.isBlank()) return null;
         try {
-            return InfectionType.valueOf(name.trim().toUpperCase(Locale.ROOT));
+            ResourceLocation id = BioForgeIds.parse(name);
+            return BioForgeDefinitionManager.TRANSMISSIONS.get(id).isPresent()
+                    ? BioForgeDefinitionManager.TRANSMISSIONS.canonicalId(id) : null;
         } catch (IllegalArgumentException ignored) {
             return null;
         }
@@ -885,10 +1011,10 @@ public final class MutationManager {
     }
 
     public static List<MutationDefinition> getAvailableMutations(InfectionData data) {
-        if (data == null || !data.isInfected() || data.getPathogenType() == null) return List.of();
+        if (data == null || !data.isInfected() || data.getPathogenId() == null) return List.of();
         List<MutationDefinition> result = new ArrayList<>();
         for (MutationDefinition definition :
-                MutationLoader.INSTANCE.getMutationsForPathogen(data.getPathogenType())) {
+                MutationLoader.INSTANCE.getMutationsForPathogen(data.getPathogenId())) {
             if (definition.enabled() && definition.weight() > 0
                     && validateApplication(definition, data, false) == ApplyResult.APPLIED
                     && validateEffects(definition)) {
@@ -923,6 +1049,14 @@ public final class MutationManager {
         return data.getSymptoms().hasMutation(storedId);
     }
 
+    public static boolean hasMutationTag(InfectionData data, String tag) {
+        if (data == null || tag == null || tag.isBlank()) return false;
+        for (MutationDefinition definition : MutationLoader.INSTANCE.getMutationsWithTag(tag)) {
+            if (data.getSymptoms().hasMutation(definition.id())) return true;
+        }
+        return false;
+    }
+
     private static void mutationDataChanged(InfectionData data, LivingEntity entity) {
         if (!(entity instanceof ServerPlayer player)) return;
         InfectionEventHandler.syncToClient(player, data);
@@ -932,7 +1066,7 @@ public final class MutationManager {
         if (existing == null || !existing.persistent()) return;
 
         Map<String, Object> symptoms = new LinkedHashMap<>();
-        for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getAllSymptomKeys().entrySet()) {
+        for (Map.Entry<String, SymptomKey<?>> entry : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {
             symptoms.put(entry.getKey(), data.getSymptom(entry.getValue()));
         }
         store.setInfection(player.getUUID(), new InfectionStore.InfectionRecord(
@@ -941,7 +1075,8 @@ public final class MutationManager {
                 data.getPathogenType(),
                 new ArrayList<>(data.getInfectionTypes()),
                 symptoms,
-                new ArrayList<>(data.getSymptoms().getMutations())
+                new ArrayList<>(data.getSymptoms().getMutations()),
+                data.getPathogenId(), new ArrayList<>(data.getTransmissionIds())
         ));
     }
 }

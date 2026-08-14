@@ -8,21 +8,30 @@ import java.util.Locale;
 
 
 
-public record StrainImmunity(String fingerprint, String displayName, int remainingTicks) {
+public record StrainImmunity(String fingerprint, String displayName,
+                             int remainingTicks, float strength) {
     public static final int MAX_NAME_LENGTH = 96;
 
     public StrainImmunity {
         fingerprint = normalizeFingerprint(fingerprint);
         displayName = sanitizeName(displayName, fingerprint);
         remainingTicks = Math.max(0, remainingTicks);
+        strength = Math.max(0.0F, Math.min(1.0F,
+                Float.isFinite(strength) ? strength : 0.0F));
+    }
+
+    public StrainImmunity(String fingerprint, String displayName,
+                          int remainingTicks) {
+        this(fingerprint, displayName, remainingTicks, 1.0F);
     }
 
     public boolean isActive() {
-        return !fingerprint.isEmpty() && remainingTicks > 0;
+        return !fingerprint.isEmpty() && remainingTicks > 0 && strength > 0.0F;
     }
 
     public StrainImmunity tick() {
-        return new StrainImmunity(fingerprint, displayName, remainingTicks - 1);
+        return new StrainImmunity(
+                fingerprint, displayName, remainingTicks - 1, strength);
     }
 
     public static String normalizeFingerprint(String fingerprint) {

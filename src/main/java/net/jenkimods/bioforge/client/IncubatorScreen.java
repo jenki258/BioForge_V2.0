@@ -10,7 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/incubator.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.tryBuild(
+            BioForge.MODID, "textures/gui/laboratory/incubator.png");
 
     public IncubatorScreen(IncubatorMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);

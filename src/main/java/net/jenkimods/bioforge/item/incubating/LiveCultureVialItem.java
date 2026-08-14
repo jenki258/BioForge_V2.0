@@ -28,7 +28,12 @@ import java.util.List;
 public class LiveCultureVialItem extends Item {
 
     public LiveCultureVialItem() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(16));
+    }
+
+    @Override
+    public int getMaxStackSize(ItemStack stack) {
+        return stack.hasTag() && hasStrain(stack) ? 1 : 16;
     }
 
     public static boolean hasStrain(ItemStack stack) {
@@ -83,11 +88,16 @@ public class LiveCultureVialItem extends Item {
                     dish.setStrainData(strainRaw);
                     level.setBlock(pos, state.setValue(PetriDishBlock.GROWTH, 0), 3);
                     level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.8f, 1.2f);
-                    context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.petri_dish.inoculated"));
-                    vial.shrink(1);
-                    ItemStack dirty = new ItemStack(BioForge.DIRTY_CULTURE_VIAL.get());
-                    if (!context.getPlayer().getInventory().add(dirty)) {
-                        context.getPlayer().drop(dirty, false);
+                    Player player = context.getPlayer();
+                    if (player != null) {
+                        player.sendSystemMessage(Component.translatable("item.bioforge.petri_dish.inoculated"));
+                        if (!player.getAbilities().instabuild) {
+                            vial.shrink(1);
+                            ItemStack dirty = new ItemStack(BioForge.DIRTY_CULTURE_VIAL.get());
+                            if (!player.getInventory().add(dirty)) {
+                                player.drop(dirty, false);
+                            }
+                        }
                     }
                 }
                 return InteractionResult.SUCCESS;

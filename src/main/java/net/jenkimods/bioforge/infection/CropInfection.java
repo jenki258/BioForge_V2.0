@@ -24,7 +24,7 @@ public class CropInfection {
     }
 
     public float getInfectionStrength() {
-        return strain.getSymptom("InfectionStrength")
+        return strain.getSymptom("infection_strength")
                 .map(Float::parseFloat)
                 .orElse(0.5f);
     }

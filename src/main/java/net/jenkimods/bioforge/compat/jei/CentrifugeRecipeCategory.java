@@ -26,7 +26,8 @@ public class CentrifugeRecipeCategory implements IRecipeCategory<CentrifugeRecip
             RecipeType.create(BioForge.MODID, "centrifuge", CentrifugeRecipeWrapper.class);
 
     private static final ResourceLocation GUI_TEXTURE =
-            Objects.requireNonNull(ResourceLocation.tryBuild("bioforge", "textures/gui/centrifuge.png"));
+            Objects.requireNonNull(ResourceLocation.tryBuild(
+                    "bioforge", "textures/gui/laboratory/centrifuge.png"));
 
     private static final int GUI_W = 176;
     private static final int GUI_H = 110;

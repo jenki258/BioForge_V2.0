@@ -1,7 +1,8 @@
 {
   "variants": {
-    "": {
-      "model": "bioforge:block/vaccine_maker"
-    }
+    "facing=north": { "model": "bioforge:block/vaccine_maker" },
+    "facing=east":  { "model": "bioforge:block/vaccine_maker", "y": 90 },
+    "facing=south": { "model": "bioforge:block/vaccine_maker", "y": 180 },
+    "facing=west":  { "model": "bioforge:block/vaccine_maker", "y": 270 }
   }
 }

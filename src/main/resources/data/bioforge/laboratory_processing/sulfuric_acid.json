@@ -1,0 +1,11 @@
+{
+  "station": "chemical_synthesizer",
+  "ingredients": [
+    { "tag": "bioforge:ingredients/minecraft/potion" },
+    { "tag": "bioforge:ingredients/minecraft/gunpowder" },
+    { "tag": "bioforge:ingredients/minecraft/blaze_powder" }
+  ],
+  "output": "bioforge:sulfuric_acid",
+  "count": 2,
+  "processing_time": 180
+}

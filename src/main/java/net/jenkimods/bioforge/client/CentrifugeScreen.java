@@ -13,7 +13,8 @@ import java.util.Objects;
 public class CentrifugeScreen extends AbstractContainerScreen<CentrifugeMenu> {
 
     private static final ResourceLocation GUI_TEXTURE =
-            Objects.requireNonNull(ResourceLocation.tryBuild("bioforge", "textures/gui/centrifuge.png"));
+            Objects.requireNonNull(ResourceLocation.tryBuild(
+                    "bioforge", "textures/gui/laboratory/centrifuge.png"));
     private static final int TEX_W = 256;
     private static final int TEX_H = 256;
 

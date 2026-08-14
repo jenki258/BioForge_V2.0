@@ -1,5 +1,6 @@
 package net.jenkimods.bioforge.infection.symptoms;
 
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,6 +12,7 @@ public class EntitySymptoms {
     private final Set<String> mutations = new HashSet<>();
 
     public <T> T get(SymptomKey<T> key) {
+        if (!BioForgeServerConfig.isSymptomEnabled(key.getId())) return key.getDefaultValue();
         Object val = values.get(key.getId());
         if (val == null) return key.getDefaultValue();
         if (key.getType().isInstance(val)) return key.getType().cast(val);
@@ -18,6 +20,10 @@ public class EntitySymptoms {
     }
 
     public <T> void set(SymptomKey<T> key, T value) {
+        if (!BioForgeServerConfig.isSymptomEnabled(key.getId())) {
+            values.remove(key.getId());
+            return;
+        }
         if (value == null) {
             values.remove(key.getId());
         } else {
@@ -35,14 +41,22 @@ public class EntitySymptoms {
     }
 
 
-    public Set<String> getMutations() { return mutations; }
-    public void addMutation(String id) { mutations.add(id); }
+    public Set<String> getMutations() {
+        mutations.removeIf(id -> !BioForgeServerConfig.isMutationEnabled(id));
+        return mutations;
+    }
+    public void addMutation(String id) {
+        if (BioForgeServerConfig.isMutationEnabled(id)) mutations.add(id);
+    }
     public void removeMutation(String id) { mutations.remove(id); }
-    public boolean hasMutation(String id) { return mutations.contains(id); }
+    public boolean hasMutation(String id) {
+        return BioForgeServerConfig.isMutationEnabled(id) && mutations.contains(id);
+    }
 
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
+            if (!BioForgeServerConfig.isSymptomEnabled(entry.getKey())) continue;
             Object val = entry.getValue();
             if (val instanceof Boolean b) tag.putBoolean(entry.getKey(), b);
             else if (val instanceof Integer i) tag.putInt(entry.getKey(), i);
@@ -68,7 +82,9 @@ public class EntitySymptoms {
             String raw = tag.getString("Mutations");
             if (!raw.isEmpty()) {
                 for (String id : raw.split(",")) {
-                    if (!id.isEmpty()) mutations.add(id);
+                    if (!id.isEmpty() && BioForgeServerConfig.isMutationEnabled(id)) {
+                        mutations.add(id);
+                    }
                 }
             }
         }

@@ -1,11 +1,15 @@
 package net.jenkimods.bioforge.mutation;
 
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.api.behavior.BioForgeBehaviorRegistry;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
@@ -71,9 +75,12 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
 
     private final Map<String, MutationDefinition> mutations = new LinkedHashMap<>();
     private final Map<PathogenType, List<MutationDefinition>> byPathogen = new EnumMap<>(PathogenType.class);
+    private final Map<ResourceLocation, List<MutationDefinition>> byPathogenId = new LinkedHashMap<>();
     private final Map<String, List<MutationDefinition>> byTag = new LinkedHashMap<>();
     private final List<MutationDefinition> allMutations = new ArrayList<>();
+    private final Map<String, MutationDefinition> javaMutations = new LinkedHashMap<>();
     private volatile long generation;
+    private boolean javaRegistrationsFrozen;
 
     private MutationLoader() {
         super(GSON, "mutations");
@@ -83,12 +90,21 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager manager, ProfilerFiller profiler) {
         mutations.clear();
         byPathogen.clear();
+        byPathogenId.clear();
         byTag.clear();
         allMutations.clear();
 
         elements.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey(Comparator.comparing(ResourceLocation::toString)))
                 .forEach(entry -> loadDefinition(entry.getKey(), entry.getValue()));
+
+        javaMutations.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            if (mutations.containsKey(entry.getKey())) {
+                BioForge.LOGGER.warn("Datapack mutation {} overrides the Java addon definition", entry.getKey());
+            } else {
+                indexDefinition(entry.getValue());
+            }
+        });
 
         validateInteractionReferences();
         generation++;
@@ -100,14 +116,14 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
         for (MutationDefinition definition : allMutations) {
             for (MutationDefinition.Interaction interaction : definition.interactions()) {
                 for (String partner : interaction.withMutations()) {
-                    if (getMutation(partner).isEmpty()) {
+                    if (getLoadedMutation(partner).isEmpty()) {
                         BioForge.LOGGER.warn(
                                 "Mutation {} interaction {} references unknown partner mutation {}",
                                 definition.id(), interaction.id(), partner);
                     }
                 }
                 for (String grant : interaction.grantMutations()) {
-                    if (getMutation(grant).isEmpty()) {
+                    if (getLoadedMutation(grant).isEmpty()) {
                         BioForge.LOGGER.warn(
                                 "Mutation {} interaction {} cannot grant unknown mutation {}",
                                 definition.id(), interaction.id(), grant);
@@ -120,6 +136,15 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
     private void loadDefinition(ResourceLocation sourceId, JsonElement element) {
         try {
             JsonObject json = GsonHelper.convertToJsonObject(element, "mutation");
+            if (json.has("definitions")) {
+                JsonArray definitions = GsonHelper.getAsJsonArray(json, "definitions");
+                for (int index = 0; index < definitions.size(); index++) {
+                    ResourceLocation nestedId = ResourceLocation.tryBuild(sourceId.getNamespace(),
+                            sourceId.getPath() + "/" + index);
+                    loadDefinition(nestedId, definitions.get(index));
+                }
+                return;
+            }
             String id = normalizeId(GsonHelper.getAsString(json, "id", sourceId.toString()));
             if (mutations.containsKey(id)) {
                 throw new IllegalArgumentException("Duplicate mutation ID '" + id + "'");
@@ -127,7 +152,7 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
 
             String name = GsonHelper.getAsString(json, "name", id);
             String description = GsonHelper.getAsString(json, "description", "");
-            Set<PathogenType> pathogens = parsePathogens(json);
+            Set<ResourceLocation> pathogenIds = parsePathogenIds(json);
             String rarity = GsonHelper.getAsString(json, "rarity", "common");
             int weight = GsonHelper.getAsInt(json, "weight", defaultWeight(rarity));
             if (weight < 0) throw new IllegalArgumentException("weight cannot be negative");
@@ -146,7 +171,7 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
                     .id(id)
                     .name(name)
                     .description(description)
-                    .pathogens(pathogens)
+                    .pathogenIds(pathogenIds)
                     .effects(effects)
                     .rarity(rarity)
                     .weight(weight)
@@ -159,40 +184,91 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
                     .interactions(parseInteractions(json))
                     .build();
 
-            mutations.put(id, definition);
-            allMutations.add(definition);
-            for (PathogenType pathogen : definition.pathogens()) {
-                byPathogen.computeIfAbsent(pathogen, ignored -> new ArrayList<>()).add(definition);
-            }
-            for (String tag : definition.tags()) {
-                byTag.computeIfAbsent(tag, ignored -> new ArrayList<>()).add(definition);
-            }
+            indexDefinition(definition);
         } catch (Exception ex) {
             BioForge.LOGGER.error("Failed to load mutation {}: {}", sourceId, ex.getMessage());
         }
     }
 
-    private static Set<PathogenType> parsePathogens(JsonObject json) {
-        EnumSet<PathogenType> result = EnumSet.noneOf(PathogenType.class);
+    private void indexDefinition(MutationDefinition definition) {
+        mutations.put(definition.id(), definition);
+        allMutations.add(definition);
+        for (PathogenType pathogen : definition.pathogens()) {
+            byPathogen.computeIfAbsent(pathogen, ignored -> new ArrayList<>()).add(definition);
+        }
+        for (ResourceLocation pathogenId : definition.pathogenIds()) {
+            byPathogenId.computeIfAbsent(pathogenId, ignored -> new ArrayList<>()).add(definition);
+        }
+        for (String tag : definition.tags()) {
+            byTag.computeIfAbsent(tag, ignored -> new ArrayList<>()).add(definition);
+        }
+    }
+
+    public synchronized void registerJava(MutationDefinition definition) {
+        if (javaRegistrationsFrozen) {
+            throw new IllegalStateException("BioForge mutation registry is frozen");
+        }
+        if (definition == null) throw new IllegalArgumentException("Mutation definition cannot be null");
+        String id = normalizeId(definition.id());
+        validateJavaDefinition(definition);
+        if (javaMutations.putIfAbsent(id, definition) != null) {
+            throw new IllegalArgumentException("Duplicate Java mutation definition '" + id + "'");
+        }
+        if (generation > 0 && !mutations.containsKey(id)) {
+            indexDefinition(definition);
+            generation++;
+        }
+    }
+
+    public synchronized void freezeJavaRegistrations() {
+        javaRegistrationsFrozen = true;
+    }
+
+    private static void validateJavaDefinition(MutationDefinition definition) {
+        for (ResourceLocation pathogenId : definition.pathogenIds()) {
+            if (BioForgeDefinitionManager.PATHOGENS.get(pathogenId).isEmpty()) {
+                throw new IllegalArgumentException("Unknown pathogen for mutation "
+                        + definition.id() + ": " + pathogenId);
+            }
+        }
+        List<MutationDefinition.Effect> effects = new ArrayList<>(definition.effects());
+        for (MutationDefinition.Interaction interaction : definition.interactions()) {
+            effects.addAll(interaction.effects());
+        }
+        for (MutationDefinition.Effect effect : effects) {
+            if (!isSupportedEffectType(effect.type())) {
+                throw new IllegalArgumentException("Unsupported mutation effect type: " + effect.type());
+            }
+            validateEffect(effect.parameters(), effect.type(), effect.target(),
+                    effect.operation(), effect.trigger());
+        }
+    }
+
+    private static Set<ResourceLocation> parsePathogenIds(JsonObject json) {
+        Set<ResourceLocation> result = new LinkedHashSet<>();
         if (json.has("pathogens")) {
             JsonElement element = json.get("pathogens");
             if (element.isJsonArray()) {
                 for (JsonElement value : element.getAsJsonArray()) {
-                    result.add(parsePathogen(value.getAsString()));
+                    result.add(parsePathogenId(value.getAsString()));
                 }
             } else {
-                result.add(parsePathogen(element.getAsString()));
+                result.add(parsePathogenId(element.getAsString()));
             }
         } else {
-            result.add(parsePathogen(GsonHelper.getAsString(json, "pathogen", "UNIVERSAL")));
+            result.add(parsePathogenId(GsonHelper.getAsString(json, "pathogen", "UNIVERSAL")));
         }
-        if (result.isEmpty()) result.add(PathogenType.UNIVERSAL);
+        if (result.isEmpty()) result.add(BioForgeIds.pathogen(PathogenType.UNIVERSAL));
         return result;
     }
 
-    private static PathogenType parsePathogen(String name) {
+    private static ResourceLocation parsePathogenId(String name) {
         try {
-            return PathogenType.valueOf(name.trim().toUpperCase(Locale.ROOT));
+            ResourceLocation id = BioForgeIds.parse(name);
+            if (BioForgeDefinitionManager.PATHOGENS.get(id).isEmpty()) {
+                throw new IllegalArgumentException("Unknown pathogen type: " + name);
+            }
+            return BioForgeDefinitionManager.PATHOGENS.canonicalId(id);
         } catch (IllegalArgumentException exception) {
             throw new IllegalArgumentException("Unknown pathogen type: " + name);
         }
@@ -315,7 +391,7 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
                     ? GsonHelper.convertToJsonObject(modifier.get("match"), "effect modifier match")
                     : modifier;
             String type = GsonHelper.getAsString(match, "type", "").trim().toLowerCase(Locale.ROOT);
-            if (!type.isEmpty() && !SUPPORTED_EFFECT_TYPES.contains(type)) {
+            if (!type.isEmpty() && !isSupportedEffectType(type)) {
                 throw new IllegalArgumentException(
                         "Unknown effect modifier match type: " + type);
             }
@@ -390,7 +466,7 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
         String type = GsonHelper.getAsString(json, "type",
                 GsonHelper.getAsString(json, "effect_type", "")).trim().toLowerCase(Locale.ROOT);
         if (type.isEmpty()) throw new IllegalArgumentException("Mutation effect is missing 'type'");
-        if (!SUPPORTED_EFFECT_TYPES.contains(type)) {
+        if (!isSupportedEffectType(type)) {
             throw new IllegalArgumentException("Unsupported mutation effect type: " + type);
         }
 
@@ -426,6 +502,14 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
         }
         if (json.has("amplifier") && GsonHelper.getAsInt(json, "amplifier") < 0) {
             throw new IllegalArgumentException("potion amplifier cannot be negative");
+        }
+
+        if (!SUPPORTED_EFFECT_TYPES.contains(type)) {
+            BioForgeBehaviorRegistry.mutationEffect(BioForgeIds.parse(type))
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Missing mutation effect handler: " + type))
+                    .validate(json.deepCopy());
+            return;
         }
 
         String normalizedOperation = effectiveOperation(type, operation);
@@ -535,7 +619,7 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
         }
 
         if (("add_infection_type".equals(type) || "remove_infection_type".equals(type))
-                && parseInfectionType(target) == null) {
+                && !isKnownTransmission(target)) {
             throw new IllegalArgumentException("Unknown infection type: " + target);
         }
 
@@ -574,6 +658,23 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
             return InfectionType.valueOf(name.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
             return null;
+        }
+    }
+
+    private static boolean isSupportedEffectType(String type) {
+        if (SUPPORTED_EFFECT_TYPES.contains(type)) return true;
+        try {
+            return BioForgeBehaviorRegistry.mutationEffect(BioForgeIds.parse(type)).isPresent();
+        } catch (IllegalArgumentException ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isKnownTransmission(String value) {
+        try {
+            return BioForgeDefinitionManager.TRANSMISSIONS.get(BioForgeIds.parse(value)).isPresent();
+        } catch (IllegalArgumentException ignored) {
+            return false;
         }
     }
 
@@ -661,6 +762,11 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
     }
 
     public Optional<MutationDefinition> getMutation(String id) {
+        return getLoadedMutation(id).filter(definition ->
+                BioForgeServerConfig.isMutationEnabled(definition.id()));
+    }
+
+    private Optional<MutationDefinition> getLoadedMutation(String id) {
         if (id == null) return Optional.empty();
         String normalized = id.trim().toLowerCase(Locale.ROOT);
         MutationDefinition exact = mutations.get(normalized);
@@ -669,26 +775,45 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
 
         ResourceLocation parsed = ResourceLocation.tryParse(normalized);
         if (parsed != null && "minecraft".equals(parsed.getNamespace())) {
-            return Optional.ofNullable(mutations.get(parsed.getPath()));
+            MutationDefinition legacy = mutations.get(parsed.getPath());
+            return Optional.ofNullable(legacy);
         }
         return Optional.empty();
     }
 
     public List<MutationDefinition> getMutationsForPathogen(@Nullable PathogenType pathogen) {
         if (pathogen == null) return List.of();
+        if (pathogen == PathogenType.UNIVERSAL) return getAllMutations();
         LinkedHashSet<MutationDefinition> result = new LinkedHashSet<>();
         result.addAll(byPathogen.getOrDefault(PathogenType.UNIVERSAL, List.of()));
         result.addAll(byPathogen.getOrDefault(pathogen, List.of()));
-        return List.copyOf(result);
+        return result.stream()
+                .filter(definition -> BioForgeServerConfig.isMutationEnabled(definition.id()))
+                .toList();
+    }
+
+    public List<MutationDefinition> getMutationsForPathogen(@Nullable ResourceLocation pathogen) {
+        if (pathogen == null) return List.of();
+        if (BioForgeIds.pathogen(PathogenType.UNIVERSAL).equals(pathogen)) {
+            return getAllMutations();
+        }
+        LinkedHashSet<MutationDefinition> result = new LinkedHashSet<>();
+        result.addAll(byPathogenId.getOrDefault(BioForgeIds.pathogen(PathogenType.UNIVERSAL), List.of()));
+        result.addAll(byPathogenId.getOrDefault(pathogen, List.of()));
+        return result.stream().filter(definition -> BioForgeServerConfig.isMutationEnabled(definition.id())).toList();
     }
 
     public List<MutationDefinition> getMutationsWithTag(String tag) {
         if (tag == null) return List.of();
-        return List.copyOf(byTag.getOrDefault(tag.trim().toLowerCase(Locale.ROOT), List.of()));
+        return byTag.getOrDefault(tag.trim().toLowerCase(Locale.ROOT), List.of()).stream()
+                .filter(definition -> BioForgeServerConfig.isMutationEnabled(definition.id()))
+                .toList();
     }
 
     public List<MutationDefinition> getAllMutations() {
-        return Collections.unmodifiableList(allMutations);
+        return allMutations.stream()
+                .filter(definition -> BioForgeServerConfig.isMutationEnabled(definition.id()))
+                .toList();
     }
 
     public long generation() {
@@ -711,7 +836,8 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
     public MutationDefinition chooseWeighted(List<MutationDefinition> definitions, Random random) {
         long totalWeight = 0;
         for (MutationDefinition definition : definitions) {
-            if (definition.enabled() && definition.weight() > 0) {
+            if (definition.enabled() && BioForgeServerConfig.isMutationEnabled(definition.id())
+                    && definition.weight() > 0) {
                 totalWeight += definition.weight();
             }
         }
@@ -719,7 +845,8 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
 
         long roll = Math.floorMod(random.nextLong(), totalWeight);
         for (MutationDefinition definition : definitions) {
-            if (!definition.enabled() || definition.weight() <= 0) continue;
+            if (!definition.enabled() || !BioForgeServerConfig.isMutationEnabled(definition.id())
+                    || definition.weight() <= 0) continue;
             roll -= definition.weight();
             if (roll < 0) return definition;
         }

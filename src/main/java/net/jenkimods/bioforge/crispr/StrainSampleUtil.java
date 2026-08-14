@@ -29,7 +29,7 @@ public final class StrainSampleUtil {
     @Nullable
     public static String getPayload(ItemStack stack) {
         StrainData strain = getStrain(stack);
-        return strain == null || strain.getPathogen() == null ? null : strain.toPayload();
+        return strain == null || strain.getPathogenId() == null ? null : strain.toPayload();
     }
 
     @Nullable
@@ -37,6 +37,6 @@ public final class StrainSampleUtil {
         String payload = NbtObfuscator.readString(stack.getOrCreateTag());
         if (payload == null || payload.isBlank() || "CLEAN".equals(payload)) return null;
         StrainData strain = StrainData.parse(payload);
-        return strain.getPathogen() == null ? null : strain;
+        return strain.getPathogenId() == null ? null : strain;
     }
 }

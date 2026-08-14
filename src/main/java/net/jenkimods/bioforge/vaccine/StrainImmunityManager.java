@@ -18,9 +18,12 @@ public final class StrainImmunityManager {
         return StrainFingerprint.ofPayload(strain == null ? "" : strain.toPayload());
     }
 
-    public static boolean blocks(InfectionData targetData, StrainData incoming) {
-        return targetData != null && incoming != null
-                && targetData.hasStrainImmunity(fingerprint(incoming));
+    public static boolean blocks(LivingEntity target, InfectionData targetData,
+                                 StrainData incoming) {
+        if (target == null || targetData == null || incoming == null) return false;
+        float protection = targetData.getStrainProtection(fingerprint(incoming));
+        return protection >= 1.0F
+                || protection > 0.0F && target.getRandom().nextFloat() < protection;
     }
 
     public static void grant(LivingEntity target, InfectionData targetData, StrainData strain) {
@@ -29,7 +32,7 @@ public final class StrainImmunityManager {
 
     public static void grant(LivingEntity target, InfectionData targetData, StrainData strain,
                              float quality) {
-        if (targetData == null || strain == null || strain.getPathogen() == null) return;
+        if (targetData == null || strain == null || strain.getPathogenId() == null) return;
         String fingerprint = fingerprint(strain);
         String fallbackName = target.level() instanceof ServerLevel level
                 ? StrainNamingManager.displayName(level, fingerprint)
@@ -38,7 +41,22 @@ public final class StrainImmunityManager {
         float durationMultiplier = 0.5f + clampedQuality;
         int duration = Math.max(1, Math.round(
                 BioForgeServerConfig.strainImmunityDurationTicks() * durationMultiplier));
-        targetData.grantStrainImmunity(fingerprint, fallbackName, duration);
+        targetData.grantStrainProtection(
+                fingerprint, fallbackName, duration, 1.0F);
+        refreshStatusEffect(target, targetData);
+    }
+
+    public static void grantResistance(LivingEntity target, InfectionData targetData,
+                                       StrainData strain, float strength,
+                                       int durationTicks) {
+        if (targetData == null || strain == null || strain.getPathogenId() == null) return;
+        String fingerprint = fingerprint(strain);
+        String fallbackName = target.level() instanceof ServerLevel level
+                ? StrainNamingManager.displayName(level, fingerprint)
+                : "Strain " + fingerprint;
+        targetData.grantStrainProtection(fingerprint, fallbackName,
+                Math.max(1, durationTicks),
+                Math.max(0.0F, Math.min(1.0F, strength)));
         refreshStatusEffect(target, targetData);
     }
 

@@ -19,6 +19,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +32,8 @@ public class DecalcificationRecipeManager extends SimpleJsonResourceReloadListen
     public static final DecalcificationRecipeManager INSTANCE = new DecalcificationRecipeManager();
 
     private final List<DecalcificationRecipe> recipes = new ArrayList<>();
+    private final Map<ResourceLocation, DecalcificationRecipe> javaRecipes = new LinkedHashMap<>();
+    private boolean javaRegistrationsFrozen;
 
     private DecalcificationRecipeManager() {
         super(GSON, "decalcification");
@@ -38,6 +42,7 @@ public class DecalcificationRecipeManager extends SimpleJsonResourceReloadListen
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager resourceManager, ProfilerFiller profiler) {
         recipes.clear();
+        var loadedIds = new LinkedHashSet<ResourceLocation>();
         elements.forEach((id, element) -> {
             try {
                 JsonObject json = GsonHelper.convertToJsonObject(element, "decalcification recipe");
@@ -50,11 +55,27 @@ public class DecalcificationRecipeManager extends SimpleJsonResourceReloadListen
                         .map(JsonElement::getAsString)
                         .toList();
                 recipes.add(new DecalcificationRecipe(inputStr, outputStr, copyBloodData, copyNbt, keys));
+                loadedIds.add(id);
             } catch (Exception ex) {
                 BioForge.LOGGER.error("Failed to parse decalcification recipe {}: {}", id, ex.getMessage());
             }
         });
+        javaRecipes.forEach((id, recipe) -> {
+            if (!loadedIds.contains(id)) recipes.add(recipe);
+        });
         BioForge.LOGGER.info("Loaded {} decalcification recipes", recipes.size());
+    }
+
+    public synchronized void registerJava(ResourceLocation id, DecalcificationRecipe recipe) {
+        if (javaRegistrationsFrozen) throw new IllegalStateException("Decalcification recipe registry is frozen");
+        if (id == null || recipe == null) throw new IllegalArgumentException("Decalcification recipe cannot be null");
+        if (javaRecipes.putIfAbsent(id, recipe) != null) {
+            throw new IllegalArgumentException("Duplicate Java decalcification recipe " + id);
+        }
+    }
+
+    public synchronized void freezeJavaRegistrations() {
+        javaRegistrationsFrozen = true;
     }
 
     public Optional<DecalcificationRecipe> getRecipe(ItemStack input) {

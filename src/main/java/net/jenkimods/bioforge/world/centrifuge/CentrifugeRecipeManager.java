@@ -14,6 +14,8 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +26,8 @@ public class CentrifugeRecipeManager extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = new Gson();
     public static final CentrifugeRecipeManager INSTANCE = new CentrifugeRecipeManager();
     private final List<CentrifugeRecipe> recipes = new ArrayList<>();
+    private final Map<ResourceLocation, CentrifugeRecipe> javaRecipes = new LinkedHashMap<>();
+    private boolean javaRegistrationsFrozen;
 
     private CentrifugeRecipeManager() {
         super(GSON, "centrifuge");
@@ -32,6 +36,7 @@ public class CentrifugeRecipeManager extends SimpleJsonResourceReloadListener {
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager resourceManager, ProfilerFiller profiler) {
         recipes.clear();
+        var loadedIds = new LinkedHashSet<ResourceLocation>();
         for (var entry : elements.entrySet()) {
             ResourceLocation id = entry.getKey();
             try {
@@ -66,11 +71,27 @@ public class CentrifugeRecipeManager extends SimpleJsonResourceReloadListener {
                 for (JsonElement e : keysArray) keys.add(e.getAsString());
 
                 recipes.add(new CentrifugeRecipe(input, singleOutput, outputList, copyBloodData, copyNbt, keys, copyInfection, processingTime));
+                loadedIds.add(id);
             } catch (Exception ex) {
                 BioForge.LOGGER.error("Failed to parse centrifuge recipe {}: {}", id, ex.getMessage());
             }
         }
+        javaRecipes.forEach((id, recipe) -> {
+            if (!loadedIds.contains(id)) recipes.add(recipe);
+        });
         BioForge.LOGGER.info("Loaded {} centrifuge recipes", recipes.size());
+    }
+
+    public synchronized void registerJava(ResourceLocation id, CentrifugeRecipe recipe) {
+        if (javaRegistrationsFrozen) throw new IllegalStateException("Centrifuge recipe registry is frozen");
+        if (id == null || recipe == null) throw new IllegalArgumentException("Centrifuge recipe cannot be null");
+        if (javaRecipes.putIfAbsent(id, recipe) != null) {
+            throw new IllegalArgumentException("Duplicate Java centrifuge recipe " + id);
+        }
+    }
+
+    public synchronized void freezeJavaRegistrations() {
+        javaRegistrationsFrozen = true;
     }
 
     public Optional<CentrifugeRecipe> getRecipe(ItemStack inputStack) {

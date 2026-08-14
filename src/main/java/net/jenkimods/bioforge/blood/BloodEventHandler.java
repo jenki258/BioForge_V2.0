@@ -3,6 +3,8 @@ package net.jenkimods.bioforge.blood;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.blood.network.BloodSyncPacket;
 import net.jenkimods.bioforge.blood.network.NetworkHandler;
+import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -51,6 +53,11 @@ public class BloodEventHandler {
                 data.setBloodType(assigned);
                 data.setBlood(BloodData.MAX_BLOOD);
             }
+        }
+
+        if (living.tickCount % 100 == 0 && living.level() instanceof ServerLevel serverLevel) {
+            BloodKnowledgeStore.get(serverLevel.getServer())
+                    .validateSubjectBloodType(living.getUUID(), data.getBloodType());
         }
 
         if (!(living instanceof ServerPlayer player)) return;

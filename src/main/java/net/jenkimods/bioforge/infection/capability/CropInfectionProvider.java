@@ -1,5 +1,6 @@
 package net.jenkimods.bioforge.infection.capability;
 
+import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.capabilities.Capability;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CropInfectionProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+    private static final String NBT_CHANNEL = "crop_infection";
     private final CropInfectionStorage storage = new CropInfectionStorage();
     private final LazyOptional<ICropInfectionStorage> optional = LazyOptional.of(() -> storage);
 
@@ -24,11 +26,15 @@ public class CropInfectionProvider implements ICapabilityProvider, INBTSerializa
 
     @Override
     public CompoundTag serializeNBT() {
-        return storage.serializeNBT();
+        CompoundTag encoded = new CompoundTag();
+        NbtObfuscator.writeCompoundDeterministic(
+                encoded, NBT_CHANNEL, storage.serializeNBT());
+        return encoded;
     }
 
     @Override
     public void deserializeNBT(CompoundTag nbt) {
-        storage.deserializeNBT(nbt);
+        CompoundTag decoded = NbtObfuscator.readCompound(nbt, NBT_CHANNEL);
+        storage.deserializeNBT(decoded == null ? nbt : decoded);
     }
 }

@@ -4,18 +4,21 @@ import net.jenkimods.bioforge.crispr.BioForgeResearchData;
 import net.jenkimods.bioforge.crispr.VaccineTargetCategory;
 import net.jenkimods.bioforge.infection.InfectionCapability;
 import net.jenkimods.bioforge.infection.InfectionData;
-import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.StrainData;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
+import net.jenkimods.bioforge.api.definition.SymptomDefinition;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.infection.lifecycle.InfectionLifecycleRegistry;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.mutation.MutationDefinition;
 import net.jenkimods.bioforge.mutation.MutationLoader;
 import net.jenkimods.bioforge.mutation.MutationManager;
 import net.minecraft.util.Mth;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 
-import java.util.Locale;
 
 public final class DirectedVaccineManager {
     public enum Outcome {
@@ -56,7 +59,7 @@ public final class DirectedVaccineManager {
             return empty(Outcome.INVALID_VACCINE);
         }
         InfectionData infection = InfectionCapability.get(target);
-        if (infection == null || !infection.isInfected() || infection.getPathogenType() == null) {
+        if (infection == null || !infection.isInfected() || infection.getPathogenId() == null) {
             return empty(Outcome.NO_INFECTION);
         }
 
@@ -72,7 +75,9 @@ public final class DirectedVaccineManager {
                 action.baseSuccessChance()
                         * (0.25f + 0.75f * profile.quality())
                         * (0.65f + 0.35f * match.totalSimilarity())
-                        * resistance,
+                        * resistance
+                        * (1.0F - InfectionLifecycleRegistry.INSTANCE
+                        .resolve(infection.getLifecycle().profileId()).cureResistance()),
                 0.0f, 1.0f);
         if (!VaccineManager.meetsRhRequirements(infection, hostProfile)) {
             chance = 0.0f;
@@ -134,13 +139,15 @@ public final class DirectedVaccineManager {
 
     private static boolean applyTransmission(InfectionData infection, String target,
                                              String operation) {
-        InfectionType type;
+        ResourceLocation type;
         try {
-            type = InfectionType.valueOf(target.trim().toUpperCase(Locale.ROOT));
+            type = BioForgeIds.parse(target);
         } catch (IllegalArgumentException exception) {
             return false;
         }
-        boolean present = infection.getInfectionTypes().contains(type);
+        type = BioForgeDefinitionManager.TRANSMISSIONS.canonicalId(type);
+        if (BioForgeDefinitionManager.transmission(type).isEmpty()) return false;
+        boolean present = infection.getTransmissionIds().contains(type);
         boolean shouldAdd = switch (operation) {
             case "add", "set", "increase", "replace" -> true;
             case "remove", "reduce", "move_toward_neutral" -> false;
@@ -148,8 +155,8 @@ public final class DirectedVaccineManager {
             default -> false;
         };
         if (shouldAdd == present) return false;
-        if (shouldAdd) infection.addInfectionType(type);
-        else infection.removeInfectionType(type);
+        if (shouldAdd) infection.addTransmissionId(type);
+        else infection.removeTransmissionId(type);
         return true;
     }
 
@@ -159,6 +166,8 @@ public final class DirectedVaccineManager {
                                         String valueOverride, String neutralOverride) {
         SymptomKey key = BioForgeSymptoms.getAllSymptomKeys().get(target);
         if (key == null) return false;
+        SymptomDefinition definition = BioForgeDefinitionManager
+                .symptom(BioForgeDefinitionManager.symptomId(target)).orElse(null);
         Object current = infection.getSymptom(key);
         Object neutral = key.getDefaultValue();
         Object sourceValue = source.getSymptom(target)
@@ -184,7 +193,7 @@ public final class DirectedVaccineManager {
                 case "auto_opposite" -> now != normal ? normal : sample;
                 default -> now;
             };
-        } else if (key.getType().isEnum()) {
+        } else if (key.getType().isEnum() || key.getType() == String.class) {
             result = switch (operation) {
                 case "remove", "reduce", "move_toward_neutral" -> neutral;
                 case "add", "increase", "set", "replace" ->
@@ -214,6 +223,11 @@ public final class DirectedVaccineManager {
         } else {
             return false;
         }
+        if (definition != null && definition.valueType() == SymptomDefinition.ValueType.ENUM
+                && result instanceof String selected
+                && definition.allowedValues().stream().noneMatch(selected::equalsIgnoreCase)) {
+            return false;
+        }
         if (result == null || result.equals(current)) return false;
         infection.setSymptom(key, result);
         return true;
@@ -231,6 +245,7 @@ public final class DirectedVaccineManager {
             if (type == Boolean.class) return Boolean.valueOf(value);
             if (type == Float.class) return Float.valueOf(value);
             if (type == Integer.class) return Integer.valueOf(value);
+            if (type == String.class) return value;
             if (type.isEnum()) return Enum.valueOf((Class<Enum>) type, value);
         } catch (RuntimeException ignored) {}
         return null;

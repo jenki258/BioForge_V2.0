@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.Optional;
 
 public class MicroscopeNetwork {
-    private static final String PROTOCOL = "1";
+    private static final String PROTOCOL = "2";
     private static SimpleChannel CHANNEL;
 
     public static void register() {
@@ -22,9 +22,18 @@ public class MicroscopeNetwork {
                 MicroscopeSyncPacket::encode, MicroscopeSyncPacket::decode,
                 MicroscopeSyncPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(1, MicroscopeCalibrationPacket.class,
+                MicroscopeCalibrationPacket::encode,
+                MicroscopeCalibrationPacket::decode,
+                MicroscopeCalibrationPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
     public static void sendToPlayer(MicroscopeSyncPacket packet, ServerPlayer player) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
+    }
+
+    public static void sendCalibration(MicroscopeCalibrationPacket packet) {
+        CHANNEL.sendToServer(packet);
     }
 }

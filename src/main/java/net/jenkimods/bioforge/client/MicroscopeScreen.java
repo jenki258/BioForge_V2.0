@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.MicroscopeVisibility;
 import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
+import net.jenkimods.bioforge.vaccine.VaccineBloodAssay;
 import net.jenkimods.bioforge.world.microscope.*;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -18,7 +19,8 @@ import java.util.*;
 public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
 
     private static final ResourceLocation GUI_TEXTURE =
-            ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/microscope.png");
+            ResourceLocation.tryBuild(
+                    BioForge.MODID, "textures/gui/laboratory/microscope.png");
     private static final ResourceLocation EMPTY_ICON =
             ResourceLocation.tryBuild(BioForge.MODID, "textures/gui/microscope/empty.png");
     private static final ResourceLocation IDENTIFY_BUTTON_TEXTURE =
@@ -40,6 +42,8 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     private int scrollOffset = 0;
     private boolean isScrolling = false;
     private int draggingSlider = -1;
+    private int lastSentCalibrationIndex = -1;
+    private float lastSentCalibrationValue = Float.NaN;
     private Button identifyButton;
 
     public MicroscopeScreen(MicroscopeMenu menu, Inventory inv, Component title) {
@@ -61,15 +65,32 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                                         MicroscopeBlockEntity.IDENTIFY_GENE_BUTTON);
                             }
                         }, IDENTIFY_BUTTON_TEXTURE));
+        updateIdentifyButton();
+    }
+
+    @Override
+    public void removed() {
+        super.removed();
+        MicroscopeClientData.clear();
     }
 
     @Override
     protected void containerTick() {
         super.containerTick();
+        updateIdentifyButton();
+    }
+
+    private void updateIdentifyButton() {
         if (identifyButton == null) return;
         ItemStack stack = menu.slots.get(0).getItem();
         GeneImprintItem.Data imprint = GeneImprintItem.read(stack);
-        identifyButton.visible = imprint != null && !imprint.identified();
+        boolean pendingAssay = VaccineBloodAssay.isAssay(stack)
+                && !VaccineBloodAssay.isScanned(stack);
+        identifyButton.visible = imprint != null && !imprint.identified()
+                || pendingAssay;
+        identifyButton.setMessage(Component.translatable(pendingAssay
+                ? "gui.bioforge.microscope.scan"
+                : "gui.bioforge.microscope.identify"));
         identifyButton.active = identifyButton.visible && MicroscopeClientData.isCalibrated();
     }
 
@@ -140,6 +161,19 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
         float fraction = 1.0f - (float)(mouseY - calibY) / TRACK_HEIGHT;
         float value = slider.rangeMin() + fraction * (slider.rangeMax() - slider.rangeMin());
         MicroscopeClientData.setSliderValue(index, value);
+        float range = slider.rangeMax() - slider.rangeMin();
+        float normalized = range == 0.0F
+                ? 0.5F
+                : (value - slider.rangeMin()) / range;
+        normalized = Math.max(0.0F, Math.min(1.0F, normalized));
+        if (index != lastSentCalibrationIndex
+                || !Float.isFinite(lastSentCalibrationValue)
+                || Math.abs(normalized - lastSentCalibrationValue) >= 0.01F) {
+            MicroscopeNetwork.sendCalibration(new MicroscopeCalibrationPacket(
+                    menu.getBlockEntity().getBlockPos(), index, normalized));
+            lastSentCalibrationIndex = index;
+            lastSentCalibrationValue = normalized;
+        }
     }
 
     private boolean isMouseOverScrollbar(double mx, double my) {
@@ -174,13 +208,61 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
     public void render(GuiGraphics g, int mx, int my, float pt) {
         renderBackground(g);
         super.render(g, mx, my, pt);
-        if (MicroscopeClientData.isCalibrated()) {
+        ItemStack stack = menu.slots.get(0).getItem();
+        if (VaccineBloodAssay.isAssay(stack)) {
+            renderAssayPanel(g, stack);
+        } else if (MicroscopeClientData.isCalibrated()) {
             renderSymptomGrid(g, mx, my);
         }
         renderCalibrationPanel(g, mx, my);
         renderTooltip(g, mx, my);
         if (isScrolling) updateScrollFromMouse(my);
         if (draggingSlider != -1) updateSliderFromMouse(my, draggingSlider);
+    }
+
+    private void renderAssayPanel(GuiGraphics graphics, ItemStack stack) {
+        int centerX = leftPos + GRID_X + GRID_W / 2;
+        int labelY = topPos + GRID_Y + 9;
+        if (!VaccineBloodAssay.isScanned(stack)) {
+            graphics.drawCenteredString(font, Component.translatable(
+                            "gui.bioforge.microscope.assay.pending"),
+                    centerX, labelY, 0xFF78C7D3);
+            return;
+        }
+        int result = MicroscopeClientData.getAssayResultPermille();
+        graphics.drawCenteredString(font, Component.translatable(
+                        "gui.bioforge.microscope.assay.result"),
+                centerX, labelY, 0xFF6EFFFF);
+        if (result >= 0) {
+            String value = String.format(Locale.ROOT, "%.1f%%", result / 10.0F);
+            graphics.drawCenteredString(font, value, centerX,
+                    labelY + 15, assayColor(result));
+        }
+        VaccineBloodAssay.Data assay = VaccineBloodAssay.read(stack);
+        if (assay != null && assay.crisprSequence().length() == 60
+                && assay.crisprFeedback().length() == 60) {
+            for (int guide = 0; guide < 3; guide++) {
+                int rowStart = guide * 20;
+                int startX = centerX - 58;
+                int y = labelY + 29 + guide * 10;
+                for (int base = 0; base < 20; base++) {
+                    int index = rowStart + base;
+                    int color = switch (assay.crisprFeedback().charAt(index)) {
+                        case 'C' -> 0xFF55F59A;
+                        case 'P' -> 0xFFFFCC66;
+                        default -> 0xFFFF6B6B;
+                    };
+                    graphics.drawString(font,
+                            String.valueOf(assay.crisprSequence().charAt(index)),
+                            startX + base * 6, y, color, false);
+                }
+            }
+        }
+    }
+
+    private static int assayColor(int resultPermille) {
+        return resultPermille >= 800 ? 0xFF55F59A
+                : resultPermille >= 350 ? 0xFFFFCC66 : 0xFFFF6B6B;
     }
 
     private void renderCalibrationPanel(GuiGraphics g, int mouseX, int mouseY) {
@@ -290,7 +372,7 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                     tipText = "-";
                 } else {
                     Object value = values.get(entry.symptomKey());
-                    if (value == null || (entry.isBoolean() && !(Boolean) value)) {
+                    if (value == null) {
                         tipText = "-";
                     } else {
                         String nameKey = "microscope.symptom." + entry.symptomKey();
@@ -306,6 +388,10 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                             if (stateText.equals(stateKey)) {
                                 stateText = state;
                             }
+                        } else if (value instanceof Boolean bool) {
+                            stateText = Component.translatable(bool
+                                    ? "microscope.value.present"
+                                    : "microscope.value.absent").getString();
                         } else if (value instanceof Float f) {
                             if (entry.displayPercentage()) {
                                 stateText = String.format("%.0f%%", f * 100);

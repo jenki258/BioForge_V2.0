@@ -2,7 +2,11 @@ package net.jenkimods.bioforge.event;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.BioForgeTags;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.CropInfection;
+import net.jenkimods.bioforge.infection.InfectionType;
+import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.infection.capability.CropInfectionCapability;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.core.BlockPos;
@@ -38,20 +42,34 @@ public class CropInfectionDropHandler {
                 var infection = storage.getInfection(pos);
                 if (infection == null) return;
 
+                String itemStrain = stripColonyId(infection.getStrainData());
+                StrainData parsed = StrainData.parse(itemStrain);
+                boolean supportedRoute = BioForgeServerConfig
+                        .isTransmissionEnabled(InfectionType.FOOD_BORNE)
+                        && BioForgeDefinitionManager.hasTransmissionBehavior(
+                        parsed, InfectionType.FOOD_BORNE)
+                        || BioForgeServerConfig.isTransmissionEnabled(InfectionType.ENVIRONMENTAL)
+                        && BioForgeDefinitionManager.hasTransmissionBehavior(
+                        parsed, InfectionType.ENVIRONMENTAL);
+                if (!supportedRoute) {
+                    storage.removeInfection(pos);
+                    chunk.setUnsaved(true);
+                    return;
+                }
+
                 event.setCanceled(true);
 
                 float strength = infection.getInfectionStrength();
-                List<ItemStack> originalDrops = Block.getDrops(state, serverLevel, pos, null, player, ItemStack.EMPTY);
-
-                String itemStrain = stripColonyId(infection.getStrainData());
+                List<ItemStack> originalDrops = Block.getDrops(
+                        state, serverLevel, pos, null, player, player.getMainHandItem());
 
                 for (ItemStack drop : originalDrops) {
-                    if (strength <= 0.0f || level.random.nextFloat() > strength) {
-                        if (itemStrain != null) {
-                            NbtObfuscator.writeStringDeterministic(drop.getOrCreateTag(), itemStrain);
-                        }
-                        Block.popResource(level, pos, drop);
+                    if (itemStrain != null && strength > 0.0f
+                            && level.random.nextFloat() <= strength) {
+                        NbtObfuscator.writeStringDeterministic(
+                                drop.getOrCreateTag(), itemStrain);
                     }
+                    Block.popResource(level, pos, drop);
                 }
 
                 storage.removeInfection(pos);

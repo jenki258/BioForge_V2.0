@@ -1,6 +1,8 @@
 package net.jenkimods.bioforge.world.vaccine;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.api.behavior.BioForgeBehaviorRegistry;
+import net.jenkimods.bioforge.api.behavior.VaccineMakerOperationContext;
 import net.jenkimods.bioforge.crispr.BioForgeResearchData;
 import net.jenkimods.bioforge.crispr.CrisprGuideProfile;
 import net.jenkimods.bioforge.crispr.StrainSampleUtil;
@@ -13,14 +15,20 @@ import net.jenkimods.bioforge.item.vaccine.VaccineItem;
 import net.jenkimods.bioforge.mutation.MutationDefinition;
 import net.jenkimods.bioforge.mutation.MutationLoader;
 import net.jenkimods.bioforge.mutation.network.MutationNetworkHandler;
+import net.jenkimods.bioforge.registry.BioForgeSounds;
 import net.jenkimods.bioforge.mutation.network.MutationSlotPacket;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.jenkimods.bioforge.vaccine.DirectedVaccineProfile;
 import net.jenkimods.bioforge.vaccine.DirectedVaccineAction;
 import net.jenkimods.bioforge.vaccine.MedicalReportStrainBinding;
 import net.jenkimods.bioforge.vaccine.VaccineHostProfile;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionProfile;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionState;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionNotes;
+import net.jenkimods.bioforge.vaccine.VaccineBloodAssay;
 import net.jenkimods.bioforge.vaccine.VaccineProfile;
 import net.jenkimods.bioforge.vaccine.VaccineResearchNotes;
+import net.jenkimods.bioforge.vaccine.ResistancePillProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -55,6 +63,10 @@ import java.util.Random;
 import java.util.UUID;
 
 public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider {
+    private static final ResourceLocation DEFAULT_CORRECTION_PROFILE =
+            ResourceLocation.tryBuild(BioForge.MODID, "default");
+    private static final String CORRECTION_NBT_CHANNEL =
+            "vaccine_maker_correction_state";
     public static final int CARTRIDGE_START = 0;
     public static final int CARTRIDGE_END = 15;
     public static final int CAS_SLOT = 15;
@@ -71,6 +83,7 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
     private final ItemStackHandler items = new ItemStackHandler(SLOT_COUNT) {
         @Override
         protected void onContentsChanged(int slot) {
+            boolean correctionChanged = false;
             if (slot >= CARTRIDGE_START && slot < CARTRIDGE_END) {
                 ItemStack stack = getStackInSlot(slot);
                 if (stack.getItem() instanceof CrisprCartridgeItem) {
@@ -82,12 +95,16 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
                 ItemStack stack = getStackInSlot(slot);
                 CasModuleItem.setModuleId(stack, CasModuleItem.getModuleId(stack));
             }
+            if (slot == SAMPLE_SLOT) {
+                correctionChanged = refreshCorrectionState();
+            }
             if (!processingOutput && slot != OUTPUT_SLOT) {
                 progress = 0;
                 craftRequested = false;
                 activeRecipeId = null;
             }
             setChanged();
+            if (correctionChanged) syncCorrectionToViewers();
         }
 
         @Override
@@ -119,7 +136,8 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
             if (slot == REPORT_SLOT) {
                 return stack.is(Items.PAPER) || stack.is(Items.WRITABLE_BOOK)
                         || stack.is(BioForge.MEDICAL_REPORT.get())
-                        || stack.is(BioForge.CRISPR_NOTES.get());
+                        || stack.is(BioForge.CRISPR_NOTES.get())
+                        || VaccineBloodAssay.isAssay(stack);
             }
             return false;
         }
@@ -139,6 +157,10 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
     private boolean processingOutput;
     private boolean redstonePowered;
     private int failureTicks;
+    private int selectedPageIndex;
+    private int selectedCorrectionPage;
+    private final VaccineCorrectionState correctionState =
+            new VaccineCorrectionState();
     @Nullable private ResourceLocation activeRecipeId;
     @Nullable private UUID operatorId;
 
@@ -148,7 +170,7 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
             return switch (index) {
                 case 0 -> progress;
                 case 1 -> maxProgress;
-                case 2 -> qualityPermille;
+                case 2 -> 0;
                 case 3 -> status;
                 default -> 0;
             };
@@ -177,6 +199,9 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
     public static void tick(Level level, BlockPos pos, BlockState state,
                             VaccineMakerBlockEntity maker) {
         if (level.isClientSide()) return;
+        if (maker.refreshCorrectionState()) {
+            maker.syncCorrectionToViewers();
+        }
         boolean powered = level.hasNeighborSignal(pos);
         if (powered != maker.redstonePowered) {
             maker.redstonePowered = powered;
@@ -244,6 +269,10 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
             maker.craftRequested = false;
             maker.activeRecipeId = null;
             maker.status = completed ? 1 : 5;
+            if (completed) {
+                level.playSound(null, pos, BioForgeSounds.GENES_COMPLETE.get(),
+                        SoundSource.BLOCKS, 0.85F, 1.0F);
+            }
         }
         maker.setChanged();
     }
@@ -388,8 +417,15 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         ItemStack reagent = items.getStackInSlot(REAGENT_SLOT);
         ItemStack report = items.getStackInSlot(REPORT_SLOT);
         ItemStack cas = items.getStackInSlot(CAS_SLOT);
-        return BioForgeResearchData.recipes().stream()
+        Optional<VaccineMakerRecipe> exact = BioForgeResearchData.recipes().stream()
                 .filter(recipe -> recipe.matches(sample, carrier, reagent, report, cas))
+                .filter(this::additionalRequirements)
+                .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
+                .findFirst();
+        if (exact.isPresent() || !VaccineBloodAssay.isAssay(report)) return exact;
+        return BioForgeResearchData.recipes().stream()
+                .filter(recipe -> recipe.matches(
+                        sample, carrier, reagent, ItemStack.EMPTY, cas))
                 .filter(this::additionalRequirements)
                 .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
                 .findFirst();
@@ -414,20 +450,29 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
             if (!recipe.cartridge().test(items.getStackInSlot(slot))) return false;
         }
         StrainData strain = StrainSampleUtil.getStrain(items.getStackInSlot(SAMPLE_SLOT));
-        if (strain == null || strain.getPathogen() == null) return false;
+        if (strain == null || strain.getPathogenId() == null) return false;
         return BioForgeResearchData.casModule(
                         CasModuleItem.getModuleId(items.getStackInSlot(CAS_SLOT)))
                 .filter(module -> module.isCompatible(
-                        recipe.guideProfile(), strain.getPathogen()))
+                        recipe.guideProfile(), strain.getPathogenId()))
                 .isPresent();
     }
 
     private boolean additionalRequirements(VaccineMakerRecipe recipe) {
         if (!programRequirements(recipe)) return false;
+        if (recipe.operation() == null) {
+            return BioForgeBehaviorRegistry.vaccineOperation(recipe.operationId())
+                    .map(handler -> handler.additionalRequirements(
+                            new VaccineMakerOperationContext(this, recipe, calculateQuality(recipe))))
+                    .orElse(false);
+        }
         return switch (recipe.operation()) {
             case FULL -> fullRequirements(recipe);
             case RANDOM_MUTATION -> fullRequirements(recipe);
             case DIRECTED -> directedRequirements(recipe);
+            case RESISTANCE_PILL -> StrainSampleUtil.getStrain(
+                    items.getStackInSlot(SAMPLE_SLOT)) != null;
+            case SYMPTOM_TABLET -> symptomTabletRequirements();
             case CLONE -> VaccineProfile.read(items.getStackInSlot(SAMPLE_SLOT)) != null
                     || DirectedVaccineProfile.read(items.getStackInSlot(SAMPLE_SLOT)) != null
                     ? isBlankCarrier(items.getStackInSlot(CARRIER_SLOT))
@@ -447,6 +492,10 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         boolean requiresClinicalResearch = recipe.findingBonus() > 0.0f
                 || recipe.completeBloodBonus() > 0.0f || recipe.requiresReport();
         ItemStack report = items.getStackInSlot(REPORT_SLOT);
+        if (recipe.assayFeedbackBonus() > 0.0F) {
+            return VaccineBloodAssay.matchesScannedSample(
+                    report, strain.toPayload());
+        }
         return !requiresClinicalResearch || MedicalReportStrainBinding.matchesSample(
                 report, strain.toPayload());
     }
@@ -471,7 +520,8 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
                     && carrierMatchesCategory(items.getStackInSlot(CARRIER_SLOT), category);
         }
         StrainData imprintStrain = StrainData.parse(imprint.strainPayload());
-        return strain.getPathogen() != null && strain.getPathogen() == imprintStrain.getPathogen()
+        return strain.getPathogenId() != null
+                && strain.getPathogenId().equals(imprintStrain.getPathogenId())
                 && isBlankCarrier(items.getStackInSlot(CARRIER_SLOT))
                 && carrierMatchesCategory(items.getStackInSlot(CARRIER_SLOT), category);
     }
@@ -491,6 +541,10 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
     }
 
     private float calculateQuality(VaccineMakerRecipe recipe) {
+        if (recipe.operation() == VaccineMakerOperation.RESISTANCE_PILL
+                || recipe.operation() == VaccineMakerOperation.SYMPTOM_TABLET) {
+            return 1.0F;
+        }
         if (recipe.operation() == VaccineMakerOperation.CLONE) {
             VaccineProfile full = VaccineProfile.read(items.getStackInSlot(SAMPLE_SLOT));
             if (full != null) return full.quality();
@@ -498,7 +552,13 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
                     DirectedVaccineProfile.read(items.getStackInSlot(SAMPLE_SLOT));
             return directed == null ? 0.0f : directed.quality();
         }
-        float rawQuality = calculateRawQuality(recipe);
+        float crisprQuality = calculateRawQuality(recipe);
+        VaccineCorrectionProfile correctionProfile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        float rawQuality = correctionProfile == null
+                ? crisprQuality
+                : blendQuality(correctionProfile, crisprQuality,
+                getCorrectionQuality());
         float cap = recipe.baseQualityCap();
         ItemStack reagent = items.getStackInSlot(REAGENT_SLOT);
         ItemStack report = items.getStackInSlot(REPORT_SLOT);
@@ -513,7 +573,31 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         if (GeneImprintItem.isIdentified(reagent)) {
             cap += recipe.identifiedImprintBonus();
         }
+        if (strain != null && recipe.assayFeedbackBonus() > 0.0F) {
+            cap += VaccineBloodAssay.feedback(report, strain.toPayload())
+                    * recipe.assayFeedbackBonus();
+        }
         return Math.min(rawQuality, Math.max(0.0f, Math.min(1.0f, cap)));
+    }
+
+    private static float blendQuality(VaccineCorrectionProfile profile,
+                                      float crisprQuality,
+                                      float correctionQuality) {
+        float crispr = Math.max(0.0F, Math.min(1.0F, crisprQuality));
+        float correction = Math.max(0.0F, Math.min(1.0F, correctionQuality));
+        float crisprWeight = profile.normalizedCrisprWeight();
+        float correctionWeight = profile.normalizedCorrectionWeight();
+        return switch (profile.blendMode()) {
+            case ARITHMETIC -> crispr * crisprWeight
+                    + correction * correctionWeight;
+            case GEOMETRIC -> (float) (Math.pow(crispr, crisprWeight)
+                    * Math.pow(correction, correctionWeight));
+            case HARMONIC -> crispr <= 0.0F && crisprWeight > 0.0F
+                    || correction <= 0.0F && correctionWeight > 0.0F
+                    ? 0.0F
+                    : 1.0F / (crisprWeight / Math.max(crispr, 0.000001F)
+                    + correctionWeight / Math.max(correction, 0.000001F));
+        };
     }
 
     private float calculateRawQuality(VaccineMakerRecipe recipe) {
@@ -525,7 +609,7 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         float casEfficiency = BioForgeResearchData.casModule(
                         CasModuleItem.getModuleId(items.getStackInSlot(CAS_SLOT)))
                 .filter(module -> module.isCompatible(
-                        recipe.guideProfile(), strain.getPathogen()))
+                        recipe.guideProfile(), strain.getPathogenId()))
                 .map(module -> module.efficiency()).orElse(0.0f);
         float points = (recipe.sample().test(items.getStackInSlot(SAMPLE_SLOT))
                 ? recipe.sampleWeight() : 0.0f)
@@ -581,16 +665,221 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         return items.getStackInSlot(OUTPUT_SLOT).isEmpty();
     }
 
-    private boolean process(VaccineMakerRecipe recipe, float quality) {
-        if (attemptSynthesisMutation(recipe, calculateRawQuality(recipe))) {
+    private boolean refreshCorrectionState() {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        boolean changed = correctionState.ensure(strain, profile);
+        if (changed) {
+            setChanged();
+        }
+        return changed;
+    }
+
+    public List<VaccineCorrectionState.Target> getCorrectionTargets() {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        return correctionState.targets(strain, profile);
+    }
+
+    public boolean cycleCorrectionSelection(int targetIndex, int direction) {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        if (!correctionState.cycleSelection(
+                strain, profile, targetIndex, direction)) return false;
+        setChanged();
+        syncCorrectionToViewers();
+        return true;
+    }
+
+    public boolean setCorrectionSelection(int targetIndex, int state) {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        if (!correctionState.setSelection(
+                strain, profile, targetIndex, state)) return false;
+        setChanged();
+        syncCorrectionToViewers();
+        return true;
+    }
+
+    public boolean resetCorrectionState(ServerPlayer player) {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        if (strain == null || profile == null) {
+            player.displayClientMessage(Component.translatable(
+                    "message.bioforge.vaccine_maker.correction.no_sample"), true);
             return false;
         }
-        ItemStack output = switch (recipe.operation()) {
-            case FULL -> createFullVaccine(recipe, quality);
-            case RANDOM_MUTATION -> createFullVaccine(recipe, quality);
-            case DIRECTED -> createDirectedVaccine(recipe, quality);
-            case CLONE -> cloneVaccine();
-        };
+        correctionState.reset(strain, profile);
+        setChanged();
+        syncCorrectionToViewers();
+        player.displayClientMessage(Component.translatable(
+                "message.bioforge.vaccine_maker.correction.reset"), true);
+        return true;
+    }
+
+    public boolean readCorrectionDocument(ServerPlayer player) {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        if (strain == null || profile == null) {
+            player.displayClientMessage(Component.translatable(
+                    "message.bioforge.vaccine_maker.correction.no_sample"), true);
+            return false;
+        }
+        ItemStack document = items.getStackInSlot(REPORT_SLOT);
+        VaccineCorrectionNotes.Data template = VaccineCorrectionNotes.read(document);
+        int imported;
+        if (template != null) {
+            if (!VaccineCorrectionNotes.matchesSample(document, strain.toPayload())) {
+                player.displayClientMessage(Component.translatable(
+                        "message.bioforge.vaccine_maker.correction.template_mismatch"), true);
+                return false;
+            }
+            imported = correctionState.applyTemplate(strain, profile, template);
+        } else {
+            if (!MedicalReportStrainBinding.matchesSample(
+                    document, strain.toPayload())) {
+                player.displayClientMessage(Component.translatable(
+                        "message.bioforge.vaccine_maker.correction.report_mismatch"), true);
+                return false;
+            }
+            CompoundTag report = document.getTag();
+            imported = correctionState.importMedicalReport(strain, profile, report);
+        }
+        if (imported <= 0) {
+            player.displayClientMessage(Component.translatable(
+                    "message.bioforge.vaccine_maker.correction.no_readings"), true);
+            return false;
+        }
+        setChanged();
+        syncCorrectionToViewers();
+        player.level().playSound(null, worldPosition, SoundEvents.BOOK_PAGE_TURN,
+                SoundSource.BLOCKS, 0.7F, 1.05F);
+        player.displayClientMessage(Component.translatable(
+                "message.bioforge.vaccine_maker.correction.imported", imported), true);
+        return true;
+    }
+
+    public boolean writeCorrectionDocument(ServerPlayer player) {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        ItemStack document = items.getStackInSlot(REPORT_SLOT);
+        if (strain == null || profile == null) {
+            player.displayClientMessage(Component.translatable(
+                    "message.bioforge.vaccine_maker.correction.no_sample"), true);
+            return false;
+        }
+        if (!VaccineCorrectionNotes.canRecord(document)) {
+            player.displayClientMessage(Component.translatable(
+                    "message.bioforge.vaccine_maker.correction.no_medium"), true);
+            return false;
+        }
+        List<VaccineCorrectionState.Target> targets =
+                correctionState.targets(strain, profile);
+        if (targets.isEmpty()) return false;
+        ItemStack recorded = VaccineCorrectionNotes.record(document,
+                strain.toPayload(), profile.id(), targets);
+        if (recorded.isEmpty()) return false;
+        processingOutput = true;
+        items.setStackInSlot(REPORT_SLOT, recorded);
+        processingOutput = false;
+        setChanged();
+        player.level().playSound(null, worldPosition, SoundEvents.BOOK_PAGE_TURN,
+                SoundSource.BLOCKS, 0.7F, 1.15F);
+        player.displayClientMessage(Component.translatable(
+                "message.bioforge.vaccine_maker.correction.recorded",
+                targets.size()), true);
+        return true;
+    }
+
+    public int getCorrectionTargetsPerPage() {
+        return BioForgeResearchData.correctionProfile(DEFAULT_CORRECTION_PROFILE)
+                .map(VaccineCorrectionProfile::targetsPerPage).orElse(6);
+    }
+
+    public int getSelectedPageIndex() {
+        return selectedPageIndex;
+    }
+
+    public void setSelectedPageIndex(int pageIndex) {
+        int clamped = Math.max(0, Math.min(
+                VaccineMakerMenu.MAX_PAGE_COUNT - 1, pageIndex));
+        if (selectedPageIndex == clamped) return;
+        selectedPageIndex = clamped;
+        setChanged();
+    }
+
+    public int getSelectedCorrectionPage() {
+        return selectedCorrectionPage;
+    }
+
+    public void setSelectedCorrectionPage(int pageIndex) {
+        int clamped = Math.max(0, Math.min(
+                VaccineMakerMenu.MAX_CORRECTION_PAGE_COUNT - 1, pageIndex));
+        if (selectedCorrectionPage == clamped) return;
+        selectedCorrectionPage = clamped;
+        setChanged();
+    }
+
+    public void sendCorrectionState(ServerPlayer player, int containerId) {
+        VaccineMakerCorrectionNetwork.send(
+                player, containerId, getCorrectionTargetsPerPage(),
+                getCorrectionTargets());
+    }
+
+    private void syncCorrectionToViewers() {
+        if (level == null || level.isClientSide()) return;
+        for (Player player : level.players()) {
+            if (player instanceof ServerPlayer serverPlayer
+                    && player.containerMenu instanceof VaccineMakerMenu menu
+                    && menu.getBlockEntity() == this) {
+                sendCorrectionState(serverPlayer, menu.containerId);
+            }
+        }
+    }
+
+    public float getCorrectionQuality() {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        VaccineCorrectionProfile profile = BioForgeResearchData
+                .correctionProfile(DEFAULT_CORRECTION_PROFILE).orElse(null);
+        return correctionState.quality(strain, profile);
+    }
+
+    private boolean process(VaccineMakerRecipe recipe, float quality) {
+        if (recipe.requiresProgram()
+                && attemptSynthesisMutation(recipe, calculateRawQuality(recipe))) {
+            return false;
+        }
+        ItemStack output;
+        if (recipe.operation() == null) {
+            output = BioForgeBehaviorRegistry.vaccineOperation(recipe.operationId())
+                    .map(handler -> handler.createOutput(
+                            new VaccineMakerOperationContext(this, recipe, quality)))
+                    .orElse(ItemStack.EMPTY);
+        } else {
+            output = switch (recipe.operation()) {
+                case FULL -> createFullVaccine(recipe, quality);
+                case RANDOM_MUTATION -> createFullVaccine(recipe, quality);
+                case DIRECTED -> createDirectedVaccine(recipe, quality);
+                case RESISTANCE_PILL -> createResistancePill(recipe);
+                case SYMPTOM_TABLET -> createSymptomTablet(recipe, quality);
+                case CLONE -> cloneVaccine();
+            };
+        }
         if (output.isEmpty()) return false;
         processingOutput = true;
         items.setStackInSlot(OUTPUT_SLOT, output);
@@ -600,6 +889,11 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         if (recipe.consumeReport()) items.extractItem(REPORT_SLOT, 1, false);
         processingOutput = false;
         return true;
+    }
+
+    public ItemStack getOperationInput(int slot) {
+        if (slot < 0 || slot >= SLOT_COUNT) return ItemStack.EMPTY;
+        return items.getStackInSlot(slot);
     }
 
     private boolean attemptSynthesisMutation(VaccineMakerRecipe recipe, float rawQuality) {
@@ -614,12 +908,12 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
 
         ItemStack sampleStack = items.getStackInSlot(SAMPLE_SLOT);
         StrainData strain = StrainSampleUtil.getStrain(sampleStack);
-        if (strain == null || strain.getPathogen() == null) return false;
+        if (strain == null || strain.getPathogenId() == null) return false;
         List<MutationDefinition> candidates = MutationLoader.INSTANCE
-                .getMutationsForPathogen(strain.getPathogen()).stream()
+                .getMutationsForPathogen(strain.getPathogenId()).stream()
                 .filter(MutationDefinition::enabled)
                 .filter(definition -> definition.weight() > 0)
-                .filter(definition -> definition.isCompatible(strain.getPathogen()))
+                .filter(definition -> definition.isCompatible(strain.getPathogenId()))
                 .filter(definition -> strain.getMutationIds()
                         .containsAll(definition.requiredMutations()))
                 .filter(definition -> definition.conflictingMutations().stream()
@@ -648,8 +942,8 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
                         "message.bioforge.vaccine_maker.sequence_mutated"), true);
             }
         }
-        level.playSound(null, worldPosition, SoundEvents.BEACON_DEACTIVATE,
-                SoundSource.BLOCKS, 0.9f, 0.65f);
+        level.playSound(null, worldPosition, BioForgeSounds.EMERGENCY.get(),
+                SoundSource.BLOCKS, 0.9F, 1.0F);
         return true;
     }
 
@@ -658,7 +952,8 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         if (strain == null || recipe.fullResult() == null) return ItemStack.EMPTY;
         ItemStack output = new ItemStack(recipe.fullResult());
         new VaccineProfile(strain.toPayload(), quality, recipe.uses(), recipe.defenseRisk(),
-                UUID.randomUUID(), level == null ? 0L : level.getGameTime()).write(output);
+                UUID.randomUUID(), level == null ? 0L : level.getGameTime(),
+                programmedSequence()).write(output);
         ItemStack report = items.getStackInSlot(REPORT_SLOT);
         VaccineHostProfile host = MedicalReportStrainBinding.matchesSample(
                 report, strain.toPayload())
@@ -690,6 +985,39 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
                 strain.toPayload(), category, target, actionId,
                 quality, recipe.uses(), recipe.defenseRisk(), UUID.randomUUID(),
                 level == null ? 0L : level.getGameTime()).write(output);
+        return output;
+    }
+
+    private ItemStack createResistancePill(VaccineMakerRecipe recipe) {
+        StrainData strain = StrainSampleUtil.getStrain(
+                items.getStackInSlot(SAMPLE_SLOT));
+        if (strain == null || recipe.fullResult() == null) return ItemStack.EMPTY;
+        ItemStack output = new ItemStack(recipe.fullResult());
+        new ResistancePillProfile(strain.toPayload(), recipe.resistance(),
+                recipe.durationTicks()).write(output);
+        return output;
+    }
+
+    private boolean symptomTabletRequirements() {
+        StrainData strain = StrainSampleUtil.getStrain(items.getStackInSlot(SAMPLE_SLOT));
+        GeneImprintItem.Data imprint =
+                GeneImprintItem.read(items.getStackInSlot(REAGENT_SLOT));
+        if (strain == null || imprint == null || !imprint.identified()
+                || imprint.category() != VaccineTargetCategory.SYMPTOM
+                || !net.jenkimods.bioforge.config.BioForgeServerConfig
+                .isSymptomEnabled(imprint.target())) return false;
+        StrainData imprintStrain = StrainData.parse(imprint.strainPayload());
+        return strain.getPathogenId() != null
+                && strain.getPathogenId().equals(imprintStrain.getPathogenId());
+    }
+
+    private ItemStack createSymptomTablet(VaccineMakerRecipe recipe, float quality) {
+        GeneImprintItem.Data imprint =
+                GeneImprintItem.read(items.getStackInSlot(REAGENT_SLOT));
+        if (imprint == null || recipe.fullResult() == null) return ItemStack.EMPTY;
+        ItemStack output = new ItemStack(recipe.fullResult());
+        new net.jenkimods.bioforge.vaccine.SymptomTabletProfile(
+                imprint.target(), recipe.durationTicks(), quality).write(output);
         return output;
     }
 
@@ -727,6 +1055,11 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         tag.putBoolean("CraftRequested", craftRequested);
         tag.putBoolean("RedstonePowered", redstonePowered);
         tag.putInt("FailureTicks", failureTicks);
+        tag.putInt("SelectedPage", selectedPageIndex);
+        tag.putInt("SelectedCorrectionPage", selectedCorrectionPage);
+        NbtObfuscator.writeCompoundDeterministic(
+                tag, CORRECTION_NBT_CHANNEL, correctionState.save());
+        tag.remove("CorrectionState");
         if (activeRecipeId != null) tag.putString("ActiveRecipe", activeRecipeId.toString());
         if (operatorId != null) tag.putUUID("Operator", operatorId);
     }
@@ -745,6 +1078,16 @@ public class VaccineMakerBlockEntity extends BlockEntity implements MenuProvider
         craftRequested = tag.getBoolean("CraftRequested");
         redstonePowered = tag.getBoolean("RedstonePowered");
         failureTicks = tag.getInt("FailureTicks");
+        selectedPageIndex = Math.max(0, Math.min(
+                VaccineMakerMenu.MAX_PAGE_COUNT - 1,
+                tag.getInt("SelectedPage")));
+        selectedCorrectionPage = Math.max(0, Math.min(
+                VaccineMakerMenu.MAX_CORRECTION_PAGE_COUNT - 1,
+                tag.getInt("SelectedCorrectionPage")));
+        CompoundTag correction = NbtObfuscator.readCompound(
+                tag, CORRECTION_NBT_CHANNEL);
+        correctionState.load(correction != null
+                ? correction : tag.getCompound("CorrectionState"));
         activeRecipeId = ResourceLocation.tryParse(tag.getString("ActiveRecipe"));
         operatorId = tag.hasUUID("Operator") ? tag.getUUID("Operator") : null;
     }

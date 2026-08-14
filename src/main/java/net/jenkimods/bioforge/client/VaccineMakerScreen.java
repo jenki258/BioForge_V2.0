@@ -6,17 +6,27 @@ import net.jenkimods.bioforge.client.vaccine.VaccineMakerPageRenderRegistry;
 import net.jenkimods.bioforge.client.vaccine.VaccineMakerPageRenderer;
 import net.jenkimods.bioforge.client.vaccine.VaccineMakerTabButton;
 import net.jenkimods.bioforge.crispr.StrainSampleUtil;
+import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.definition.BioForgeClientDefinitionCache;
 import net.jenkimods.bioforge.infection.StrainData;
+import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.jenkimods.bioforge.item.crispr.CasModuleItem;
 import net.jenkimods.bioforge.item.crispr.CrisprCartridgeItem;
 import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
 import net.jenkimods.bioforge.vaccine.VaccineHostProfile;
 import net.jenkimods.bioforge.vaccine.MedicalReportStrainBinding;
+import net.jenkimods.bioforge.vaccine.VaccineBloodAssay;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionNotes;
 import net.jenkimods.bioforge.vaccine.VaccineResearchNotes;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionProfile;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionState;
 import net.jenkimods.bioforge.world.vaccine.VaccineMakerBlockEntity;
+import net.jenkimods.bioforge.world.vaccine.VaccineMakerCorrectionNetwork;
 import net.jenkimods.bioforge.world.vaccine.VaccineMakerMenu;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -29,22 +39,18 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu> {
     private static final int MAX_VISIBLE_TABS = 7;
+    private static final int MAX_CORRECTION_ROWS = 5;
     private static final ResourceLocation BACKGROUND_TEXTURE = guiTexture("background");
-    private static final ResourceLocation CRISPR_PAGE_TEXTURE = guiTexture("page_crispr");
-    private static final ResourceLocation JOURNAL_PAGE_TEXTURE = guiTexture("page_journal");
-    private static final ResourceLocation SYNTHESIS_PAGE_TEXTURE = guiTexture("page_synthesis");
     private static final ResourceLocation SLOT_TEXTURE = guiTexture("slot");
     private static final ResourceLocation INFO_TEXTURE = guiTexture("info");
     private static final ResourceLocation PROGRESS_TRACK_TEXTURE = guiTexture("progress_track");
     private static final ResourceLocation PROGRESS_FILL_TEXTURE = guiTexture("progress_fill");
     private static final ResourceLocation ACTION_BUTTON_TEXTURE = guiTexture("button_action");
     private static final ResourceLocation NAVIGATION_BUTTON_TEXTURE = guiTexture("button_navigation");
-
-    private static final int PAGE_TEXTURE_WIDTH = 234;
-    private static final int PAGE_TEXTURE_HEIGHT = 102;
 
     private Button synthesizeButton;
     private Button researchButton;
@@ -53,6 +59,10 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
     private final List<VaccineMakerTabButton> tabButtons = new ArrayList<>();
     private final List<HoverArea> pageTooltips = new ArrayList<>();
     private int tabOffset;
+    private int correctionPage;
+    private int correctionSyncCooldown;
+    private int correctionTypingTarget = -1;
+    private String correctionTypingValue = "";
 
     private record HoverArea(int x, int y, int width, int height, Component text) {
         private boolean contains(double mouseX, double mouseY) {
@@ -77,6 +87,9 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
     @Override
     protected void init() {
         super.init();
+        VaccineMakerCorrectionNetwork.clearClientSnapshot(menu.containerId);
+        correctionSyncCooldown = 0;
+        correctionPage = menu.getCorrectionPage();
         synthesizeButton = addRenderableWidget(new BioForgeTexturedButton(
                 leftPos + 137, topPos + 88, 99, 20,
                         Component.translatable("gui.bioforge.vaccine_maker.synthesize"),
@@ -113,6 +126,8 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
     @Override
     protected void containerTick() {
         super.containerTick();
+        correctionPage = menu.getCorrectionPage();
+        ensureActiveTabVisible();
         updateTabLayout();
         ResourceLocation page = menu.getActivePageId();
         ItemStack reagent = menu.getMachineStack(VaccineMakerBlockEntity.REAGENT_SLOT);
@@ -149,6 +164,18 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
 
         VaccineMakerPageRenderer renderer = VaccineMakerPageRenderRegistry.get(page);
         if (renderer != null) renderer.containerTick(this);
+
+        if (VaccineMakerPageRegistry.CORRECTION.equals(page)) {
+            VaccineMakerCorrectionNetwork.Snapshot snapshot =
+                    VaccineMakerCorrectionNetwork.snapshot(menu.containerId);
+            if (!snapshot.available() && correctionSyncCooldown <= 0) {
+                sendExtensionButton(
+                        VaccineMakerPageRegistry.CORRECTION_SYNC_BUTTON);
+                correctionSyncCooldown = 20;
+            } else if (correctionSyncCooldown > 0) {
+                correctionSyncCooldown--;
+            }
+        }
     }
 
     private void updateTabLayout() {
@@ -181,9 +208,20 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         return Math.max(0, tabButtons.size() - MAX_VISIBLE_TABS);
     }
 
+    private void ensureActiveTabVisible() {
+        int active = menu.getActivePageIndex();
+        if (active < tabOffset) {
+            tabOffset = active;
+        } else if (active >= tabOffset + MAX_VISIBLE_TABS) {
+            tabOffset = active - MAX_VISIBLE_TABS + 1;
+        }
+    }
+
     public void selectPage(int pageIndex) {
         menu.selectPageLocally(pageIndex);
         sendMachineButton(VaccineMakerMenu.PAGE_BUTTON_BASE + pageIndex);
+        if (VaccineMakerPageRegistry.CORRECTION.equals(
+                menu.getActivePageId())) correctionSyncCooldown = 0;
     }
 
     public void sendExtensionButton(int buttonId) {
@@ -225,6 +263,8 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
             renderJournalPage(graphics, left, top, mouseX, mouseY);
         } else if (VaccineMakerPageRegistry.CRAFT.equals(page)) {
             renderCraftPage(graphics, left, top);
+        } else if (VaccineMakerPageRegistry.CORRECTION.equals(page)) {
+            renderCorrectionPage(graphics, left, top, mouseX, mouseY);
         } else {
             graphics.drawString(font, menu.getActivePage().title().get(),
                     left + 10, top + 20, 0xFF75F4FF, false);
@@ -253,9 +293,7 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
 
     private void renderCrisprPage(GuiGraphics graphics, int left, int top,
                                   int mouseX, int mouseY) {
-        if (!blitPageIfPresent(graphics, CRISPR_PAGE_TEXTURE, left, top)) {
-            renderFallbackSplitPage(graphics, left, top);
-        }
+        renderFallbackSplitPage(graphics, left, top);
         CrisprBaseHit hoveredBase = findCrisprBase(mouseX, mouseY);
         for (int guide = 0; guide < 3; guide++) {
             int guideColor = guide == 0 ? 0xFF7EF9FF
@@ -294,18 +332,13 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
             }
         }
 
-        float quality = Mth.clamp(menu.getQuality(), 0.0f, 1.0f);
         Component qualityText = Component.translatable(
-                "gui.bioforge.vaccine_maker.quality.compact",
-                formatQuality(quality));
+                "gui.bioforge.vaccine_maker.assay.required.short");
         graphics.drawString(font, qualityText, left + 138, top + 18,
-                qualityColor(quality), false);
+                0xFFFFCC66, false);
         addPageTooltip(left + 136, top + 16, font.width(qualityText) + 4,
                 font.lineHeight + 3, Component.translatable(
-                        "gui.bioforge.vaccine_maker.quality.tooltip",
-                        formatQuality(quality), Component.translatable(
-                                "gui.bioforge.vaccine_maker.quality."
-                                        + qualityGrade(quality))));
+                        "gui.bioforge.vaccine_maker.assay.required.tooltip"));
 
         ItemStack cas = menu.getMachineStack(VaccineMakerBlockEntity.CAS_SLOT);
         Component casLabel = Component.translatable(
@@ -359,10 +392,8 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
 
     private void renderJournalPage(GuiGraphics graphics, int left, int top,
                                    int mouseX, int mouseY) {
-        if (!blitPageIfPresent(graphics, JOURNAL_PAGE_TEXTURE, left, top)) {
-            graphics.fill(left + 6, top + 14, left + 240, top + 116,
-                    0xFF071E27);
-        }
+        graphics.fill(left + 6, top + 14, left + 240, top + 116,
+                0xFF071E27);
         ItemStack report = menu.getMachineStack(VaccineMakerBlockEntity.REPORT_SLOT);
         VaccineResearchNotes.Data notes = VaccineResearchNotes.read(report);
         VaccineHostProfile clinical = VaccineHostProfile.fromMedicalReport(report);
@@ -374,9 +405,8 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         int color;
         if (notes != null) {
             state = Component.translatable(
-                    "gui.bioforge.vaccine_maker.journal.readout",
-                    notes.sampleFingerprint(),
-                    String.format(Locale.ROOT, "%.1f%%", notes.quality() * 100.0f));
+                    "gui.bioforge.vaccine_maker.journal.readout.hidden",
+                    notes.sampleFingerprint());
             color = 0xFF67F5D0;
         } else if (clinical != null) {
             state = Component.translatable(
@@ -411,9 +441,7 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
     }
 
     private void renderCraftPage(GuiGraphics graphics, int left, int top) {
-        if (!blitPageIfPresent(graphics, SYNTHESIS_PAGE_TEXTURE, left, top)) {
-            renderFallbackSplitPage(graphics, left, top);
-        }
+        renderFallbackSplitPage(graphics, left, top);
         graphics.fill(left + 6, top + 18, left + 8, top + 35, 0xFF7EF9FF);
         graphics.fill(left + 6, top + 50, left + 8, top + 67, 0xFFFFA65C);
         graphics.fill(left + 6, top + 82, left + 8, top + 99, 0xFFC68CFF);
@@ -435,18 +463,12 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                     top + 115, 0xFF60F5E5);
         }
 
-        float quality = Mth.clamp(menu.getQuality(), 0.0f, 1.0f);
-        String grade = qualityGrade(quality);
-        int qualityColor = qualityColor(quality);
         graphics.drawString(font, Component.translatable(
-                        "gui.bioforge.vaccine_maker.quality.compact",
-                        formatQuality(quality)),
-                left + 137, top + 77, qualityColor, false);
-        Component gradeText = Component.translatable(
-                "gui.bioforge.vaccine_maker.quality." + grade);
+                        "gui.bioforge.vaccine_maker.assay.required.short"),
+                left + 137, top + 77, 0xFFFFCC66, false);
         addPageTooltip(left + 136, top + 75, 52, font.lineHeight + 4,
-                Component.translatable("gui.bioforge.vaccine_maker.quality.tooltip",
-                        formatQuality(quality), gradeText));
+                Component.translatable(
+                        "gui.bioforge.vaccine_maker.assay.required.tooltip"));
 
         ItemStack report = menu.getMachineStack(VaccineMakerBlockEntity.REPORT_SLOT);
         StrainData strain = StrainSampleUtil.getStrain(
@@ -458,7 +480,14 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         Component researchSummary;
         Component researchDetails;
         int reportColor;
-        if (VaccineResearchNotes.isTemplate(report)) {
+        if (VaccineBloodAssay.isAssay(report)) {
+            researchSummary = Component.translatable(
+                    "gui.bioforge.vaccine_maker.craft.assay.short");
+            researchDetails = Component.translatable(
+                    "gui.bioforge.vaccine_maker.craft.assay");
+            reportColor = VaccineBloodAssay.isScanned(report)
+                    ? 0xFF67F5D0 : 0xFFFFCC66;
+        } else if (VaccineResearchNotes.isTemplate(report)) {
             boolean exactTemplate = strain != null && VaccineResearchNotes.matchesSample(
                     report, strain.toPayload());
             researchSummary = Component.translatable(exactTemplate
@@ -506,20 +535,274 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                 font.lineHeight + 4, researchDetails);
     }
 
-    private static String qualityGrade(float quality) {
-        return quality >= 0.95f ? "optimal"
-                : quality >= 0.80f ? "high"
-                : quality >= 0.55f ? "viable"
-                : quality >= 0.35f ? "low" : "unstable";
+    private void renderCorrectionPage(GuiGraphics graphics, int left, int top,
+                                      int mouseX, int mouseY) {
+        graphics.fill(left + 6, top + 14, left + 240, top + 116,
+                0xFF071E27);
+        graphics.fill(left + 8, top + 16, left + 238, top + 27,
+                0xFF0A2A34);
+        graphics.drawString(font, Component.translatable(
+                        "gui.bioforge.vaccine_maker.correction.title"),
+                left + 11, top + 18, 0xFF75F4FF, false);
+        drawInfoBadge(graphics, left + 226, top + 18, mouseX, mouseY,
+                Component.translatable(
+                        "gui.bioforge.vaccine_maker.correction.hint"));
+
+        VaccineMakerCorrectionNetwork.Snapshot snapshot =
+                VaccineMakerCorrectionNetwork.snapshot(menu.containerId);
+        if (!snapshot.available()) {
+            drawCentered(graphics, Component.translatable(
+                            "gui.bioforge.vaccine_maker.correction.loading").getString(),
+                    left + 123, top + 61, 0xFF73949C);
+            return;
+        }
+        List<VaccineCorrectionState.Target> targets = snapshot.targets();
+        if (targets.isEmpty()) {
+            drawCentered(graphics, Component.translatable(
+                            "gui.bioforge.vaccine_maker.correction.empty").getString(),
+                    left + 123, top + 61, 0xFFFFCC66);
+            return;
+        }
+
+        int perPage = correctionTargetsPerPage(snapshot);
+        int pageCount = Math.max(1, (targets.size() + perPage - 1) / perPage);
+        correctionPage = Mth.clamp(correctionPage, 0, pageCount - 1);
+        int first = correctionPage * perPage;
+        int last = Math.min(targets.size(), first + perPage);
+        for (int index = first; index < last; index++) {
+            VaccineCorrectionState.Target target = targets.get(index);
+            int row = index - first;
+            int rowY = top + 29 + row * 12;
+            int color = correctionFamilyColor(target.family());
+            graphics.fill(left + 10, rowY, left + 238, rowY + 10,
+                    (row & 1) == 0 ? 0xFF0B2730 : 0xFF0D3039);
+            graphics.fill(left + 10, rowY, left + 12, rowY + 10, color);
+            drawFitted(graphics, correctionTargetLabel(target),
+                    left + 15, rowY + 1, 134, 0xFFD6EEF1);
+
+            int selectorX = left + 154;
+            graphics.fill(selectorX, rowY, selectorX + 82, rowY + 10,
+                    0xFF031116);
+            graphics.drawString(font, "<", selectorX + 3, rowY + 1,
+                    0xFF75F4FF, false);
+            graphics.drawString(font, ">", selectorX + 74, rowY + 1,
+                    0xFF75F4FF, false);
+            String displayedValue = correctionTypingTarget == index
+                    ? correctionTypingValue + "_" : correctionSelectorValue(target);
+            drawCentered(graphics, displayedValue,
+                    selectorX + 41, rowY + 1, color);
+            Component selectorTooltip =
+                    target.valueKind()
+                            == VaccineCorrectionState.ValueKind.PERCENTAGE
+                    ? Component.translatable(
+                            "gui.bioforge.vaccine_maker.correction.selector_percentage",
+                            correctionFamilyName(target.family()),
+                            correctionTargetLabel(target),
+                            correctionSelectorValue(target))
+                    : Component.translatable(
+                            "gui.bioforge.vaccine_maker.correction.selector",
+                            correctionFamilyName(target.family()),
+                            correctionTargetLabel(target),
+                            correctionSelectorValue(target),
+                            target.selectedState() + 1, target.states());
+            addPageTooltip(selectorX, rowY, 82, 10, selectorTooltip);
+        }
+
+        Component pageText = Component.translatable(
+                "gui.bioforge.vaccine_maker.correction.page",
+                correctionPage + 1, pageCount);
+        graphics.drawString(font, correctionPage > 0 ? "<" : "·",
+                left + 12, top + 99,
+                correctionPage > 0 ? 0xFF75F4FF : 0xFF31505A, false);
+        drawFitted(graphics, pageText, left + 25, top + 99, 47, 0xFF73949C);
+        graphics.drawString(font, correctionPage + 1 < pageCount ? ">" : "·",
+                left + 73, top + 99,
+                correctionPage + 1 < pageCount ? 0xFF75F4FF : 0xFF31505A,
+                false);
+
+        ItemStack document = menu.getMachineStack(VaccineMakerBlockEntity.REPORT_SLOT);
+        boolean readable = VaccineCorrectionNotes.isTemplate(document)
+                || MedicalReportStrainBinding.fingerprint(document) != null;
+        boolean writable = VaccineCorrectionNotes.canRecord(document);
+        drawCompactAction(graphics, left + 84, top + 96, 38, 13,
+                Component.translatable("gui.bioforge.vaccine_maker.correction.reset"),
+                true, mouseX, mouseY,
+                Component.translatable("gui.bioforge.vaccine_maker.correction.reset.hint"));
+        drawCompactAction(graphics, left + 124, top + 96, 38, 13,
+                Component.translatable("gui.bioforge.vaccine_maker.correction.read"),
+                readable, mouseX, mouseY,
+                Component.translatable("gui.bioforge.vaccine_maker.correction.read.hint"));
+        drawCompactAction(graphics, left + 164, top + 96, 48, 13,
+                Component.translatable("gui.bioforge.vaccine_maker.correction.write"),
+                writable, mouseX, mouseY,
+                Component.translatable("gui.bioforge.vaccine_maker.correction.write.hint"));
     }
 
-    private static int qualityColor(float quality) {
-        return quality >= 0.80f ? 0xFF55F59A
-                : quality >= 0.35f ? 0xFFFFCC66 : 0xFFFF6B6B;
+    private int correctionTargetsPerPage(
+            VaccineMakerCorrectionNetwork.Snapshot snapshot) {
+        return Mth.clamp(snapshot.targetsPerPage(), 1, MAX_CORRECTION_ROWS);
     }
 
-    private static String formatQuality(float quality) {
-        return String.format(Locale.ROOT, "%.1f%%", quality * 100.0f);
+    private void drawCompactAction(GuiGraphics graphics, int x, int y,
+                                   int width, int height, Component label,
+                                   boolean active, int mouseX, int mouseY,
+                                   Component tooltip) {
+        boolean hovered = mouseX >= x && mouseX < x + width
+                && mouseY >= y && mouseY < y + height;
+        int border = active ? hovered ? 0xFF75F4FF : 0xFF397783 : 0xFF263E45;
+        int inside = active ? hovered ? 0xFF174650 : 0xFF0B2B33 : 0xFF09171C;
+        graphics.fill(x, y, x + width, y + height, border);
+        graphics.fill(x + 1, y + 1, x + width - 1, y + height - 1, inside);
+        drawFitted(graphics, label, x + 3, y + 2, width - 6,
+                active ? 0xFFD6EEF1 : 0xFF5C747A);
+        addPageTooltip(x, y, width, height, tooltip);
+    }
+
+    private Component correctionTargetLabel(VaccineCorrectionState.Target target) {
+        String id = target.id();
+        return switch (target.family()) {
+            case SYMPTOM -> {
+                ResourceLocation definitionId = ResourceLocation.tryParse(
+                        id.contains(":") ? id : "bioforge:" + id);
+                var view = definitionId == null ? null
+                        : BioForgeClientDefinitionCache.snapshot().symptoms().get(definitionId);
+                yield translatedOrLiteral(view == null
+                                ? "microscope.symptom." + id : view.translationKey(),
+                        prettifyId(id));
+            }
+            case MUTATION -> Component.literal(prettifyId(id));
+            case TRANSMISSION -> {
+                ResourceLocation definitionId = ResourceLocation.tryParse(
+                        id.contains(":") ? id : "bioforge:" + id);
+                var view = definitionId == null ? null
+                        : BioForgeClientDefinitionCache.snapshot().transmissions().get(definitionId);
+                yield translatedOrLiteral(view == null
+                                ? "infection_type.bioforge." + id : view.translationKey(),
+                        prettifyId(id));
+            }
+            case PATHOGEN -> Component.translatable(
+                    "gui.bioforge.vaccine_maker.correction.pathogen");
+            case LIFECYCLE -> Component.translatable(
+                    "gui.bioforge.vaccine_maker.correction.incubation_period");
+        };
+    }
+
+    private Component correctionFamilyName(
+            VaccineCorrectionProfile.TargetFamily family) {
+        return Component.translatable(
+                "gui.bioforge.vaccine_maker.correction.family."
+                        + family.serializedName());
+    }
+
+    private static int correctionFamilyColor(
+            VaccineCorrectionProfile.TargetFamily family) {
+        return switch (family) {
+            case SYMPTOM -> 0xFF65D6FF;
+            case MUTATION -> 0xFFC68CFF;
+            case TRANSMISSION -> 0xFFFFA65C;
+            case PATHOGEN -> 0xFF67F5D0;
+            case LIFECYCLE -> 0xFFFFD166;
+        };
+    }
+
+    private String correctionSelectorValue(
+            VaccineCorrectionState.Target target) {
+        return switch (target.valueKind()) {
+            case BOOLEAN -> Component.translatable(
+                    target.selectedState() == 0
+                            ? "gui.bioforge.vaccine_maker.correction.false"
+                            : "gui.bioforge.vaccine_maker.correction.true")
+                    .getString();
+            case PERCENTAGE -> String.format(Locale.ROOT, "%.0f%%",
+                    correctionDisplayValue(target) * 100.0F);
+            case NUMBER -> {
+                float value = correctionDisplayValue(target);
+                float rounded = Math.round(value);
+                yield Math.abs(value - rounded) < 0.05F
+                        ? String.format(Locale.ROOT, "%.0f", value)
+                        : String.format(Locale.ROOT, "%.1f", value);
+            }
+            case ENUM -> correctionEnumValue(target);
+        };
+    }
+
+    private static float correctionDisplayValue(
+            VaccineCorrectionState.Target target) {
+        float fraction = target.states() <= 1 ? 0.0F
+                : (float) target.selectedState() / (target.states() - 1);
+        return Mth.lerp(fraction, target.displayMinimum(),
+                target.displayMaximum());
+    }
+
+    private String correctionEnumValue(
+            VaccineCorrectionState.Target target) {
+        if (target.family() == VaccineCorrectionProfile.TargetFamily.PATHOGEN) {
+            List<Map.Entry<ResourceLocation, BioForgeClientDefinitionCache.PathogenView>> values =
+                    BioForgeClientDefinitionCache.snapshot().pathogens().entrySet().stream()
+                            .sorted(Map.Entry.comparingByKey()).toList();
+            if (!values.isEmpty()) {
+                var selected = values.get(quantizedDisplayIndex(target, values.size()));
+                String fallback = prettifyId(selected.getKey().toString());
+                return translatedOrLiteral(selected.getValue().translationKey(), fallback).getString();
+            }
+            PathogenType[] legacyValues = PathogenType.values();
+            int index = quantizedDisplayIndex(target, legacyValues.length);
+            String id = legacyValues[index].name().toLowerCase(Locale.ROOT);
+            return translatedOrLiteral("pathogen.bioforge." + id, prettifyId(id)).getString();
+        }
+        if (target.family() == VaccineCorrectionProfile.TargetFamily.SYMPTOM) {
+            SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys()
+                    .get(target.id());
+            if (key != null && key.getType().isEnum()) {
+                Object[] values = key.getType().getEnumConstants();
+                int index = quantizedDisplayIndex(target, values.length);
+                String state = ((Enum<?>) values[index]).name()
+                        .toLowerCase(Locale.ROOT);
+                return translatedOrLiteral(
+                        "microscope.symptom." + target.id() + "." + state,
+                        prettifyId(state)).getString();
+            }
+            ResourceLocation symptomId = ResourceLocation.tryParse(
+                    target.id().contains(":") ? target.id() : "bioforge:" + target.id());
+            BioForgeClientDefinitionCache.SymptomView view = symptomId == null ? null
+                    : BioForgeClientDefinitionCache.snapshot().symptoms().get(symptomId);
+            if (view != null && "enum".equals(view.valueType())
+                    && !view.allowedValues().isEmpty()) {
+                int index = quantizedDisplayIndex(target, view.allowedValues().size());
+                String state = view.allowedValues().get(index).toLowerCase(Locale.ROOT);
+                return translatedOrLiteral(
+                        "microscope.symptom." + target.id() + "." + state,
+                        prettifyId(state)).getString();
+            }
+        }
+        return String.valueOf(target.selectedState() + 1);
+    }
+
+    private static int quantizedDisplayIndex(
+            VaccineCorrectionState.Target target, int count) {
+        if (count <= 1 || target.states() <= 1) return 0;
+        return Mth.clamp(Math.round(
+                (float) target.selectedState() / (target.states() - 1)
+                        * (count - 1)), 0, count - 1);
+    }
+
+    private static Component translatedOrLiteral(String key, String fallback) {
+        return I18n.exists(key) ? Component.translatable(key)
+                : Component.literal(fallback);
+    }
+
+    private static String prettifyId(String id) {
+        int namespace = id.indexOf(':');
+        String value = namespace >= 0 ? id.substring(namespace + 1) : id;
+        String[] words = value.replace('-', '_').split("_");
+        StringBuilder result = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) continue;
+            if (!result.isEmpty()) result.append(' ');
+            result.append(Character.toUpperCase(word.charAt(0)));
+            if (word.length() > 1) result.append(word.substring(1));
+        }
+        return result.toString();
     }
 
     private void drawCentered(GuiGraphics graphics, String text, int centerX, int y, int color) {
@@ -529,10 +812,17 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
     private void drawFitted(GuiGraphics graphics, Component component,
                             int x, int y, int maxWidth, int color) {
         String text = component.getString();
-        if (font.width(text) > maxWidth) {
-            text = font.plainSubstrByWidth(text, Math.max(0, maxWidth - 6)) + "...";
+        int width = font.width(text);
+        if (width <= maxWidth || width <= 0) {
+            graphics.drawString(font, text, x, y, color, false);
+            return;
         }
-        graphics.drawString(font, text, x, y, color, false);
+        float scale = maxWidth / (float) width;
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0.0F);
+        graphics.pose().scale(scale, scale, 1.0F);
+        graphics.drawString(font, text, 0, 0, color, false);
+        graphics.pose().popPose();
     }
 
     private static void drawSlot(GuiGraphics graphics, int x, int y, int color,
@@ -585,13 +875,6 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         graphics.blit(texture, x, y, 0, 0, width, height,
                 textureWidth, textureHeight);
         return true;
-    }
-
-    private boolean blitPageIfPresent(GuiGraphics graphics,
-                                      ResourceLocation texture, int left, int top) {
-        return blitIfPresent(graphics, texture, left + 6, top + 14,
-                PAGE_TEXTURE_WIDTH, PAGE_TEXTURE_HEIGHT,
-                PAGE_TEXTURE_WIDTH, PAGE_TEXTURE_HEIGHT);
     }
 
     private static void renderFallbackBackground(GuiGraphics graphics,
@@ -786,6 +1069,10 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
             return Component.translatable(
                     "gui.bioforge.vaccine_maker.status." + menu.getStatus());
         }
+        if (VaccineMakerPageRegistry.CORRECTION.equals(page)) {
+            return Component.translatable(
+                    "gui.bioforge.vaccine_maker.status.correction");
+        }
         return menu.getActivePage().title().get();
     }
 
@@ -815,11 +1102,20 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
             return Component.translatable(
                     "gui.bioforge.vaccine_maker.status.short." + menu.getStatus());
         }
+        if (VaccineMakerPageRegistry.CORRECTION.equals(page)) {
+            return Component.translatable(
+                    "gui.bioforge.vaccine_maker.status.short.correction");
+        }
         return menu.getActivePage().title().get();
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (VaccineMakerPageRegistry.CORRECTION.equals(
+                menu.getActivePageId())
+                && handleCorrectionClick(mouseX, mouseY)) {
+            return true;
+        }
         VaccineMakerPageRenderer renderer =
                 VaccineMakerPageRenderRegistry.get(menu.getActivePageId());
         if (renderer != null && renderer.mouseClicked(this, mouseX, mouseY, button)) {
@@ -835,6 +1131,14 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         if (renderer != null && renderer.mouseScrolled(this, mouseX, mouseY, delta)) {
             return true;
         }
+        if (VaccineMakerPageRegistry.CORRECTION.equals(
+                menu.getActivePageId())) {
+            int targetIndex = correctionTargetAt(mouseX, mouseY);
+            if (targetIndex >= 0) {
+                sendCorrectionTarget(targetIndex, delta < 0 ? -1 : 1);
+                return true;
+            }
+        }
         if (VaccineMakerPageRegistry.CRISPR.equals(menu.getActivePageId())) {
             CrisprBaseHit hit = findCrisprBase(mouseX, mouseY);
             if (hit != null) {
@@ -845,6 +1149,154 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
             }
         }
         return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    private boolean handleCorrectionClick(double mouseX, double mouseY) {
+        VaccineMakerCorrectionNetwork.Snapshot snapshot =
+                VaccineMakerCorrectionNetwork.snapshot(menu.containerId);
+        if (!snapshot.available()) return false;
+        int perPage = correctionTargetsPerPage(snapshot);
+        int pageCount = Math.max(1,
+                (snapshot.targets().size() + perPage - 1) / perPage);
+        if (mouseY >= topPos + 94 && mouseY < topPos + 111) {
+            if (mouseX >= leftPos + 84 && mouseX < leftPos + 122) {
+                cancelCorrectionTyping();
+                sendExtensionButton(VaccineMakerPageRegistry.CORRECTION_RESET_BUTTON);
+                return true;
+            }
+            if (mouseX >= leftPos + 124 && mouseX < leftPos + 162) {
+                cancelCorrectionTyping();
+                sendExtensionButton(VaccineMakerPageRegistry.CORRECTION_READ_BUTTON);
+                return true;
+            }
+            if (mouseX >= leftPos + 164 && mouseX < leftPos + 212) {
+                cancelCorrectionTyping();
+                sendExtensionButton(VaccineMakerPageRegistry.CORRECTION_WRITE_BUTTON);
+                return true;
+            }
+        }
+        if (mouseY >= topPos + 94 && mouseY < topPos + 114) {
+            if (mouseX >= leftPos + 8 && mouseX < leftPos + 36
+                    && correctionPage > 0) {
+                selectCorrectionPage(correctionPage - 1);
+                return true;
+            }
+            if (mouseX >= leftPos + 68 && mouseX < leftPos + 82
+                    && correctionPage + 1 < pageCount) {
+                selectCorrectionPage(correctionPage + 1);
+                return true;
+            }
+        }
+        int targetIndex = correctionTargetAt(mouseX, mouseY);
+        if (targetIndex < 0) return false;
+        VaccineCorrectionState.Target target = snapshot.targets().get(targetIndex);
+        if (target.valueKind() == VaccineCorrectionState.ValueKind.NUMBER
+                && mouseX >= leftPos + 168 && mouseX < leftPos + 222) {
+            correctionTypingTarget = targetIndex;
+            correctionTypingValue = correctionSelectorValue(target);
+            return true;
+        }
+        cancelCorrectionTyping();
+        int direction = mouseX < leftPos + 195 ? -1 : 1;
+        sendCorrectionTarget(targetIndex, direction);
+        return true;
+    }
+
+    private int correctionTargetAt(double mouseX, double mouseY) {
+        VaccineMakerCorrectionNetwork.Snapshot snapshot =
+                VaccineMakerCorrectionNetwork.snapshot(menu.containerId);
+        if (!snapshot.available()
+                || mouseX < leftPos + 154 || mouseX >= leftPos + 236) {
+            return -1;
+        }
+        int row = (int) ((mouseY - (topPos + 29)) / 12.0D);
+        int perPage = correctionTargetsPerPage(snapshot);
+        if (row < 0 || row >= perPage) return -1;
+        int rowY = topPos + 29 + row * 12;
+        if (mouseY < rowY || mouseY >= rowY + 10) return -1;
+        int targetIndex = correctionPage * perPage + row;
+        return targetIndex >= snapshot.targets().size() ? -1 : targetIndex;
+    }
+
+    private void selectCorrectionPage(int pageIndex) {
+        int clamped = Mth.clamp(pageIndex, 0,
+                VaccineMakerMenu.MAX_CORRECTION_PAGE_COUNT - 1);
+        correctionPage = clamped;
+        menu.selectCorrectionPageLocally(clamped);
+        sendMachineButton(VaccineMakerMenu.CORRECTION_PAGE_BUTTON_BASE + clamped);
+        cancelCorrectionTyping();
+    }
+
+    private void sendCorrectionTarget(int targetIndex, int direction) {
+        int encoded = VaccineMakerPageRegistry.CORRECTION_TARGET_BUTTON_BASE
+                + targetIndex * 2 + (direction < 0 ? 1 : 0);
+        sendExtensionButton(encoded);
+    }
+
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        if (correctionTypingTarget >= 0
+                && (Character.isDigit(codePoint) || codePoint == '.'
+                || codePoint == ',' || codePoint == '-')) {
+            if (correctionTypingValue.length() < 12) {
+                correctionTypingValue += codePoint == ',' ? '.' : codePoint;
+            }
+            return true;
+        }
+        return super.charTyped(codePoint, modifiers);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (correctionTypingTarget < 0) {
+            return super.keyPressed(keyCode, scanCode, modifiers);
+        }
+        if (keyCode == 259) {
+            if (!correctionTypingValue.isEmpty()) {
+                correctionTypingValue = correctionTypingValue.substring(
+                        0, correctionTypingValue.length() - 1);
+            }
+            return true;
+        }
+        if (keyCode == 257 || keyCode == 335) {
+            commitCorrectionTyping();
+            return true;
+        }
+        if (keyCode == 256) {
+            cancelCorrectionTyping();
+            return true;
+        }
+        return true;
+    }
+
+    private void commitCorrectionTyping() {
+        VaccineMakerCorrectionNetwork.Snapshot snapshot =
+                VaccineMakerCorrectionNetwork.snapshot(menu.containerId);
+        if (!snapshot.available() || correctionTypingTarget < 0
+                || correctionTypingTarget >= snapshot.targets().size()) {
+            cancelCorrectionTyping();
+            return;
+        }
+        VaccineCorrectionState.Target target =
+                snapshot.targets().get(correctionTypingTarget);
+        try {
+            float value = Float.parseFloat(correctionTypingValue);
+            float minimum = target.displayMinimum();
+            float maximum = target.displayMaximum();
+            float normalized = maximum <= minimum ? 0.0F
+                    : Mth.clamp((value - minimum) / (maximum - minimum),
+                    0.0F, 1.0F);
+            int state = Math.round(normalized * (target.states() - 1));
+            VaccineMakerCorrectionNetwork.setSelection(
+                    menu.containerId, correctionTypingTarget, state);
+        } catch (NumberFormatException ignored) {
+        }
+        cancelCorrectionTyping();
+    }
+
+    private void cancelCorrectionTyping() {
+        correctionTypingTarget = -1;
+        correctionTypingValue = "";
     }
 
     public VaccineMakerMenu getMenuView() {

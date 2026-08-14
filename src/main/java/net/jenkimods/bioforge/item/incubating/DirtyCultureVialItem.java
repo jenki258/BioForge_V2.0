@@ -12,7 +12,7 @@ import java.util.List;
 
 public class DirtyCultureVialItem extends Item {
     public DirtyCultureVialItem() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(16));
     }
 
     @Override

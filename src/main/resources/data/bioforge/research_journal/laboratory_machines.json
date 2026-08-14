@@ -1,0 +1,10 @@
+{
+  "order": 620,
+  "unlock_items": ["bioforge:centrifuge", "bioforge:incubator", "bioforge:microscope", "bioforge:vaccine_maker", "bioforge:chemical_synthesizer", "bioforge:pharma_mixer", "bioforge:sterilization_chamber"],
+  "title": { "text": "MACHINE REFERENCE", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "Centrifuge: parallel blood separation. Incubator: cultures samples with medium and catalyst. Microscope: calibrated identification and vaccine assays. Vaccine Maker: CRISPR programming, records, correction and synthesis.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Chemical Synthesizer: three inputs to one technical chemical. Pharma Mixer: five inputs to medicine plus a waste output. Sterilization Chamber: parallel in-place cleaning or sterile conversion.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Processing blocks face the placing player. JEI provides a category and station display for supported machine recipes. Vaccine Maker synthesis starts from its button or a rising redstone signal when every required input is valid.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

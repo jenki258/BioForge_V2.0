@@ -47,7 +47,9 @@ public final class IncubatorRecipeWrapper {
                 return;
             }
             case GENERATE_STRAIN -> primaryInputs.forEach(stack -> {
-                stack.getOrCreateTag().putString("Pathogen", PathogenType.VIRUS.name());
+                net.jenkimods.bioforge.item.reagents.CatalystVialItem.setPathogen(
+                        stack, net.jenkimods.bioforge.api.definition.BioForgeIds.pathogen(
+                                PathogenType.VIRUS));
                 stack.getOrCreateTag().putInt("Charges", Math.max(1, recipe.catalystChargeCost()));
             });
             case COPY_SAMPLE_STRAIN ->

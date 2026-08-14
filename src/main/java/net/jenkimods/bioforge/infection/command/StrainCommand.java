@@ -57,7 +57,7 @@ public final class StrainCommand {
         }
         InfectionData infection = InfectionCapability.get(player);
         if (infection == null || !infection.isInfected()
-                || infection.getPathogenType() == null) {
+                || infection.getPathogenId() == null) {
             context.getSource().sendFailure(Component.translatable(
                     "command.bioforge.strain.not_infected"));
             return 0;

@@ -103,7 +103,7 @@ public record IncubatorRecipe(
             return false;
         }
         try {
-            return StrainData.parse(raw).getPathogen() != null;
+            return StrainData.parse(raw).getPathogenId() != null;
         } catch (RuntimeException exception) {
             return false;
         }

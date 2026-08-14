@@ -3,9 +3,12 @@ package net.jenkimods.bioforge.world.centrifuge;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.item.BloodSampleUtil;
 import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.jenkimods.bioforge.registry.BioForgeSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,6 +18,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -32,12 +36,14 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            syncToClient();
         }
     };
 
     private LazyOptional<ItemStackHandler> itemHandler = LazyOptional.of(() -> items);
     private final int[] progress = new int[SLOT_COUNT];
     private final int[] maxProgress = new int[SLOT_COUNT];
+    private boolean processing;
 
     private final ContainerData data = new ContainerData() {
         @Override public int get(int index) {
@@ -62,10 +68,18 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
         super(BioForge.CENTRIFUGE_BE.get(), pos, state);
     }
 
+    private void syncToClient() {
+        if (level == null || level.isClientSide()) return;
+        BlockState state = getBlockState();
+        level.sendBlockUpdated(
+                worldPosition, state, state, Block.UPDATE_CLIENTS);
+    }
+
     public static void tick(Level level, BlockPos pos, BlockState state, CentrifugeBlockEntity be) {
         if (level.isClientSide()) return;
 
         boolean changed = false;
+        boolean processingNow = false;
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
             ItemStack input = be.items.getStackInSlot(slot);
             var recipeOpt = CentrifugeRecipeManager.INSTANCE.getRecipe(input);
@@ -86,6 +100,7 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
                 continue;
             }
 
+            processingNow = true;
             be.maxProgress[slot] = Math.max(1, recipe.processingTime());
             be.progress[slot]++;
             if (be.progress[slot] < be.maxProgress[slot]) {
@@ -148,6 +163,16 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
             changed = true;
         }
 
+        if (be.processing != processingNow) {
+            if (processingNow) {
+                level.playSound(null, pos, BioForgeSounds.CENTRIFUGE.get(),
+                        SoundSource.BLOCKS, 0.75F, 1.0F);
+            }
+            be.processing = processingNow;
+            changed = true;
+            be.syncToClient();
+        }
+
         if (changed) {
             be.setChanged();
         }
@@ -170,6 +195,7 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
         tag.put("Inventory", items.serializeNBT());
         tag.putIntArray("Progress", progress);
         tag.putIntArray("MaxProgress", maxProgress);
+        tag.putBoolean("Processing", processing);
     }
 
     @Override
@@ -178,11 +204,27 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
         items.deserializeNBT(tag.getCompound("Inventory"));
         int[] savedProgress = tag.getIntArray("Progress");
         int[] savedMaxProgress = tag.getIntArray("MaxProgress");
+        processing = tag.getBoolean("Processing");
         for (int slot = 0; slot < SLOT_COUNT; slot++) {
             progress[slot] = slot < savedProgress.length ? savedProgress[slot] : 0;
             int saved = slot < savedMaxProgress.length ? savedMaxProgress[slot] : 100;
             maxProgress[slot] = Math.max(1, saved);
         }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        load(tag);
     }
 
     @Override
@@ -218,5 +260,13 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
                     stack
             );
         }
+    }
+
+    public ItemStackHandler getItemHandler() {
+        return items;
+    }
+
+    public boolean isProcessing() {
+        return processing;
     }
 }

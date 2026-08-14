@@ -2,12 +2,16 @@ package net.jenkimods.bioforge.infection;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.BioForgeTags;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
+import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.network.InfectionNetworkHandler;
 import net.jenkimods.bioforge.infection.network.InfectionSyncPacket;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
+import net.jenkimods.bioforge.infection.spread.ProtectiveEquipment;
 import net.jenkimods.bioforge.mutation.MutationManager;
 import net.jenkimods.bioforge.vaccine.StrainImmunityManager;
+import net.jenkimods.bioforge.infection.lifecycle.InfectionLifecycleRegistry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -40,19 +44,30 @@ public class InfectionEventHandler {
     @SubscribeEvent
     public static void onLivingAttack(LivingAttackEvent event) {
         if (event.getEntity().level().isClientSide()) return;
+        if (!BioForgeServerConfig.isTransmissionEnabled(InfectionType.ATTACK_BASED)) return;
         LivingEntity target = event.getEntity();
         if (target.getType().is(BioForgeTags.NO_INFECTION_ATTACK_SPREAD)) return;
         LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity le ? le : null;
         if (attacker == null) return;
         InfectionData attackerData = InfectionCapability.get(attacker);
-        if (attackerData == null || !attackerData.isInfected()) return;
-        if (!attackerData.getInfectionTypes().contains(InfectionType.ATTACK_BASED)) return;
-        PathogenType pathogen = attackerData.getPathogenType();
-        if (pathogen == null || !pathogen.allows(InfectionType.ATTACK_BASED)) return;
+        if (attackerData == null || !attackerData.isContagious()) return;
+        if (!BioForgeDefinitionManager.hasTransmissionBehavior(
+                attackerData, InfectionType.ATTACK_BASED)) return;
+        if (!BioForgeDefinitionManager.allowsTransmission(attackerData.getPathogenId(),
+                net.jenkimods.bioforge.api.definition.BioForgeIds.transmission(InfectionType.ATTACK_BASED))) return;
         InfectionData targetData = InfectionCapability.get(target);
-        if (targetData == null || targetData.isInfected()) return;
-
-
+        if (targetData == null) return;
+        if (ProtectiveEquipment.outgoingContactMultiplier(attacker) <= 0.0F
+                || ProtectiveEquipment.incomingContactMultiplier(target) <= 0.0F) return;
+        float strength = Math.max(0.0F,
+                attackerData.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH));
+        float chance = BioForgeServerConfig.attackExposureChance() * (0.5F + strength)
+                * InfectionLifecycleRegistry.INSTANCE.infectivity(attackerData);
+        if (BioForgeDefinitionManager.hasTransmissionBehavior(attackerData, InfectionType.BLOOD)
+                && BioForgeServerConfig.isTransmissionEnabled(InfectionType.BLOOD)) {
+            chance *= 1.35F;
+        }
+        if (attacker.getRandom().nextFloat() >= Math.min(1.0F, chance)) return;
         StrainData.buildFrom(attackerData).applyToEntity(targetData, target);
     }
 
@@ -71,8 +86,15 @@ public class InfectionEventHandler {
         InfectionStore.InfectionRecord record = store.getInfection(serverPlayer.getUUID());
         if (record != null && record.persistent()) {
             newData.setInfected(true);
-            newData.setPathogenType(record.pathogenType());
-            for (InfectionType t : record.infectionTypes()) newData.addInfectionType(t);
+            if (record.pathogenId() != null) newData.setPathogenId(record.pathogenId());
+            else newData.setPathogenType(record.pathogenType());
+            if (!record.transmissionIds().isEmpty()) {
+                for (net.minecraft.resources.ResourceLocation id : record.transmissionIds()) {
+                    newData.addTransmissionId(id);
+                }
+            } else {
+                for (InfectionType t : record.infectionTypes()) newData.addInfectionType(t);
+            }
             for (Map.Entry<String, Object> entry : record.symptoms().entrySet()) {
                 SymptomKey<?> key = BioForgeSymptoms.getAllSymptomKeys().get(entry.getKey());
                 if (key != null) {
@@ -101,6 +123,7 @@ public class InfectionEventHandler {
     }
 
     public static void syncToClient(ServerPlayer player, InfectionData data) {
+        InfectionNetworkHandler.sendDefinitionsIfChanged(player);
         InfectionNetworkHandler.sendToPlayer(InfectionSyncPacket.fromData(data), player);
     }
 }

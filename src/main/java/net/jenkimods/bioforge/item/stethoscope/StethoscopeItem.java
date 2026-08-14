@@ -89,8 +89,11 @@ public class StethoscopeItem extends Item {
         } else if (usedTicks >= 100) {
             EntityHitResult hitResult = HitResultUtil.getHitResult(player);
             Entity target = hitResult == null ? null : hitResult.getEntity();
-            LivingEntity subject = target instanceof LivingEntity living ? living : player;
-            InfectionData data = InfectionCapability.get(target);
+            LivingEntity subject = target instanceof LivingEntity living
+                    && !living.getType().is(NO_STETHOSCOPE_TAG)
+                    && !living.getType().is(BioForgeTags.NO_DIAGNOSTICS)
+                    ? living : player;
+            InfectionData data = InfectionCapability.get(subject);
             HeartRate heartRate = data != null
                     ? data.getSymptom(BioForgeSymptoms.HEART_RATE) : HeartRate.NORMAL;
             LungSound lungSound = data != null

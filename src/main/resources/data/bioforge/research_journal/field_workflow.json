@@ -1,0 +1,10 @@
+{
+  "order": 20,
+  "unlock_items": ["bioforge:research_journal"],
+  "title": { "text": "FIELD WORKFLOW", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "BioForge is a connected research chain, not a collection of isolated crafting blocks.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "1. Examine a patient and record findings.\n2. Draw or collect a sample.\n3. Separate, culture and identify it.\n4. Decode the strain and prepare CRISPR evidence.\n5. Produce and assay treatment.\n6. Contain the patient and contaminated area.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Skipping evidence is possible in some procedures, but lowers certainty and the best result you can reach.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "order": 270,
+  "unlock_items": ["bioforge:swab", "bioforge:petri_dish", "bioforge:tube", "bioforge:blood_slide", "bioforge:live_culture_vial"],
+  "title": { "text": "SAMPLE CHAIN", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "Swabs collect surface material. Petri dishes expose reactions. Tubes and syringes carry blood. Blood slides provide microscope input. Culture vials preserve a strain for cultivation and research.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "A sample carries its blood, infection and strain data through compatible containers. Sterility does not erase legitimate analysis data, but contaminated equipment can compromise the chain.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Do not expect every container tooltip to reveal a genome. Hidden information is intentionally unlocked by laboratory analysis rather than ordinary inventory inspection.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

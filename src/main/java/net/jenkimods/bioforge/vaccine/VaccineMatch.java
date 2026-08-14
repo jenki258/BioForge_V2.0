@@ -30,10 +30,10 @@ public record VaccineMatch(
             return new VaccineMatch(false, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
         }
 
-        boolean samePathogen = template.getPathogen() != null
-                && template.getPathogen() == infection.getPathogen();
+        boolean samePathogen = template.getPathogenId() != null
+                && template.getPathogenId().equals(infection.getPathogenId());
         float pathogen = samePathogen ? 1.0f : 0.0f;
-        float transmission = jaccard(template.getInfectionTypes(), infection.getInfectionTypes());
+        float transmission = jaccard(template.getTransmissionIds(), infection.getTransmissionIds());
         float symptoms = compareSymptoms(template.getSymptoms(), infection.getSymptoms());
         float mutations = jaccard(template.getMutationIds(), infection.getMutationIds());
         float total = pathogen * PATHOGEN_WEIGHT

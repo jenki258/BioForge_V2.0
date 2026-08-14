@@ -59,8 +59,13 @@ public class ContaminatedSubstrateBlock extends Block {
 
         StrainData strain = StrainData.parse(strainRaw);
         PathogenType pathogen = strain.getPathogen();
+        boolean environmental = strain.getPathogenId() != null
+                && net.jenkimods.bioforge.definition.BioForgeDefinitionManager
+                .pathogen(strain.getPathogenId())
+                .map(net.jenkimods.bioforge.api.definition.PathogenDefinition::environmental)
+                .orElse(pathogen != null && pathogen.isEnvironmental());
 
-        if (pathogen == null || !pathogen.isEnvironmental()) {
+        if (!environmental) {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
             if (placer != null) {
                 placer.sendSystemMessage(

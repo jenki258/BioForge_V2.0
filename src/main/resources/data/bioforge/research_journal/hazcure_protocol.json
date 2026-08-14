@@ -1,0 +1,21 @@
+{
+  "order": 720,
+  "unlock_items": ["bioforge:hazcure_helmet", "bioforge:hazcure_chestplate", "bioforge:hazcure_leggings", "bioforge:hazcure_boots"],
+  "title": { "text": "HAZCURE PROTOCOL", "color": "dark_aqua", "bold": true },
+  "content": [
+    {
+      "component": {
+        "text": "HazCure biological sealing only works as a complete four-piece suit. The full set blocks inward and outward airborne, contact and attack-based infection and prevents syringe access.",
+        "color": "black"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "text": "The suit is protective equipment, not endgame combat armour. Its physical defense is intentionally comparable to iron, so hostile environments still require caution.",
+        "color": "black"
+      },
+      "line_breaks": 0
+    }
+  ]
+}

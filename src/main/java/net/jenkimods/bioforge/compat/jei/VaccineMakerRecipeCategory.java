@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public final class VaccineMakerRecipeCategory
         implements IRecipeCategory<VaccineMakerRecipeWrapper> {
@@ -97,7 +96,7 @@ public final class VaccineMakerRecipeCategory
         }
         graphics.drawString(net.minecraft.client.Minecraft.getInstance().font,
                 Component.translatable("jei.bioforge.vaccine_maker.operation."
-                        + recipe.recipe().operation().name().toLowerCase(Locale.ROOT)),
+                        + recipe.recipe().operationId().getPath()),
                 5, 5, 0xFF77EAF3, false);
         graphics.drawString(net.minecraft.client.Minecraft.getInstance().font,
                 "→", 145, 43, 0xFF77EAF3, false);

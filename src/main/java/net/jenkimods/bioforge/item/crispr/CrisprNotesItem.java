@@ -1,6 +1,7 @@
 package net.jenkimods.bioforge.item.crispr;
 
 import net.jenkimods.bioforge.vaccine.VaccineResearchNotes;
+import net.jenkimods.bioforge.vaccine.VaccineCorrectionNotes;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -14,7 +15,6 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Locale;
 
 public class CrisprNotesItem extends Item {
     public CrisprNotesItem() {
@@ -26,12 +26,20 @@ public class CrisprNotesItem extends Item {
                                                    InteractionHand hand) {
         ItemStack notes = player.getItemInHand(hand);
         VaccineResearchNotes.Data data = VaccineResearchNotes.read(notes);
-        if (data == null) return InteractionResultHolder.pass(notes);
+        VaccineCorrectionNotes.Data correction = VaccineCorrectionNotes.read(notes);
+        if (data == null && correction == null) {
+            return InteractionResultHolder.pass(notes);
+        }
         InteractionHand other = hand == InteractionHand.MAIN_HAND
                 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
         ItemStack target = player.getItemInHand(other);
         if (target.is(Items.WRITABLE_BOOK)) {
-            if (!level.isClientSide()) VaccineResearchNotes.appendToBook(target, data);
+            if (!level.isClientSide()) {
+                if (data != null) VaccineResearchNotes.appendToBook(target, data);
+                if (correction != null) {
+                    VaccineCorrectionNotes.appendToBook(target, correction);
+                }
+            }
             return InteractionResultHolder.sidedSuccess(notes, level.isClientSide());
         }
         if (!target.is(Items.PAPER)) return InteractionResultHolder.pass(notes);
@@ -48,22 +56,34 @@ public class CrisprNotesItem extends Item {
     public void appendHoverText(ItemStack stack, @Nullable Level level,
                                 List<Component> tooltip, TooltipFlag flag) {
         VaccineResearchNotes.Data data = VaccineResearchNotes.read(stack);
-        if (data == null) {
+        VaccineCorrectionNotes.Data correction = VaccineCorrectionNotes.read(stack);
+        if (data == null && correction == null) {
             tooltip.add(Component.translatable("item.bioforge.crispr_notes.blank")
                     .withStyle(ChatFormatting.GRAY));
             return;
         }
-        tooltip.add(Component.translatable("item.bioforge.crispr_notes.batch",
-                data.sampleFingerprint()).withStyle(ChatFormatting.DARK_AQUA));
-        tooltip.add(Component.translatable("item.bioforge.crispr_notes.quality",
-                String.format(Locale.ROOT, "%.1f%%", data.quality() * 100.0f))
-                .withStyle(ChatFormatting.WHITE));
-        tooltip.add(Component.literal("gRNA-1  " + data.guideOne())
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("gRNA-2  " + data.guideTwo())
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.literal("gRNA-3  " + data.guideThree())
-                .withStyle(ChatFormatting.GRAY));
+        if (data != null) {
+            tooltip.add(Component.translatable("item.bioforge.crispr_notes.batch",
+                    data.sampleFingerprint()).withStyle(ChatFormatting.DARK_AQUA));
+            tooltip.add(Component.translatable("item.bioforge.crispr_notes.assay_required")
+                    .withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal("gRNA-1  " + data.guideOne())
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("gRNA-2  " + data.guideTwo())
+                    .withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("gRNA-3  " + data.guideThree())
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        if (correction != null) {
+            tooltip.add(Component.translatable(
+                            "item.bioforge.crispr_notes.correction_batch",
+                            correction.sampleFingerprint())
+                    .withStyle(ChatFormatting.DARK_AQUA));
+            tooltip.add(Component.translatable(
+                            "item.bioforge.crispr_notes.correction_entries",
+                            correction.entries().size())
+                    .withStyle(ChatFormatting.WHITE));
+        }
         tooltip.add(Component.literal(""));
         tooltip.add(Component.translatable("item.bioforge.crispr_notes.hint_template")
                 .withStyle(ChatFormatting.DARK_AQUA));

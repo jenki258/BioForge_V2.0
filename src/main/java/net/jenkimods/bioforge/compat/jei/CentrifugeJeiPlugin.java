@@ -3,17 +3,27 @@ package net.jenkimods.bioforge.compat.jei;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
+import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeRecipeManager;
 import net.jenkimods.bioforge.world.decalcification.DecalcificationRecipeManager;
 import net.jenkimods.bioforge.world.incubator.IncubatorRecipeRegistration;
+import net.jenkimods.bioforge.world.laboratory.LaboratoryProcessRecipe;
+import net.jenkimods.bioforge.world.laboratory.LaboratoryProcessRecipeManager;
+import net.jenkimods.bioforge.world.laboratory.LaboratoryStation;
 import net.jenkimods.bioforge.crispr.BioForgeResearchData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.client.event.RecipesUpdatedEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.List;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Objects;
 
 @JeiPlugin
@@ -21,6 +31,11 @@ public class CentrifugeJeiPlugin implements IModPlugin {
 
     private static final ResourceLocation PLUGIN_ID =
             Objects.requireNonNull(ResourceLocation.tryBuild(BioForge.MODID, "jei_plugin"));
+    private List<VaccineMakerRecipeWrapper> registeredVaccineRecipes = List.of();
+    private final Map<LaboratoryStation, List<LaboratoryProcessRecipe>>
+            registeredLaboratoryRecipes = new EnumMap<>(LaboratoryStation.class);
+    private IJeiRuntime runtime;
+    private boolean listeningForRecipeReloads;
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -33,7 +48,27 @@ public class CentrifugeJeiPlugin implements IModPlugin {
                 new CentrifugeRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new DecalcificationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new IncubatorRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
-                new VaccineMakerRecipeCategory(registration.getJeiHelpers().getGuiHelper())
+                new VaccineMakerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new LaboratoryProcessRecipeCategory(
+                        registration.getJeiHelpers().getGuiHelper(),
+                        LaboratoryStation.BARREL_PRESS,
+                        new net.minecraft.world.item.ItemStack(
+                                BioForge.BARREL_PRESS_ITEM.get())),
+                new LaboratoryProcessRecipeCategory(
+                        registration.getJeiHelpers().getGuiHelper(),
+                        LaboratoryStation.CHEMICAL_SYNTHESIZER,
+                        new net.minecraft.world.item.ItemStack(
+                                BioForge.CHEMICAL_SYNTHESIZER_ITEM.get())),
+                new LaboratoryProcessRecipeCategory(
+                        registration.getJeiHelpers().getGuiHelper(),
+                        LaboratoryStation.PHARMA_MIXER,
+                        new net.minecraft.world.item.ItemStack(
+                                BioForge.PHARMA_MIXER_ITEM.get())),
+                new LaboratoryProcessRecipeCategory(
+                        registration.getJeiHelpers().getGuiHelper(),
+                        LaboratoryStation.STERILIZATION_CHAMBER,
+                        new net.minecraft.world.item.ItemStack(
+                                BioForge.STERILIZATION_CHAMBER_ITEM.get()))
         );
     }
 
@@ -61,10 +96,110 @@ public class CentrifugeJeiPlugin implements IModPlugin {
             registration.addRecipes(IncubatorRecipeCategory.RECIPE_TYPE, incubatorWrapped);
         }
 
+        registeredVaccineRecipes = vaccineMakerRecipes();
         registration.addRecipes(VaccineMakerRecipeCategory.RECIPE_TYPE,
-                BioForgeResearchData.recipes().stream()
-                        .map(VaccineMakerRecipeWrapper::new)
-                        .toList());
+                registeredVaccineRecipes);
+
+        for (LaboratoryStation station : LaboratoryStation.values()) {
+            List<LaboratoryProcessRecipe> recipes = laboratoryRecipes(station);
+            registeredLaboratoryRecipes.put(station, recipes);
+            registration.addRecipes(LaboratoryProcessRecipeCategory.type(station), recipes);
+        }
+    }
+
+    @Override
+    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
+                        BioForge.VACCINE_MAKER_ITEM.get()),
+                VaccineMakerRecipeCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
+                        BioForge.CENTRIFUGE_ITEM.get()),
+                CentrifugeRecipeCategory.RECIPE_TYPE,
+                DecalcificationRecipeCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
+                        BioForge.INCUBATOR_ITEM.get()),
+                IncubatorRecipeCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
+                        BioForge.BARREL_PRESS_ITEM.get()),
+                LaboratoryProcessRecipeCategory.BARREL_PRESS_TYPE);
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
+                        BioForge.CHEMICAL_SYNTHESIZER_ITEM.get()),
+                LaboratoryProcessRecipeCategory.CHEMICAL_TYPE);
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
+                        BioForge.PHARMA_MIXER_ITEM.get()),
+                LaboratoryProcessRecipeCategory.PHARMA_TYPE);
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
+                        BioForge.STERILIZATION_CHAMBER_ITEM.get()),
+                LaboratoryProcessRecipeCategory.STERILIZATION_TYPE);
+    }
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime runtime) {
+        this.runtime = runtime;
+        if (registeredVaccineRecipes.isEmpty()) {
+            List<VaccineMakerRecipeWrapper> recipes = vaccineMakerRecipes();
+            if (!recipes.isEmpty()) {
+                runtime.getRecipeManager().addRecipes(
+                        VaccineMakerRecipeCategory.RECIPE_TYPE, recipes);
+                registeredVaccineRecipes = recipes;
+            }
+        }
+        for (LaboratoryStation station : LaboratoryStation.values()) {
+            if (!registeredLaboratoryRecipes.getOrDefault(station, List.of()).isEmpty()) {
+                continue;
+            }
+            List<LaboratoryProcessRecipe> recipes = laboratoryRecipes(station);
+            if (!recipes.isEmpty()) {
+                runtime.getRecipeManager().addRecipes(
+                        LaboratoryProcessRecipeCategory.type(station), recipes);
+                registeredLaboratoryRecipes.put(station, recipes);
+            }
+        }
+        if (!listeningForRecipeReloads) {
+            MinecraftForge.EVENT_BUS.register(this);
+            listeningForRecipeReloads = true;
+        }
+    }
+
+    @Override
+    public void onRuntimeUnavailable() {
+        if (listeningForRecipeReloads) {
+            MinecraftForge.EVENT_BUS.unregister(this);
+            listeningForRecipeReloads = false;
+        }
+        runtime = null;
+        registeredVaccineRecipes = List.of();
+        registeredLaboratoryRecipes.clear();
+    }
+
+    @SubscribeEvent
+    public void onRecipesUpdated(RecipesUpdatedEvent event) {
+        if (runtime == null) return;
+        if (!registeredVaccineRecipes.isEmpty()) {
+            runtime.getRecipeManager().hideRecipes(
+                    VaccineMakerRecipeCategory.RECIPE_TYPE,
+                    registeredVaccineRecipes);
+        }
+        for (LaboratoryStation station : LaboratoryStation.values()) {
+            List<LaboratoryProcessRecipe> oldRecipes =
+                    registeredLaboratoryRecipes.getOrDefault(station, List.of());
+            if (!oldRecipes.isEmpty()) {
+                runtime.getRecipeManager().hideRecipes(
+                        LaboratoryProcessRecipeCategory.type(station), oldRecipes);
+            }
+            List<LaboratoryProcessRecipe> recipes = laboratoryRecipes(station);
+            registeredLaboratoryRecipes.put(station, recipes);
+            if (!recipes.isEmpty()) {
+                runtime.getRecipeManager().addRecipes(
+                        LaboratoryProcessRecipeCategory.type(station), recipes);
+            }
+        }
+        registeredVaccineRecipes = vaccineMakerRecipes();
+        if (!registeredVaccineRecipes.isEmpty()) {
+            runtime.getRecipeManager().addRecipes(
+                    VaccineMakerRecipeCategory.RECIPE_TYPE,
+                    registeredVaccineRecipes);
+        }
     }
 
     @Override
@@ -87,5 +222,18 @@ public class CentrifugeJeiPlugin implements IModPlugin {
                 4,
                 36
         );
+    }
+
+    private static List<VaccineMakerRecipeWrapper> vaccineMakerRecipes() {
+        return BioForgeResearchData.recipes().stream()
+                .map(VaccineMakerRecipeWrapper::new)
+                .toList();
+    }
+
+    private static List<LaboratoryProcessRecipe> laboratoryRecipes(
+            LaboratoryStation station) {
+        return LaboratoryProcessRecipeManager.INSTANCE.recipes().stream()
+                .filter(recipe -> recipe.station() == station)
+                .toList();
     }
 }

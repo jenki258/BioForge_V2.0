@@ -1,0 +1,10 @@
+{
+  "order": 480,
+  "unlock_items": ["bioforge:gene_imprint", "bioforge:random_mutation_vaccine", "bioforge:live_culture_vial"],
+  "title": { "text": "MUTATION INTERACTIONS", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "Mutations are active behaviors, not decorative labels. They can change symptoms, spread, environmental persistence, treatment resistance and the strength of other mutations.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Some combinations create synergy: respiratory shedding supports air spread, surface persistence supports contact reservoirs, gastrointestinal shedding reinforces consumed transmission, and vaccine-defense traits reduce treatment reliability.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "A failed CRISPR program may mutate the source strain. A Random Mutation Vaccine deliberately rolls a mutation and displays the mutation-scroll animation; use it only when the risk is acceptable.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

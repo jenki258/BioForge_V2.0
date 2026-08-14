@@ -2,6 +2,7 @@ package net.jenkimods.bioforge.world.microscope;
 
 import com.google.gson.*;
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.jenkimods.bioforge.infection.MicroscopeVisibility;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -22,13 +23,19 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
     public static final MicroscopeSymptomConfig INSTANCE = new MicroscopeSymptomConfig();
     private Map<Item, List<MicroscopeSymptomEntry>> itemEntries = new HashMap<>();
     private Map<Item, List<CalibrationSlider>> calibrationMap = new HashMap<>();
+    private final Map<Item, List<MicroscopeSymptomEntry>> javaItemEntries = new LinkedHashMap<>();
+    private final Map<Item, List<CalibrationSlider>> javaCalibrationMap = new LinkedHashMap<>();
+    private boolean javaRegistrationsFrozen;
 
     private MicroscopeSymptomConfig() {
         super(new Gson(), "microscope");
     }
 
     public List<MicroscopeSymptomEntry> getEntriesFor(ItemStack stack) {
-        return itemEntries.getOrDefault(stack.getItem(), Collections.emptyList());
+        return itemEntries.getOrDefault(stack.getItem(), Collections.emptyList()).stream()
+                .filter(entry -> !"strain".equals(entry.source())
+                        || BioForgeServerConfig.isSymptomEnabled(entry.symptomKey()))
+                .toList();
     }
 
     public List<CalibrationSlider> getCalibrationFor(ItemStack stack) {
@@ -107,8 +114,26 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
             }
         });
 
+        javaItemEntries.forEach(entriesMap::putIfAbsent);
+        javaCalibrationMap.forEach(calibMap::putIfAbsent);
+
         this.itemEntries = entriesMap;
         this.calibrationMap = calibMap;
+    }
+
+    public synchronized void registerJava(Item item, List<MicroscopeSymptomEntry> entries,
+                                          List<CalibrationSlider> calibration) {
+        if (javaRegistrationsFrozen) throw new IllegalStateException("Microscope config registry is frozen");
+        if (item == null) throw new IllegalArgumentException("Microscope item cannot be null");
+        if (javaItemEntries.containsKey(item)) {
+            throw new IllegalArgumentException("Duplicate Java microscope config for " + item);
+        }
+        javaItemEntries.put(item, List.copyOf(entries == null ? List.of() : entries));
+        javaCalibrationMap.put(item, List.copyOf(calibration == null ? List.of() : calibration));
+    }
+
+    public synchronized void freezeJavaRegistrations() {
+        javaRegistrationsFrozen = true;
     }
 
     private MicroscopeSymptomEntry parseEntry(JsonObject json) {

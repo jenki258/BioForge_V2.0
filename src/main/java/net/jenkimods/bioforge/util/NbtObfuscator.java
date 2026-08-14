@@ -127,6 +127,21 @@ public final class NbtObfuscator {
         tag.put(KEY_NAMED_ROOT, channels);
     }
 
+    public static void writeStringDeterministic(CompoundTag tag, String channel,
+                                                String payload) {
+        if (tag == null || channel == null || channel.isBlank()) return;
+        String safePayload = payload == null ? "" : payload;
+        CompoundTag channels = tag.contains(KEY_NAMED_ROOT, Tag.TAG_COMPOUND)
+                ? tag.getCompound(KEY_NAMED_ROOT) : new CompoundTag();
+        CompoundTag encoded = new CompoundTag();
+        UUID salt = deriveSalt(channel + '|' + safePayload);
+        writeInternal(encoded, safePayload,
+                salt.getMostSignificantBits(), salt.getLeastSignificantBits(),
+                KEY_SALT_HI, KEY_SALT_LO, KEY_FLAG, KEY_PAYLOAD, KEY_CHECKSUM);
+        channels.put(channel, encoded);
+        tag.put(KEY_NAMED_ROOT, channels);
+    }
+
     @Nullable
     public static String readString(CompoundTag tag, String channel) {
         if (tag == null || channel == null || channel.isBlank()
@@ -150,6 +165,12 @@ public final class NbtObfuscator {
 
     public static void writeCompound(CompoundTag tag, String channel, CompoundTag payload) {
         writeString(tag, channel, payload == null ? "{}" : payload.toString());
+    }
+
+    public static void writeCompoundDeterministic(CompoundTag tag, String channel,
+                                                  CompoundTag payload) {
+        writeStringDeterministic(tag, channel,
+                payload == null ? "{}" : payload.toString());
     }
 
     @Nullable

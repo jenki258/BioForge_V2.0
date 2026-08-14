@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "bioforge:block/test_block"
+      "model": "bioforge:block/sporocarp"
     }
   }
 }

@@ -10,6 +10,7 @@ import net.jenkimods.bioforge.infection.InfectionEventHandler;
 import net.jenkimods.bioforge.infection.InfectionStore;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
+import net.jenkimods.bioforge.infection.lifecycle.InfectionLifecycleRegistry;
 import net.jenkimods.bioforge.mutation.MutationDefinition;
 import net.jenkimods.bioforge.mutation.MutationLoader;
 import net.jenkimods.bioforge.mutation.MutationManager;
@@ -31,6 +32,7 @@ import java.util.Objects;
 public final class VaccineManager {
     public static final String VACCINE_DEFENSE_MUTATION_TAG = "vaccine_defense";
     public static final String IMMUNE_ESCAPE_MUTATION_TAG = "immune_escape";
+    public static final String VACCINE_VULNERABILITY_MUTATION_TAG = "vaccine_vulnerability";
     public static final String REQUIRES_RH_POSITIVE_TAG = "vaccine_requires_rh_positive";
     public static final String REQUIRES_RH_NEGATIVE_TAG = "vaccine_requires_rh_negative";
     private static final List<String> DEFENSE_TAGS =
@@ -91,7 +93,7 @@ public final class VaccineManager {
         }
 
         StrainData vaccineStrain = profile.strain();
-        if (!infection.isInfected() || infection.getPathogenType() == null) {
+        if (!infection.isInfected() || infection.getPathogenId() == null) {
             StrainImmunityManager.grant(target, infection, vaccineStrain, profile.quality());
             persistAndSync(target, infection);
             return emptyResult(Outcome.IMMUNIZED);
@@ -188,11 +190,23 @@ public final class VaccineManager {
         float chance = activeRules.basePotency()
                 * similarityFactor
                 * qualityFactor
-                * resistanceFactor;
+                * resistanceFactor
+                * (1.0F - InfectionLifecycleRegistry.INSTANCE
+                .resolve(infection.getLifecycle().profileId()).cureResistance());
         if (hasDefenseMutation(infection, activeRules.defenseMutationId())) {
             chance *= activeRules.defenseMutationCureMultiplier();
         }
+        if (hasMutationTag(infection, VACCINE_VULNERABILITY_MUTATION_TAG)) {
+            chance *= 1.35F;
+        }
         return Mth.clamp(chance, 0.0f, activeRules.maximumCureChance());
+    }
+
+    private static boolean hasMutationTag(InfectionData infection, String tag) {
+        for (MutationDefinition definition : MutationLoader.INSTANCE.getMutationsWithTag(tag)) {
+            if (MutationManager.hasMutation(infection, definition.id())) return true;
+        }
+        return false;
     }
 
     public static boolean maybeApplyDefenseMutation(LivingEntity target, InfectionData infection,
@@ -260,12 +274,13 @@ public final class VaccineManager {
         InfectionStore.InfectionRecord existing = store.getInfection(player.getUUID());
         if (existing != null && existing.persistent() && infection.isInfected()) {
             Map<String, Object> symptoms = new LinkedHashMap<>();
-            BioForgeSymptoms.getAllSymptomKeys().forEach((id, key) ->
+            BioForgeSymptoms.getEnabledSymptomKeys().forEach((id, key) ->
                     symptoms.put(id, infection.getSymptoms().get(key)));
             store.setInfection(player.getUUID(), new InfectionStore.InfectionRecord(
                     true, true, infection.getPathogenType(),
                     new ArrayList<>(infection.getInfectionTypes()), symptoms,
-                    new ArrayList<>(infection.getSymptoms().getMutations())));
+                    new ArrayList<>(infection.getSymptoms().getMutations()),
+                    infection.getPathogenId(), new ArrayList<>(infection.getTransmissionIds())));
         }
         InfectionEventHandler.syncToClient(player, infection);
     }

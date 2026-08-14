@@ -1,0 +1,10 @@
+{
+  "order": 510,
+  "unlock_items": ["bioforge:vaccine_maker", "bioforge:vaccine", "bioforge:medical_report", "bioforge:blood_slide"],
+  "title": { "text": "VACCINE QUALITY", "color": "dark_aqua", "bold": true },
+  "content": [
+    { "component": { "text": "Final quality combines CRISPR sequence accuracy with correction of the strain profile. The machine keeps both parts hidden during synthesis so the player must verify the batch experimentally.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Exact-strain reports, gene evidence and a suitable Cas/PAM module raise confidence. Missing or mismatched evidence limits the attainable result. Synthesis still works with incomplete assay support, but the batch is less reliable.", "color": "black" }, "line_breaks": 2 },
+    { "component": { "text": "Use a produced vaccine on a blood-filled tube carrying the candidate infection, then calibrate and scan the vaccinated blood in a Microscope. The result reports only combined quality. Better quality also extends exact-strain immunity duration.", "color": "black" }, "line_breaks": 0 }
+  ]
+}

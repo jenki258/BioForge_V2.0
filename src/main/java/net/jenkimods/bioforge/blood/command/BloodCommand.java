@@ -10,6 +10,7 @@ import net.jenkimods.bioforge.blood.BloodCapability;
 import net.jenkimods.bioforge.blood.BloodData;
 import net.jenkimods.bioforge.blood.BloodEventHandler;
 import net.jenkimods.bioforge.blood.BloodType;
+import net.jenkimods.bioforge.blood.knowledge.BloodKnowledgeStore;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -127,6 +128,8 @@ public class BloodCommand {
             if (data == null) continue;
 
             data.setBloodType(type);
+            BloodKnowledgeStore.get(ctx.getSource().getServer())
+                    .validateSubjectBloodType(entity.getUUID(), type);
 
             if (entity instanceof ServerPlayer sp) {
                 BloodEventHandler.syncToClient(sp, data);
@@ -154,6 +157,8 @@ public class BloodCommand {
                         ? BloodType.randomHuman(new java.util.Random())
                         : BloodType.randomNonHuman(new java.util.Random());
                 data.setBloodType(fresh);
+                BloodKnowledgeStore.get(ctx.getSource().getServer())
+                        .validateSubjectBloodType(entity.getUUID(), fresh);
             }
 
             if (entity instanceof ServerPlayer sp) {
