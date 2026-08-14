@@ -29,7 +29,7 @@ public final class LaboratoryProcessorScreen
                 imageWidth, imageHeight, TEXTURE_SIZE, TEXTURE_SIZE);
         switch (menu.station()) {
             case BARREL_PRESS -> renderVerticalProgress(graphics, texture,
-                    88, 31, 18, 22);
+                    104, 31, 18, 22);
             case CHEMICAL_SYNTHESIZER -> renderHorizontalProgress(graphics, texture,
                     93, 38, 24, 11);
             case PHARMA_MIXER -> renderVerticalProgress(graphics, texture,

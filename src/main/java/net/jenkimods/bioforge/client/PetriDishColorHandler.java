@@ -2,6 +2,7 @@ package net.jenkimods.bioforge.client;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.PathogenType;
+import net.jenkimods.bioforge.item.infection.ColonyCoreBlockEntity;
 import net.jenkimods.bioforge.item.infection.InfestedBlockEntity;
 import net.jenkimods.bioforge.item.infection.MicrobialMatBlockEntity;
 import net.jenkimods.bioforge.item.infection.PetriDishBlockEntity;
@@ -72,6 +73,18 @@ public class PetriDishColorHandler {
                     }
                     return 0xFFFFFFFF;
                 }, BioForge.SPOROCARP.get()
+        );
+
+        event.register(
+                (state, reader, pos, tintIndex) -> {
+                    if (tintIndex == 1 && pos != null && reader != null) {
+                        BlockEntity be = reader.getBlockEntity(pos);
+                        if (be instanceof ColonyCoreBlockEntity core) {
+                            return applyVariation(getBaseColor(core.pathogen), pos, core.colonyId);
+                        }
+                    }
+                    return 0xFFFFFFFF;
+                }, BioForge.COLONY_CORE.get()
         );
     }
 
