@@ -1,11 +1,56 @@
 {
   "order": 70,
-  "unlock_items": ["bioforge:black_steel_ingot", "bioforge:precision_mechanism", "bioforge:laboratory_frame", "bioforge:biomedical_processor"],
-  "recipes": ["bioforge:black_steel_blend", "bioforge:black_steel_ingot", "bioforge:black_steel_nuggets", "bioforge:black_steel_ingot_from_nuggets", "bioforge:black_steel_block", "bioforge:black_steel_ingots_from_block", "bioforge:black_steel_plate", "bioforge:black_steel_mesh", "bioforge:reinforced_glass", "bioforge:sterile_polymer_sheet", "bioforge:laboratory_glassware", "bioforge:sterile_filter", "bioforge:optical_lens", "bioforge:precision_mechanism", "bioforge:electronic_control_unit", "bioforge:laboratory_frame", "bioforge:biomedical_processor"],
-  "title": { "text": "LAB ENGINEERING", "color": "dark_aqua", "bold": true },
+  "unlock_items": [
+    "bioforge:black_steel_ingot",
+    "bioforge:precision_mechanism",
+    "bioforge:laboratory_frame",
+    "bioforge:biomedical_processor"
+  ],
+  "recipes": [
+    "bioforge:black_steel_blend",
+    "bioforge:black_steel_ingot",
+    "bioforge:black_steel_nuggets",
+    "bioforge:black_steel_ingot_from_nuggets",
+    "bioforge:black_steel_block",
+    "bioforge:black_steel_ingots_from_block",
+    "bioforge:black_steel_plate",
+    "bioforge:black_steel_mesh",
+    "bioforge:reinforced_glass",
+    "bioforge:sterile_polymer_sheet",
+    "bioforge:laboratory_glassware",
+    "bioforge:sterile_filter",
+    "bioforge:optical_lens",
+    "bioforge:precision_mechanism",
+    "bioforge:electronic_control_unit",
+    "bioforge:laboratory_frame",
+    "bioforge:biomedical_processor"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.engineering_materials.title"
+  },
   "content": [
-    { "component": { "text": "Black Steel is the structural backbone of advanced laboratory equipment. Plates, mesh and reinforced glass lead into sealed frames and protective equipment.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Optical lenses and precision mechanisms support microscopes. Electronic control units and biomedical processors support programmable machines. Sterile polymer, filters, rubber and glassware keep samples usable.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Use JEI to inspect each intermediate. Ingredient tags accept compatible materials supplied by other mods when the same material family is available.", "color": "black" }, "line_breaks": 0 }
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.engineering_materials.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.engineering_materials.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.engineering_materials.content.3"
+      },
+      "line_breaks": 0
+    }
   ]
 }

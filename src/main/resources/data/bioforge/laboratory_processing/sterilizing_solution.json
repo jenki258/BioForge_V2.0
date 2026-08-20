@@ -3,9 +3,9 @@
   "ingredients": [
     { "tag": "bioforge:ingredients/bioforge/ethanol" },
     { "tag": "bioforge:ingredients/bioforge/sulfuric_acid" },
-    { "tag": "bioforge:ingredients/minecraft/potion" }
+    { "tag": "bioforge:ingredients/minecraft/blaze_powder" }
   ],
   "output": "bioforge:sterilizing_solution",
-  "count": 3,
+  "count": 2,
   "processing_time": 140
 }

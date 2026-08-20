@@ -66,6 +66,8 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
             "spread_z",
             "speed",
             "offset_y",
+            "forward_offset",
+            "forward_speed",
             "volume",
             "pitch",
             "ticks"
@@ -526,7 +528,8 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
     private static void validateFiniteParameters(JsonObject json) {
         for (String numericKey : List.of(
                 "amount", "min", "max", "chance", "spread", "spread_x",
-                "spread_y", "spread_z", "speed", "offset_y", "volume", "pitch",
+                "spread_y", "spread_z", "speed", "offset_y", "forward_offset",
+                "forward_speed", "volume", "pitch",
                 "min_health", "max_health", "min_health_ratio", "max_health_ratio")) {
             if (json.has(numericKey)) {
                 JsonElement element = json.get(numericKey);

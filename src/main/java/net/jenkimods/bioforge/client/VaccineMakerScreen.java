@@ -87,6 +87,7 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
     @Override
     protected void init() {
         super.init();
+        tabButtons.clear();
         VaccineMakerCorrectionNetwork.clearClientSnapshot(menu.containerId);
         correctionSyncCooldown = 0;
         correctionPage = menu.getCorrectionPage();
@@ -95,11 +96,13 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                         Component.translatable("gui.bioforge.vaccine_maker.synthesize"),
                         button -> sendMachineButton(VaccineMakerBlockEntity.SYNTHESIZE_BUTTON),
                 ACTION_BUTTON_TEXTURE));
+        synthesizeButton.visible = false;
         researchButton = addRenderableWidget(new BioForgeTexturedButton(
                 leftPos + 137, topPos + 88, 99, 20,
                         Component.translatable("gui.bioforge.vaccine_maker.research"),
                         button -> sendMachineButton(VaccineMakerBlockEntity.RESEARCH_BUTTON),
                 ACTION_BUTTON_TEXTURE));
+        researchButton.visible = false;
 
         previousTabsButton = addRenderableWidget(new BioForgeTexturedButton(
                 leftPos + 2, topPos - 22, 18, 20, Component.literal("<"),
@@ -121,6 +124,7 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
             tabButtons.add(addRenderableWidget(tab));
         }
         updateTabLayout();
+        updateActionButtons();
     }
 
     @Override
@@ -133,6 +137,35 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         ItemStack reagent = menu.getMachineStack(VaccineMakerBlockEntity.REAGENT_SLOT);
         ItemStack sample = menu.getMachineStack(VaccineMakerBlockEntity.SAMPLE_SLOT);
         ItemStack document = menu.getMachineStack(VaccineMakerBlockEntity.REPORT_SLOT);
+
+        updateActionButtons(reagent, sample, document);
+
+        VaccineMakerPageRenderer renderer = VaccineMakerPageRenderRegistry.get(page);
+        if (renderer != null) renderer.containerTick(this);
+
+        if (VaccineMakerPageRegistry.CORRECTION.equals(page)) {
+            VaccineMakerCorrectionNetwork.Snapshot snapshot =
+                    VaccineMakerCorrectionNetwork.snapshot(menu.containerId);
+            if (!snapshot.available() && correctionSyncCooldown <= 0) {
+                sendExtensionButton(
+                        VaccineMakerPageRegistry.CORRECTION_SYNC_BUTTON);
+                correctionSyncCooldown = 20;
+            } else if (correctionSyncCooldown > 0) {
+                correctionSyncCooldown--;
+            }
+        }
+    }
+
+    private void updateActionButtons() {
+        updateActionButtons(
+                menu.getMachineStack(VaccineMakerBlockEntity.REAGENT_SLOT),
+                menu.getMachineStack(VaccineMakerBlockEntity.SAMPLE_SLOT),
+                menu.getMachineStack(VaccineMakerBlockEntity.REPORT_SLOT));
+    }
+
+    private void updateActionButtons(ItemStack reagent, ItemStack sample,
+                                     ItemStack document) {
+        ResourceLocation page = menu.getActivePageId();
 
         synthesizeButton.visible = VaccineMakerPageRegistry.CRAFT.equals(page);
         synthesizeButton.active = synthesizeButton.visible && menu.getStatus() == 1;
@@ -161,21 +194,6 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         } else {
             researchButton.active = false;
         }
-
-        VaccineMakerPageRenderer renderer = VaccineMakerPageRenderRegistry.get(page);
-        if (renderer != null) renderer.containerTick(this);
-
-        if (VaccineMakerPageRegistry.CORRECTION.equals(page)) {
-            VaccineMakerCorrectionNetwork.Snapshot snapshot =
-                    VaccineMakerCorrectionNetwork.snapshot(menu.containerId);
-            if (!snapshot.available() && correctionSyncCooldown <= 0) {
-                sendExtensionButton(
-                        VaccineMakerPageRegistry.CORRECTION_SYNC_BUTTON);
-                correctionSyncCooldown = 20;
-            } else if (correctionSyncCooldown > 0) {
-                correctionSyncCooldown--;
-            }
-        }
     }
 
     private void updateTabLayout() {
@@ -188,8 +206,10 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         nextTabsButton.active = tabOffset < maxTabOffset();
 
         int startX = leftPos + (overflow ? 22 : 8);
-        int tabY = Math.max(0, topPos - 22);
+        int tabY = topPos - 22;
+        previousTabsButton.setX(leftPos + 2);
         previousTabsButton.setY(tabY);
+        nextTabsButton.setX(leftPos + 228);
         nextTabsButton.setY(tabY);
         for (int index = 0; index < pageCount; index++) {
             VaccineMakerTabButton tab = tabButtons.get(index);

@@ -56,13 +56,15 @@ public class ContaminatedSubstrateItem extends BlockItem {
 
                 NbtObfuscator.writeString(substrateStack.getOrCreateTag(), newPayload);
                 level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
-                player.sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.inoculated"));
+                player.sendSystemMessage(Component.translatable(
+                        "item.bioforge.contaminated_substrate.inoculated").withStyle(ChatFormatting.GREEN));
             }
             return InteractionResultHolder.success(substrateStack);
         }
 
         if (!level.isClientSide()) {
-            player.sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.not_inoculated"));
+            player.sendSystemMessage(Component.translatable(
+                    "item.bioforge.contaminated_substrate.not_inoculated").withStyle(ChatFormatting.RED));
         }
         return InteractionResultHolder.fail(substrateStack);
     }
@@ -76,7 +78,8 @@ public class ContaminatedSubstrateItem extends BlockItem {
 
         if (!isInoculated(stack)) {
             if (!level.isClientSide()) {
-                context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.not_inoculated"));
+                context.getPlayer().sendSystemMessage(Component.translatable(
+                        "item.bioforge.contaminated_substrate.not_inoculated").withStyle(ChatFormatting.RED));
             }
             return InteractionResult.FAIL;
         }
@@ -86,7 +89,8 @@ public class ContaminatedSubstrateItem extends BlockItem {
             LevelChunk chunk = level.getChunkAt(pos);
             var storage = chunk.getCapability(CropInfectionCapability.CROP_INFECTION).orElse(null);
             if (storage != null && storage.isInfected(pos)) {
-                context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.already_infected"));
+                context.getPlayer().sendSystemMessage(Component.translatable(
+                        "item.bioforge.contaminated_substrate.already_infected").withStyle(ChatFormatting.RED));
                 return InteractionResult.FAIL;
             }
         }
@@ -107,7 +111,8 @@ public class ContaminatedSubstrateItem extends BlockItem {
 
             if (!context.getPlayer().isCreative()) stack.shrink(1);
             level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
-            context.getPlayer().sendSystemMessage(Component.translatable("item.bioforge.contaminated_substrate.crop_infected"));
+            context.getPlayer().sendSystemMessage(Component.translatable(
+                    "item.bioforge.contaminated_substrate.crop_infected").withStyle(ChatFormatting.GREEN));
             return InteractionResult.SUCCESS;
         }
 

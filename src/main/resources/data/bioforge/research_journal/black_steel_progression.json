@@ -1,19 +1,27 @@
 {
   "order": 50,
-  "unlock_items": ["bioforge:black_steel_blend", "bioforge:black_steel_ingot", "bioforge:black_steel_plate"],
-  "title": { "text": "BLACK STEEL", "color": "dark_aqua", "bold": true },
+  "unlock_items": [
+    "bioforge:black_steel_blend",
+    "bioforge:black_steel_ingot",
+    "bioforge:black_steel_plate"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.black_steel_progression.title"
+  },
   "content": [
     {
       "component": {
-        "text": "Activated carbon, iron and flint form Black Steel Blend. Blast it into ingots, then form plates, mesh and precision parts for durable laboratory equipment.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.black_steel_progression.content.1"
       },
       "line_breaks": 2
     },
     {
       "component": {
-        "text": "Black steel is the first major progression gate. Needles, diagnostic tools and machine frames depend on it, while the Vaccine Maker requires the complete engineering and biomedical chain.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.black_steel_progression.content.2"
       },
       "line_breaks": 0
     }

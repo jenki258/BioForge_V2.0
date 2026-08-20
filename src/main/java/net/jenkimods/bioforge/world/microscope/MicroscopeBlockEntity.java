@@ -6,12 +6,14 @@ import net.jenkimods.bioforge.api.definition.BioForgeIds;
 import net.jenkimods.bioforge.block.MicroscopeBlock;
 import net.jenkimods.bioforge.crispr.BioForgeResearchData;
 import net.jenkimods.bioforge.infection.StrainData;
+import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
 import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.jenkimods.bioforge.vaccine.VaccineBloodAssay;
 import net.jenkimods.bioforge.vaccine.VaccineCorrectionProfile;
+import net.jenkimods.bioforge.vaccine.StrainFingerprint;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -272,6 +274,11 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
                 return false;
             }
             if (!VaccineBloodAssay.markScanned(stack)) return false;
+            VaccineBloodAssay.Data assay = VaccineBloodAssay.read(stack);
+            if (player instanceof ServerPlayer researcher && assay != null) {
+                StrainNamingManager.discoverResearch(
+                        researcher, assay.sampleFingerprint());
+            }
             setChanged();
             syncBlockEntity();
             syncToViewers();
@@ -287,21 +294,43 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
                     .withStyle(ChatFormatting.RED), true);
             return false;
         }
-        if (!GeneImprintItem.identify(stack)) return false;
-        GeneImprintItem.Data imprint = GeneImprintItem.read(stack);
-        resetCalibrationSession();
-        setChanged();
-        syncBlockEntity();
-        syncToViewers();
-        if (imprint != null) {
-            player.displayClientMessage(Component.translatable(
-                    "message.bioforge.gene_imprint.identified",
-                    Component.translatable("vaccine.category."
-                            + imprint.category().serializedName()),
-                    imprint.target()).withStyle(ChatFormatting.AQUA), true);
+        if (GeneImprintItem.identify(stack)) {
+            GeneImprintItem.Data imprint = GeneImprintItem.read(stack);
+            if (player instanceof ServerPlayer researcher && imprint != null) {
+                StrainNamingManager.discoverResearch(researcher,
+                        StrainFingerprint.ofPayload(imprint.strainPayload()));
+            }
+            resetCalibrationSession();
+            setChanged();
+            syncBlockEntity();
+            syncToViewers();
+            if (imprint != null) {
+                player.displayClientMessage(Component.translatable(
+                        "message.bioforge.gene_imprint.identified",
+                        Component.translatable("vaccine.category."
+                                + imprint.category().serializedName()),
+                        imprint.target()).withStyle(ChatFormatting.AQUA), true);
+            }
+            playAnalysisCompleteSound();
+            return true;
         }
-        playAnalysisCompleteSound();
-        return true;
+        String samplePayload = NbtObfuscator.readInfection(stack.getOrCreateTag());
+        if (samplePayload == null || samplePayload.isBlank()) {
+            samplePayload = NbtObfuscator.readString(stack.getOrCreateTag());
+        }
+        if (samplePayload != null && !samplePayload.isBlank()
+                && StrainData.parse(samplePayload).getPathogenId() != null) {
+            if (player instanceof ServerPlayer researcher) {
+                StrainNamingManager.discoverResearch(researcher,
+                        StrainFingerprint.ofPayload(samplePayload));
+            }
+            player.displayClientMessage(Component.translatable(
+                    "message.bioforge.microscope.sample_researched")
+                    .withStyle(ChatFormatting.AQUA), true);
+            playAnalysisCompleteSound();
+            return true;
+        }
+        return false;
     }
 
     private void playAnalysisCompleteSound() {

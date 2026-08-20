@@ -1,19 +1,27 @@
 {
-  "order": 520,
-  "unlock_items": ["bioforge:vaccine", "bioforge:blood_slide", "bioforge:tube"],
-  "title": { "text": "VACCINE ASSAYS", "color": "dark_aqua", "bold": true },
+  "order": 530,
+  "unlock_items": [
+    "bioforge:vaccine",
+    "bioforge:blood_slide",
+    "bioforge:tube"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.vaccine_assays.title"
+  },
   "content": [
     {
       "component": {
-        "text": "A vaccine can be synthesized without an assay, but its usable quality ceiling is lower. Apply the batch to infected blood from the suspected strain, then calibrate and scan the resulting test in the Microscope.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.vaccine_assays.content.1"
       },
       "line_breaks": 2
     },
     {
       "component": {
-        "text": "The assay reports one combined result rather than exposing CRISPR and correction scores separately. Wrong-strain blood can mislead the experiment and does not grant exact-strain evidence.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.vaccine_assays.content.2"
       },
       "line_breaks": 0
     }

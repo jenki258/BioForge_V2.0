@@ -11,7 +11,6 @@ import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.lifecycle.InfectionLifecycleRegistry;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
-import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.mutation.MutationDefinition;
 import net.jenkimods.bioforge.mutation.MutationLoader;
 import net.jenkimods.bioforge.mutation.MutationManager;
@@ -89,7 +88,6 @@ public final class DirectedVaccineManager {
         if (chance > 0.0f && target.getRandom().nextFloat() < chance) {
             boolean changed = applyAction(target, infection, source, profile, action);
             if (changed) {
-                StrainNamingManager.discover(target, infection);
                 VaccineManager.persistAndSync(target, infection);
                 return new AttemptResult(Outcome.APPLIED, match, chance, false);
             }

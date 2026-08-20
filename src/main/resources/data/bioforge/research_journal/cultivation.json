@@ -1,32 +1,52 @@
 {
   "order": 300,
-  "unlock_items": ["bioforge:incubator", "bioforge:catalyst_vial", "bioforge:nutrient_medium", "bioforge:virus_sample", "bioforge:live_culture_vial"],
-  "recipes": ["bioforge:swab", "bioforge:petri_dish", "bioforge:contaminated_substrate", "bioforge:incubator", "bioforge:live_culture_vial"],
-  "title": { "text": "3. CULTIVATION", "color": "dark_aqua", "bold": true },
+  "unlock_items": [
+    "bioforge:incubator",
+    "bioforge:catalyst_vial",
+    "bioforge:nutrient_medium",
+    "bioforge:virus_sample",
+    "bioforge:live_culture_vial"
+  ],
+  "recipes": [
+    "bioforge:swab",
+    "bioforge:petri_dish",
+    "bioforge:contaminated_substrate",
+    "bioforge:incubator",
+    "bioforge:live_culture_vial"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.cultivation.title"
+  },
   "content": [
     {
       "component": {
-        "text": "Charge a Catalyst Vial with a pathogen reagent and combine it with Nutrient Medium in the Incubator.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.cultivation.content.1"
       },
       "line_breaks": 2
     },
     {
       "component": {
-        "text": "Virus Samples seed Live Culture Vials. Cultures preserve the exact strain but hide most internal information until examined.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.cultivation.content.2"
       },
       "line_breaks": 2
     },
     {
       "component": {
-        "text": "Catalyst materials influence which pathogen family can grow. Universal cultures remain rare and dangerous. Clone only labelled samples and keep culture vessels away from contaminated surfaces.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.cultivation.content.3"
       },
       "line_breaks": 2
     },
     {
-      "component": { "text": "[Return to contents]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.cultivation.content.4"
+      },
       "link": "bioforge:contents",
       "line_breaks": 0
     }

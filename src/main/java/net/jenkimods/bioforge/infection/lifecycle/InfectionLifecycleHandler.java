@@ -6,7 +6,6 @@ import net.jenkimods.bioforge.infection.InfectionCapability;
 import net.jenkimods.bioforge.infection.InfectionData;
 import net.jenkimods.bioforge.infection.InfectionEventHandler;
 import net.jenkimods.bioforge.infection.InfectionStore;
-import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.mutation.MutationLoader;
 import net.jenkimods.bioforge.mutation.MutationManager;
 import net.minecraft.server.level.ServerLevel;
@@ -68,7 +67,6 @@ public final class InfectionLifecycleHandler {
 
         if (!wasActive && !data.isIncubating()) {
             MutationManager.activateIncubatedMutations(data, entity);
-            StrainNamingManager.discover(entity, data);
             sync(entity, data);
         }
 

@@ -1,32 +1,58 @@
 {
   "order": 100,
-  "unlock_items": ["bioforge:clipboard", "bioforge:thermometer", "bioforge:stethoscope", "bioforge:otoscope", "bioforge:pulse_oximeter", "bioforge:reflex_hammer"],
-  "recipes": ["bioforge:clipboard", "bioforge:thermometer", "bioforge:stethoscope", "bioforge:otoscope", "bioforge:mirror", "bioforge:pulse_oximeter", "bioforge:reflex_hammer", "bioforge:microscope", "bioforge:pathogen_reagent", "bioforge:visibility_reagent"],
-  "title": { "text": "1. DIAGNOSTICS", "color": "dark_aqua", "bold": true },
+  "unlock_items": [
+    "bioforge:clipboard",
+    "bioforge:thermometer",
+    "bioforge:stethoscope",
+    "bioforge:otoscope",
+    "bioforge:pulse_oximeter",
+    "bioforge:reflex_hammer"
+  ],
+  "recipes": [
+    "bioforge:clipboard",
+    "bioforge:thermometer",
+    "bioforge:stethoscope",
+    "bioforge:otoscope",
+    "bioforge:mirror",
+    "bioforge:pulse_oximeter",
+    "bioforge:reflex_hammer",
+    "bioforge:microscope",
+    "bioforge:pathogen_reagent",
+    "bioforge:visibility_reagent"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.diagnostics.title"
+  },
   "content": [
     {
       "component": {
-        "text": "Assign a patient with the Clipboard. Use the Thermometer, Stethoscope, Otoscope, Reflex Hammer and Pulse Oximeter.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.diagnostics.content.1"
       },
       "line_breaks": 2
     },
     {
       "component": {
-        "text": "Print a Medical Report only after collecting useful findings. Reports are bound to the exact infection and improve vaccine research.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.diagnostics.content.2"
       },
       "line_breaks": 2
     },
     {
       "component": {
-        "text": "Temperature, lung sounds, oxygen saturation, perfusion, reflexes and tissue findings each expose a different part of the disease. A single normal reading does not prove that the patient is healthy.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.diagnostics.content.3"
       },
       "line_breaks": 2
     },
     {
-      "component": { "text": "[Return to contents]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.diagnostics.content.4"
+      },
       "link": "bioforge:contents",
       "line_breaks": 0
     }

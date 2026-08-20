@@ -106,6 +106,7 @@ public final class ResearchJournalRegistry {
             ServerPlayer player, Set<ResourceLocation> unlockedPages,
             Set<ResourceLocation> lockedPages) {
         List<ResearchJournalPageView> result = new ArrayList<>();
+        boolean unlockRecipeAssigned = false;
         for (ResearchJournalPageDefinition definition : pages) {
             boolean unlocked = !lockedPages.contains(definition.id())
                     && (definition.unlockRequirements().isEmpty()
@@ -124,12 +125,24 @@ public final class ResearchJournalRegistry {
                 body.append(Component.translatable("gui.bioforge.research_journal.locked_body")
                         .withStyle(ChatFormatting.GRAY));
             }
+            List<ResearchJournalRecipeView> recipeViews = List.of();
+            if (player != null) {
+                if (unlocked) {
+                    recipeViews = net.jenkimods.bioforge.item.guide
+                            .ResearchJournalRecipeResolver.resolve(
+                                    player, definition.recipes());
+                } else if (!unlockRecipeAssigned
+                        && !definition.unlockRequirements().isEmpty()) {
+                    recipeViews = net.jenkimods.bioforge.item.guide
+                            .ResearchJournalRecipeResolver.resolveUnlocks(
+                                    player, definition.unlockRequirements());
+                    unlockRecipeAssigned = !recipeViews.isEmpty();
+                }
+            }
             result.add(new ResearchJournalPageView(definition.id(),
                     unlocked ? definition.title().copy()
                             : Component.translatable("gui.bioforge.research_journal.locked_title"),
-                    body, unlocked, unlocked && player != null
-                    ? net.jenkimods.bioforge.item.guide.ResearchJournalRecipeResolver.resolve(
-                            player, definition.recipes()) : List.of()));
+                    body, unlocked, recipeViews));
         }
         return List.copyOf(result);
     }

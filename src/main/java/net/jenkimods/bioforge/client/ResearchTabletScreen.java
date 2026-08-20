@@ -151,7 +151,7 @@ public final class ResearchTabletScreen extends Screen {
         graphics.drawString(font, trim(page.title(), contentWidth), contentLeft,
                 contentTop, page.unlocked() ? CYAN : DISABLED_CYAN, false);
         List<FormattedCharSequence> lines = formattedLines(page.body(), contentWidth);
-        int recipeArea = page.unlocked() && !page.recipes().isEmpty()
+        int recipeArea = !page.recipes().isEmpty()
                 ? RECIPE_AREA_HEIGHT : 0;
         int visibleLines = Math.max(1,
                 (TABLET_HEIGHT - HEADER_HEIGHT - 42 - recipeArea) / 11);
@@ -184,7 +184,7 @@ public final class ResearchTabletScreen extends Screen {
         recipeTooltipStack = ItemStack.EMPTY;
         if (pages.isEmpty() || minecraft == null || minecraft.level == null) return;
         ResearchJournalPageView page = pages.get(Mth.clamp(selectedPage, 0, pages.size() - 1));
-        if (!page.unlocked() || page.recipes().isEmpty()) return;
+        if (page.recipes().isEmpty()) return;
 
         List<ResearchJournalRecipeView> recipes = page.recipes();
         if (recipes.isEmpty()) return;
@@ -195,8 +195,9 @@ public final class ResearchTabletScreen extends Screen {
                 top + TABLET_HEIGHT - 14, BORDER);
         graphics.fill(x - 4, y - 4, left + TABLET_WIDTH - 15,
                 top + TABLET_HEIGHT - 15, PANEL);
-        graphics.drawString(font, Component.translatable(
-                "gui.bioforge.research_journal.recipes"), x, y, CYAN, false);
+        graphics.drawString(font, Component.translatable(page.unlocked()
+                ? "gui.bioforge.research_journal.recipes"
+                : "gui.bioforge.research_journal.unlock_recipe"), x, y, CYAN, false);
         recipeMaxScroll = Math.max(0, recipes.size() - 1);
         recipeScroll = Mth.clamp(recipeScroll, 0, recipeMaxScroll);
         ResearchJournalRecipeView recipe = recipes.get(recipeScroll);

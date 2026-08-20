@@ -8,7 +8,6 @@ import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.jenkimods.bioforge.infection.*;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
-import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.mutation.MutationDefinition;
 import net.jenkimods.bioforge.mutation.MutationLoader;
 import net.jenkimods.bioforge.mutation.MutationManager;
@@ -188,8 +187,6 @@ public class InfectCommand {
                         MutationManager.applyMutation(data, entity, id);
                     }
                 }
-                StrainNamingManager.discover(entity, data);
-
                 if (persistent && entity instanceof ServerPlayer player) {
                     Map<String, Object> symptomMap = new LinkedHashMap<>();
                     for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {
@@ -260,8 +257,6 @@ public class InfectCommand {
                         MutationManager.applyMutation(data, entity, id);
                     }
                 }
-                StrainNamingManager.discover(entity, data);
-
                 if (persistent && entity instanceof ServerPlayer player) {
                     Map<String, Object> symptomMap = new LinkedHashMap<>();
                     for (Map.Entry<String, SymptomKey<?>> e : BioForgeSymptoms.getEnabledSymptomKeys().entrySet()) {

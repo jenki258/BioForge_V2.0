@@ -12,10 +12,7 @@
       "tag": "bioforge:ingredients/minecraft/water_bucket"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/glass_bottle"
-    },
-    {
-      "tag": "bioforge:ingredients/minecraft/glass_bottle"
+      "tag": "bioforge:ingredients/minecraft/blaze_powder"
     }
   ],
   "result": {

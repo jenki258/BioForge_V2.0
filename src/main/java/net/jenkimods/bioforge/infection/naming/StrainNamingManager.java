@@ -1,14 +1,10 @@
 package net.jenkimods.bioforge.infection.naming;
 
 import net.jenkimods.bioforge.BioForge;
-import net.jenkimods.bioforge.infection.InfectionData;
-import net.jenkimods.bioforge.infection.StrainData;
-import net.jenkimods.bioforge.vaccine.StrainFingerprint;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -28,21 +24,16 @@ public final class StrainNamingManager {
 
     private StrainNamingManager() {}
 
-    public static void discover(LivingEntity target, InfectionData infection) {
-        if (!(target.level() instanceof ServerLevel level) || infection == null
-                || !infection.isInfected() || infection.getPathogenId() == null) return;
-        String fingerprint = StrainFingerprint.ofPayload(
-                StrainData.buildFrom(infection).toPayload());
-        ServerPlayer researcher = target instanceof ServerPlayer player ? player : null;
+    public static void discoverResearch(ServerPlayer researcher, String fingerprint) {
+        if (researcher == null || fingerprint == null || fingerprint.isBlank()) return;
+        ServerLevel level = researcher.serverLevel();
         StrainNameStore.Discovery discovery = StrainNameStore.get(level).discover(
-                fingerprint, researcher == null ? null : researcher.getUUID(),
-                researcher == null ? "" : researcher.getGameProfile().getName(),
-                level.getGameTime());
+                fingerprint, researcher.getUUID(),
+                researcher.getGameProfile().getName(), level.getGameTime());
         if (discovery.newlyDiscovered() || discovery.researcherAssigned()) {
             StrainNameNetworkHandler.syncAll(level.getServer());
         }
-        if (researcher != null && discovery.researcherAssigned()
-                && !discovery.entry().isNamed()) {
+        if (discovery.researcherAssigned() && !discovery.entry().isNamed()) {
             researcher.sendSystemMessage(Component.translatable(
                     "message.bioforge.strain.discovered", fingerprint)
                     .withStyle(ChatFormatting.AQUA));
@@ -66,8 +57,6 @@ public final class StrainNamingManager {
 
     public static NamingResult submitFirstName(ServerPlayer player, String fingerprint,
                                                 String input) {
-        String current = currentFingerprint(player);
-        if (current == null || !current.equals(fingerprint)) return NamingResult.LOCKED;
         String name = sanitizeName(input);
         if (name == null) return NamingResult.INVALID;
         StrainNameStore store = StrainNameStore.get(player.serverLevel());
@@ -94,24 +83,14 @@ public final class StrainNamingManager {
                 ? null : cleaned;
     }
 
-    private static String currentFingerprint(ServerPlayer player) {
-        InfectionData infection = net.jenkimods.bioforge.infection.InfectionCapability.get(player);
-        if (infection == null || !infection.isInfected() || infection.getPathogenId() == null) {
-            return null;
-        }
-        return StrainFingerprint.ofPayload(StrainData.buildFrom(infection).toPayload());
-    }
-
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             StrainNameNetworkHandler.sync(player);
-            String fingerprint = currentFingerprint(player);
-            if (fingerprint == null) return;
-            StrainNameStore.get(player.serverLevel()).find(fingerprint)
+            StrainNameStore.get(player.serverLevel()).entries().stream()
                     .filter(entry -> !entry.isNamed())
                     .filter(entry -> player.getUUID().equals(entry.researcherId()))
-                    .ifPresent(entry -> StrainNameNetworkHandler.prompt(
+                    .findFirst().ifPresent(entry -> StrainNameNetworkHandler.prompt(
                             player, entry.fingerprint()));
         }
     }

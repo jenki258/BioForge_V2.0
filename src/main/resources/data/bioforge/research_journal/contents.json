@@ -1,51 +1,81 @@
 {
   "order": 0,
-  "recipes": ["bioforge:research_journal"],
+  "recipes": [
+    "bioforge:research_journal"
+  ],
   "title": {
-    "text": "BIOFORGE\nRESEARCH JOURNAL",
     "color": "dark_aqua",
-    "bold": true
+    "bold": true,
+    "translate": "research.bioforge.page.contents.title"
   },
   "content": [
     {
       "component": {
-        "text": "A field guide to diagnosis, cultivation, CRISPR and containment.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.contents.content.1"
       },
       "line_breaks": 2
     },
     {
-      "component": { "text": "[Diagnostics]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.contents.content.2"
+      },
       "link": "bioforge:diagnostics",
       "line_breaks": 1
     },
     {
-      "component": { "text": "[Blood laboratory]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.contents.content.3"
+      },
       "link": "bioforge:blood_laboratory",
       "line_breaks": 1
     },
     {
-      "component": { "text": "[Cultivation]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.contents.content.4"
+      },
       "link": "bioforge:cultivation",
       "line_breaks": 1
     },
     {
-      "component": { "text": "[Microscopy]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.contents.content.5"
+      },
       "link": "bioforge:microscopy",
       "line_breaks": 1
     },
     {
-      "component": { "text": "[CRISPR & vaccines]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.contents.content.6"
+      },
       "link": "bioforge:crispr_and_vaccines",
       "line_breaks": 1
     },
     {
-      "component": { "text": "[Chemistry]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.contents.content.7"
+      },
       "link": "bioforge:chemistry",
       "line_breaks": 1
     },
     {
-      "component": { "text": "[Containment]", "color": "dark_aqua", "underlined": true },
+      "component": {
+        "color": "dark_aqua",
+        "underlined": true,
+        "translate": "research.bioforge.page.contents.content.8"
+      },
       "link": "bioforge:containment",
       "line_breaks": 0
     }

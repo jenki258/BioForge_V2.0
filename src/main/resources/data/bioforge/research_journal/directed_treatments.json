@@ -1,10 +1,37 @@
 {
-  "order": 530,
-  "unlock_items": ["bioforge:mutation_vaccine", "bioforge:transmission_vaccine", "bioforge:symptom_vaccine", "bioforge:symptom_tablet"],
-  "title": { "text": "DIRECTED TREATMENTS", "color": "dark_aqua", "bold": true },
+  "order": 540,
+  "unlock_items": [
+    "bioforge:mutation_vaccine",
+    "bioforge:transmission_vaccine",
+    "bioforge:symptom_vaccine",
+    "bioforge:symptom_tablet"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.directed_treatments.title"
+  },
   "content": [
-    { "component": { "text": "A Full-Strain Vaccine attempts to cure the matching infection and grants temporary immunity to that exact strain. It can fail against strong, dissimilar or vaccine-defended infections.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Mutation, Transmission and Symptom Vaccines target one imprinted parameter. Removing a parameter that exists suppresses it; applying the opposite instruction to a strain that lacks it may add or alter that parameter.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Symptom Tablets temporarily suppress the selected symptom and use a color based on that target. Resistance pills provide temporary strain resistance rather than permanent treatment. They buy time; they do not replace diagnosis and containment.", "color": "black" }, "line_breaks": 0 }
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.directed_treatments.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.directed_treatments.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.directed_treatments.content.3"
+      },
+      "line_breaks": 0
+    }
   ]
 }

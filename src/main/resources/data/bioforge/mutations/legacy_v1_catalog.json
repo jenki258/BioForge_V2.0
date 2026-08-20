@@ -55,7 +55,7 @@
     },
     {
       "id": "hay_allergy", "name": "Hay Allergy", "description": "Plant fibres provoke weakness and frequent visible sneezing", "pathogens": ["UNIVERSAL"], "rarity": "common", "weight": 45, "tags": ["legacy_v1", "detrimental", "respiratory"],
-      "effects": [{"type":"potion_effect","target":"minecraft:weakness","duration":90,"amplifier":0,"interval":80,"trigger":"continuous"},{"type":"spawn_particle","target":"minecraft:sneeze","count":4,"spread":0.22,"interval":100,"chance":0.35,"offset_y":1.4,"trigger":"continuous"},{"type":"play_sound","target":"bioforge:symptom.sneeze","sound_source":"players","volume":0.62,"pitch":1.0,"chance":0.35,"interval":100,"game_event":"minecraft:entity_shake","trigger":"continuous"}]
+      "effects": [{"type":"potion_effect","target":"minecraft:weakness","duration":90,"amplifier":0,"interval":80,"trigger":"continuous"},{"type":"spawn_particle","target":"minecraft:sneeze","count":4,"spread":0.18,"interval":110,"chance":0.30,"offset_y":1.4,"forward_offset":0.55,"forward_speed":0.08,"trigger":"continuous"},{"type":"play_sound","target":"bioforge:symptom.sneeze","sound_source":"players","volume":0.62,"pitch":1.0,"chance":0.30,"interval":110,"game_event":"minecraft:entity_shake","trigger":"continuous"}]
     },
     {
       "id": "hay_infusion", "name": "Hay Infusion", "description": "Fibrous biological reinforcement improves damage resistance", "pathogens": ["FUNGI", "PARASITE", "UNIVERSAL"], "rarity": "rare", "weight": 18, "tags": ["legacy_v1", "beneficial", "plant"],
@@ -142,7 +142,7 @@
     },
     {
       "id": "coughing", "name": "Coughing", "description": "Repeated coughing exhausts the host and visibly sheds respiratory material", "pathogens": ["VIRUS", "BACTERIA", "FUNGI", "UNIVERSAL"], "rarity": "common", "weight": 48, "tags": ["legacy_v1", "symptom", "respiratory", "suppressible:coughing"],
-      "effects": [{"type":"spawn_particle","target":"minecraft:cloud","count":5,"spread":0.25,"speed":0.02,"offset_y":1.45,"chance":0.35,"interval":60,"trigger":"continuous"},{"type":"exhaustion","target":"","value":0.15,"chance":0.35,"interval":60,"trigger":"continuous"},{"type":"play_sound","target":"bioforge:symptom.cough","sound_source":"players","volume":0.68,"pitch":1.0,"chance":0.35,"interval":60,"game_event":"minecraft:entity_shake","trigger":"continuous"}],
+      "effects": [{"type":"spawn_particle","target":"minecraft:cloud","count":5,"spread":0.20,"speed":0.02,"offset_y":1.45,"forward_offset":0.55,"forward_speed":0.07,"chance":0.32,"interval":70,"trigger":"continuous"},{"type":"exhaustion","target":"","value":0.15,"chance":0.32,"interval":70,"trigger":"continuous"},{"type":"play_sound","target":"bioforge:symptom.cough","sound_source":"players","volume":0.68,"pitch":1.0,"chance":0.32,"interval":70,"game_event":"minecraft:entity_shake","trigger":"continuous"}],
       "interactions": [{"id":"aerosol_cough","with":"respiratory_shedding","effects":[{"type":"spawn_particle","target":"minecraft:spore_blossom_air","count":9,"spread":0.5,"offset_y":1.3,"interval":50,"trigger":"continuous"}]}]
     },
     {
@@ -183,7 +183,7 @@
     },
     {
       "id": "sneezing", "name": "Sneezing", "description": "Intermittent sneezing produces visible respiratory shedding", "pathogens": ["VIRUS", "BACTERIA", "FUNGI", "UNIVERSAL"], "rarity": "common", "weight": 48, "tags": ["legacy_v1", "symptom", "respiratory"],
-      "effects": [{"type":"spawn_particle","target":"minecraft:sneeze","count":6,"spread":0.28,"speed":0.05,"offset_y":1.45,"chance":0.4,"interval":70,"trigger":"continuous"},{"type":"play_sound","target":"bioforge:symptom.sneeze","sound_source":"players","volume":0.68,"pitch":1.0,"chance":0.4,"interval":70,"game_event":"minecraft:entity_shake","trigger":"continuous"}]
+      "effects": [{"type":"spawn_particle","target":"minecraft:sneeze","count":6,"spread":0.22,"speed":0.05,"offset_y":1.45,"forward_offset":0.65,"forward_speed":0.10,"chance":0.34,"interval":80,"trigger":"continuous"},{"type":"play_sound","target":"bioforge:symptom.sneeze","sound_source":"players","volume":0.68,"pitch":1.0,"chance":0.34,"interval":80,"game_event":"minecraft:entity_shake","trigger":"continuous"}]
     },
     {
       "id": "weakness", "name": "Weakness", "description": "Systemic damage reduces physical power", "pathogens": ["UNIVERSAL"], "rarity": "common", "weight": 46, "tags": ["legacy_v1", "symptom", "physical"],

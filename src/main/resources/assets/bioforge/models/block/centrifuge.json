@@ -1,7 +1,7 @@
 {
   "credit": "Made with Blockbench",
   "texture_size": [32, 32],
-  "render_type": "minecraft:translucent",
+  "render_type": "minecraft:cutout",
   "textures": {
     "2": "bioforge:block/centrifuge",
     "particle": "bioforge:block/centrifuge"

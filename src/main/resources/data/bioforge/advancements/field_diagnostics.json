@@ -8,7 +8,7 @@
   },
   "criteria": {
     "thermometer": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [{ "items": ["bioforge:thermometer"] }] } },
-    "stethoscope": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [{ "items": ["bioforge:stethoscope"] }] } },
-    "clipboard": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [{ "items": ["bioforge:clipboard"] }] } }
+    "otoscope": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [{ "items": ["bioforge:otoscope"] }] } },
+    "reflex_hammer": { "trigger": "minecraft:inventory_changed", "conditions": { "items": [{ "items": ["bioforge:reflex_hammer"] }] } }
   }
 }

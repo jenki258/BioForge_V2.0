@@ -5,7 +5,6 @@ import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.jenkimods.bioforge.definition.BioForgeDefinitionManager;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
-import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.mutation.MutationManager;
 import net.jenkimods.bioforge.vaccine.StrainImmunityManager;
 import net.jenkimods.bioforge.vaccine.VaccineManager;
@@ -13,6 +12,7 @@ import net.jenkimods.bioforge.mutation.MutationDefinition;
 import net.jenkimods.bioforge.infection.lifecycle.InfectionLifecycleState;
 import net.jenkimods.bioforge.infection.lifecycle.InfectionLifecycleRegistry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.*;
@@ -362,8 +362,10 @@ public class StrainData {
             if (BioForgeServerConfig.isMutationEnabled(id)) data.getSymptoms().addMutation(id);
         }
         if (data.isInfectionActive()) {
-            StrainNamingManager.discover(target, data);
             MutationManager.refreshContinuousEffects(data, target);
+        }
+        if (target instanceof ServerPlayer player) {
+            InfectionStore.get(player.serverLevel()).clearInfection(player.getUUID());
         }
         VaccineManager.persistAndSync(target, data);
         return true;

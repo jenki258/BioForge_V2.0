@@ -1,12 +1,50 @@
 {
   "order": 680,
-  "unlock_items": ["bioforge:area_contamination_scanner", "bioforge:decontamination_flask", "bioforge:sterilizing_solution", "bioforge:wipes", "bioforge:air_vent"],
-  "recipes": ["bioforge:area_contamination_scanner", "bioforge:decontamination_flask", "bioforge:air_vent"],
-  "title": { "text": "ENVIRONMENTAL CONTROL", "color": "dark_aqua", "bold": true },
+  "unlock_items": [
+    "bioforge:area_contamination_scanner",
+    "bioforge:decontamination_flask",
+    "bioforge:sterilizing_solution",
+    "bioforge:wipes",
+    "bioforge:air_vent"
+  ],
+  "recipes": [
+    "bioforge:area_contamination_scanner",
+    "bioforge:decontamination_flask",
+    "bioforge:air_vent"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.environmental_control.title"
+  },
   "content": [
-    { "component": { "text": "The Area Contamination Scanner highlights dangerous blocks and estimates nearby surface and airborne reservoirs without exposing a hidden sequence.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Air contamination is room-aware and decays instead of remaining forever; an unattended reservoir normally fades over roughly half an hour. Surface contamination remains tied to blocks until time or cleaning removes it.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Wipes clean individual work. A thrown Decontamination Flask treats a local 5x5 region. Sterilization Chambers are safer for reusable items. Scan again after cleaning because interacting transmission routes can rebuild a reservoir.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "An Air Vent establishes a continuously decontaminated ten-block radius. It removes airborne surface traces every second, blocks new emission inside the protected zone, filters local airborne exposure, and leaves the rest of a large room unaffected.", "color": "black" }, "line_breaks": 0 }
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.environmental_control.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.environmental_control.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.environmental_control.content.3"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.environmental_control.content.4"
+      },
+      "line_breaks": 0
+    }
   ]
 }

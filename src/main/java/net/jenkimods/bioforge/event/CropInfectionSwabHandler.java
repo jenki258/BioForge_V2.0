@@ -5,6 +5,7 @@ import net.jenkimods.bioforge.BioForgeTags;
 import net.jenkimods.bioforge.infection.capability.CropInfectionCapability;
 import net.jenkimods.bioforge.item.infection.SwabItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -44,7 +45,8 @@ public class CropInfectionSwabHandler {
                 NbtObfuscator.writeString(held.getOrCreateTag(), infection.getStrainData());
                 player.setItemInHand(event.getHand(), held);
                 level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.8f, 1.2f);
-                player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected_infected_crop"));
+                player.sendSystemMessage(Component.translatable(
+                        "item.bioforge.swab.collected_infected_crop").withStyle(ChatFormatting.GREEN));
                 event.setCanceled(true);
             }
         });

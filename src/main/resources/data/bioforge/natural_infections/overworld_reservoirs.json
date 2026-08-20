@@ -11,7 +11,7 @@
       },
       "mutations": ["coughing"],
       "rare_mutations": [{"mutation": "porcine_receptor_shift", "chance": 0.08}],
-      "lifecycle_profile": "bioforge:fast_virus"
+      "lifecycle_profile": "bioforge:natural_fast"
     },
     {
       "id": "bioforge:bovine_enteric_strain",
@@ -23,7 +23,7 @@
         "perfusion_index": "0.72"
       },
       "rare_mutations": [{"mutation": "bovine_serum_stability", "chance": 0.07}],
-      "lifecycle_profile": "bioforge:default"
+      "lifecycle_profile": "bioforge:natural_standard"
     },
     {
       "id": "bioforge:avian_surface_strain",
@@ -35,27 +35,27 @@
         "otoscope_secretion": "0.55"
       },
       "rare_mutations": [{"mutation": "avian_egg_tropism", "chance": 0.1}],
-      "lifecycle_profile": "bioforge:default"
+      "lifecycle_profile": "bioforge:natural_standard"
     }
   ],
   "rules": [
     {
       "id": "bioforge:pig_reservoir",
       "entities": ["minecraft:pig", "minecraft:hoglin"],
-      "chance": 0.07,
-      "strains": [{"strain": "bioforge:porcine_respiratory_strain", "weight": 1}]
+      "chance": 0.05,
+      "strains": [{"strain": "bioforge:porcine_respiratory_strain", "weight": 100}]
     },
     {
       "id": "bioforge:cattle_reservoir",
       "entities": ["minecraft:cow", "minecraft:mooshroom"],
-      "chance": 0.06,
-      "strains": [{"strain": "bioforge:bovine_enteric_strain", "weight": 1}]
+      "chance": 0.04,
+      "strains": [{"strain": "bioforge:bovine_enteric_strain", "weight": 100}]
     },
     {
       "id": "bioforge:bird_reservoir",
       "entities": ["minecraft:chicken", "minecraft:parrot"],
-      "chance": 0.09,
-      "strains": [{"strain": "bioforge:avian_surface_strain", "weight": 1}]
+      "chance": 0.06,
+      "strains": [{"strain": "bioforge:avian_surface_strain", "weight": 100}]
     }
   ]
 }

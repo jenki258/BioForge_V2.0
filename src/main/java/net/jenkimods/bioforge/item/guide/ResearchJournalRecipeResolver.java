@@ -2,6 +2,7 @@ package net.jenkimods.bioforge.item.guide;
 
 import net.jenkimods.bioforge.api.guide.ResearchJournalRecipeReference;
 import net.jenkimods.bioforge.api.guide.ResearchJournalRecipeView;
+import net.jenkimods.bioforge.api.guide.ResearchJournalPageDefinition;
 import net.jenkimods.bioforge.crispr.BioForgeResearchData;
 import net.jenkimods.bioforge.world.laboratory.LaboratoryProcessRecipe;
 import net.jenkimods.bioforge.world.laboratory.LaboratoryProcessRecipeManager;
@@ -11,7 +12,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.BlastingRecipe;
+import net.minecraft.world.item.crafting.CampfireCookingRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
+import net.minecraft.world.item.crafting.SmokingRecipe;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -20,6 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class ResearchJournalRecipeResolver {
+    private static final int MAX_UNLOCK_RECIPES = 3;
+
     private ResearchJournalRecipeResolver() {}
 
     public static List<ResearchJournalRecipeView> resolve(
@@ -28,6 +36,43 @@ public final class ResearchJournalRecipeResolver {
         for (ResearchJournalRecipeReference reference : references) {
             resolve(player, reference).ifPresent(view -> resolved.putIfAbsent(
                     reference.type().serializedName() + '|' + reference.id(), view));
+        }
+        return List.copyOf(resolved.values());
+    }
+
+    public static List<ResearchJournalRecipeView> resolveUnlocks(
+            ServerPlayer player,
+            List<ResearchJournalPageDefinition.UnlockRequirement> requirements) {
+        Map<String, ResearchJournalRecipeView> resolved = new LinkedHashMap<>();
+        for (Recipe<?> recipe : player.serverLevel().getRecipeManager().getRecipes()) {
+            ItemStack output = recipe.getResultItem(
+                    player.serverLevel().registryAccess());
+            if (matchesAny(List.of(output), requirements)) {
+                resolved.putIfAbsent("crafting|" + recipe.getId(),
+                        vanilla(player, recipe));
+                if (resolved.size() >= MAX_UNLOCK_RECIPES) {
+                    return List.copyOf(resolved.values());
+                }
+            }
+        }
+        for (LaboratoryProcessRecipe recipe
+                : LaboratoryProcessRecipeManager.INSTANCE.recipes()) {
+            if (matchesAny(List.of(recipe.result(), recipe.waste()), requirements)) {
+                resolved.putIfAbsent("laboratory|" + recipe.id(),
+                        laboratory(recipe));
+                if (resolved.size() >= MAX_UNLOCK_RECIPES) {
+                    return List.copyOf(resolved.values());
+                }
+            }
+        }
+        for (VaccineMakerRecipe recipe : BioForgeResearchData.recipes()) {
+            ResearchJournalRecipeView view = vaccineMaker(recipe);
+            if (matchesAny(view.results(), requirements)) {
+                resolved.putIfAbsent("vaccine_maker|" + recipe.id(), view);
+                if (resolved.size() >= MAX_UNLOCK_RECIPES) {
+                    return List.copyOf(resolved.values());
+                }
+            }
         }
         return List.copyOf(resolved.values());
     }
@@ -47,16 +92,26 @@ public final class ResearchJournalRecipeResolver {
     }
 
     private static ResearchJournalRecipeView vanilla(ServerPlayer player, Recipe<?> recipe) {
-        int width = recipe instanceof ShapedRecipe shaped
+        boolean cooking = recipe instanceof AbstractCookingRecipe;
+        int width = cooking ? 1 : recipe instanceof ShapedRecipe shaped
                 ? Math.max(1, shaped.getWidth()) : 3;
-        int height = recipe instanceof ShapedRecipe shaped
+        int height = cooking ? 1 : recipe instanceof ShapedRecipe shaped
                 ? Math.max(1, shaped.getHeight())
                 : Math.max(1, (recipe.getIngredients().size() + 2) / 3);
         ItemStack result = recipe.getResultItem(
                 player.serverLevel().registryAccess()).copy();
-        return new ResearchJournalRecipeView(recipe.getId(), Component.translatable(
-                "gui.bioforge.research_journal.station.crafting"), width, height,
+        return new ResearchJournalRecipeView(recipe.getId(), cookingStation(recipe), width, height,
                 choices(recipe.getIngredients()), List.of(result));
+    }
+
+    private static Component cookingStation(Recipe<?> recipe) {
+        String key = recipe instanceof BlastingRecipe ? "blasting"
+                : recipe instanceof SmeltingRecipe ? "smelting"
+                : recipe instanceof SmokingRecipe ? "smoking"
+                : recipe instanceof CampfireCookingRecipe ? "campfire"
+                : "crafting";
+        return Component.translatable(
+                "gui.bioforge.research_journal.station." + key);
     }
 
     private static ResearchJournalRecipeView laboratory(LaboratoryProcessRecipe recipe) {
@@ -108,5 +163,17 @@ public final class ResearchJournalRecipeResolver {
             result.add(List.copyOf(alternatives));
         }
         return List.copyOf(result);
+    }
+
+    private static boolean matchesAny(
+            List<ItemStack> results,
+            List<ResearchJournalPageDefinition.UnlockRequirement> requirements) {
+        for (ItemStack result : results) {
+            for (ResearchJournalPageDefinition.UnlockRequirement requirement
+                    : requirements) {
+                if (requirement.test(result)) return true;
+            }
+        }
+        return false;
     }
 }

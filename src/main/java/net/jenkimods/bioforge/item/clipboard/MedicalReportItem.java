@@ -207,7 +207,7 @@ public class MedicalReportItem extends Item {
         return "None";
     }
 
-    private static boolean hasCompleteRecord(CompoundTag tag) {
+    public static boolean hasCompleteRecord(CompoundTag tag) {
         return tag.contains("TemperatureC")
                 && tag.contains("HeartRate")
                 && tag.contains("OxygenSaturation")

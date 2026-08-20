@@ -16,21 +16,40 @@
         {"mutation": "climbing", "chance": 0.035},
         {"mutation": "strong_skin", "chance": 0.025}
       ],
-      "lifecycle_profile": "bioforge:fast_virus"
+      "lifecycle_profile": "bioforge:natural_fast"
     }
   ],
   "rules": [
     {
       "id": "bioforge:zombie_virus_reservoir",
-      "entities": [
-        "minecraft:zombie",
-        "minecraft:husk",
-        "minecraft:drowned",
-        "minecraft:zombie_villager"
-      ],
-      "chance": 1.0,
+      "entities": ["minecraft:zombie"],
+      "chance": 0.22,
       "strains": [
-        {"strain": "bioforge:zombie_necrotic_virus", "weight": 1}
+        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
+      ]
+    },
+    {
+      "id": "bioforge:husk_virus_reservoir",
+      "entities": ["minecraft:husk"],
+      "chance": 0.16,
+      "strains": [
+        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
+      ]
+    },
+    {
+      "id": "bioforge:drowned_virus_reservoir",
+      "entities": ["minecraft:drowned"],
+      "chance": 0.14,
+      "strains": [
+        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
+      ]
+    },
+    {
+      "id": "bioforge:zombie_villager_virus_reservoir",
+      "entities": ["minecraft:zombie_villager"],
+      "chance": 0.10,
+      "strains": [
+        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
       ]
     }
   ]

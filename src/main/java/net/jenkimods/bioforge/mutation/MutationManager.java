@@ -13,7 +13,6 @@ import net.jenkimods.bioforge.infection.InfectionInvulnerability;
 import net.jenkimods.bioforge.infection.InfectionStore;
 import net.jenkimods.bioforge.infection.InfectionType;
 import net.jenkimods.bioforge.infection.PathogenType;
-import net.jenkimods.bioforge.infection.naming.StrainNamingManager;
 import net.jenkimods.bioforge.infection.spread.ProtectiveEquipment;
 import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.infection.symptoms.SymptomKey;
@@ -30,7 +29,6 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -116,7 +114,6 @@ public final class MutationManager {
         }
         reconcileInteractions(before, data, entity, true, false);
         mutationDataChanged(data, entity);
-        StrainNamingManager.discover(entity, data);
         return ApplyResult.APPLIED;
     }
 
@@ -713,9 +710,30 @@ public final class MutationManager {
                         double spreadZ = Math.max(0.0, effect.doubleValue("spread_z", spread));
                         double speed = Math.max(0.0, effect.doubleValue("speed", 0.1));
                         double offsetY = effect.doubleValue("offset_y", 0.5);
-                        serverLevel.sendParticles(particleOptions,
-                                entity.getX(), entity.getY() + offsetY, entity.getZ(),
-                                count, spreadX, spreadY, spreadZ, speed);
+                        double forwardOffset = effect.doubleValue("forward_offset", 0.0);
+                        double forwardSpeed = Math.max(0.0,
+                                effect.doubleValue("forward_speed", 0.0));
+                        net.minecraft.world.phys.Vec3 look = entity.getLookAngle();
+                        double originX = entity.getX() + look.x * forwardOffset;
+                        double originY = entity.getY() + offsetY + look.y * forwardOffset;
+                        double originZ = entity.getZ() + look.z * forwardOffset;
+                        if (forwardSpeed > 0.0 && count > 0) {
+                            for (int particleIndex = 0; particleIndex < count; particleIndex++) {
+                                double particleX = originX
+                                        + (entity.getRandom().nextDouble() - 0.5) * spreadX * 2.0;
+                                double particleY = originY
+                                        + (entity.getRandom().nextDouble() - 0.5) * spreadY * 2.0;
+                                double particleZ = originZ
+                                        + (entity.getRandom().nextDouble() - 0.5) * spreadZ * 2.0;
+                                serverLevel.sendParticles(particleOptions,
+                                        particleX, particleY, particleZ, 0,
+                                        look.x, look.y, look.z, forwardSpeed);
+                            }
+                        } else {
+                            serverLevel.sendParticles(particleOptions,
+                                    originX, originY, originZ,
+                                    count, spreadX, spreadY, spreadZ, speed);
+                        }
                     }
                 }
             }
@@ -777,7 +795,8 @@ public final class MutationManager {
                                                 @Nullable ResourceLocation soundId) {
         if (!isMuffledSymptomSound(soundId)) return 1.0F;
         if (ProtectiveEquipment.hasFullHazcureSuit(entity)) return 0.12F;
-        return entity.getItemBySlot(EquipmentSlot.HEAD).is(BioForge.MEDICAL_MASK.get())
+        return ProtectiveEquipment.hasEquipped(
+                entity, net.jenkimods.bioforge.BioForgeTags.REDUCES_INCOMING_AIRBORNE)
                 ? 0.35F : 1.0F;
     }
 
@@ -785,7 +804,8 @@ public final class MutationManager {
             LivingEntity entity, @Nullable ResourceLocation soundId) {
         if (!isMuffledSymptomSound(soundId)) return true;
         if (ProtectiveEquipment.hasFullHazcureSuit(entity)) return false;
-        return !entity.getItemBySlot(EquipmentSlot.HEAD).is(BioForge.MEDICAL_MASK.get())
+        return !ProtectiveEquipment.hasEquipped(
+                entity, net.jenkimods.bioforge.BioForgeTags.REDUCES_INCOMING_AIRBORNE)
                 || entity.getRandom().nextFloat() < 0.25F;
     }
 

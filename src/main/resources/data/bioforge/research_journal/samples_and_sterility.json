@@ -1,19 +1,29 @@
 {
   "order": 250,
-  "unlock_items": ["bioforge:swab", "bioforge:petri_dish", "bioforge:blood_slide", "bioforge:live_culture_vial", "bioforge:wipes"],
-  "title": { "text": "SAMPLES & STERILITY", "color": "dark_aqua", "bold": true },
+  "unlock_items": [
+    "bioforge:swab",
+    "bioforge:petri_dish",
+    "bioforge:blood_slide",
+    "bioforge:live_culture_vial",
+    "bioforge:wipes"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.samples_and_sterility.title"
+  },
   "content": [
     {
       "component": {
-        "text": "Samples preserve more than an item name. Blood identity, infection fingerprint, donor information and culture state follow supported transfers between tools and machines.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.samples_and_sterility.content.1"
       },
       "line_breaks": 2
     },
     {
       "component": {
-        "text": "Use compatible empty containers and avoid mixing unrelated samples. Sterilizing equipment removes contamination; it does not magically repair incorrect labels or replace missing clinical evidence.",
-        "color": "black"
+        "color": "black",
+        "translate": "research.bioforge.page.samples_and_sterility.content.2"
       },
       "line_breaks": 0
     }

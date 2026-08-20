@@ -40,6 +40,7 @@ public final class BioForgeServerConfig {
     private static final ForgeConfigSpec.IntValue AIR_ROOM_MAX_RADIUS;
     private static final ForgeConfigSpec.IntValue AIR_ROOM_CACHE_TICKS;
     private static final ForgeConfigSpec.IntValue AIRBORNE_WORK_BUDGET;
+    private static final ForgeConfigSpec.DoubleValue TRANSMISSION_CHANCE_MULTIPLIER;
     private static final ForgeConfigSpec.DoubleValue AIR_EXPOSURE_CHANCE;
     private static final ForgeConfigSpec.DoubleValue OUTDOOR_AIR_MULTIPLIER;
     private static final ForgeConfigSpec.DoubleValue MEDICAL_MASK_INCOMING_AIR_MULTIPLIER;
@@ -162,6 +163,10 @@ public final class BioForgeServerConfig {
         AIRBORNE_WORK_BUDGET = builder.comment(
                         "Maximum airborne reservoirs processed per world each second.")
                 .defineInRange("airborneWorkBudget", 128, 1, 4096);
+        TRANSMISSION_CHANCE_MULTIPLIER = builder.comment(
+                        "Global multiplier for automatic infection chances across every transmission route.",
+                        "The default 0.85 makes incidental spread 15% less frequent without changing strain data.")
+                .defineInRange("globalTransmissionChanceMultiplier", 0.85, 0.0, 10.0);
         AIR_EXPOSURE_CHANCE = probability(builder, "airExposureChancePerSecond", 0.12,
                 "Base infection chance per second at full indoor airborne concentration.");
         OUTDOOR_AIR_MULTIPLIER = probability(builder, "outdoorAirMultiplier", 0.15,
@@ -289,7 +294,12 @@ public final class BioForgeServerConfig {
     public static int airRoomMaxRadius() { return AIR_ROOM_MAX_RADIUS.get(); }
     public static int airRoomCacheTicks() { return AIR_ROOM_CACHE_TICKS.get(); }
     public static int airborneWorkBudget() { return AIRBORNE_WORK_BUDGET.get(); }
-    public static float airExposureChance() { return AIR_EXPOSURE_CHANCE.get().floatValue(); }
+    public static float transmissionChanceMultiplier() {
+        return TRANSMISSION_CHANCE_MULTIPLIER.get().floatValue();
+    }
+    public static float airExposureChance() {
+        return AIR_EXPOSURE_CHANCE.get().floatValue() * transmissionChanceMultiplier();
+    }
     public static float outdoorAirMultiplier() { return OUTDOOR_AIR_MULTIPLIER.get().floatValue(); }
     public static float medicalMaskIncomingAirMultiplier() { return MEDICAL_MASK_INCOMING_AIR_MULTIPLIER.get().floatValue(); }
     public static float hazcureIncomingAirMultiplier() { return HAZCURE_INCOMING_AIR_MULTIPLIER.get().floatValue(); }
@@ -297,12 +307,24 @@ public final class BioForgeServerConfig {
     public static int airborneReservoirLifetimeTicks() { return AIRBORNE_RESERVOIR_LIFETIME_TICKS.get(); }
     public static int surfaceLifetimeTicks() { return SURFACE_LIFETIME_TICKS.get(); }
     public static int surfaceCleanupBudget() { return SURFACE_CLEANUP_BUDGET.get(); }
-    public static float surfaceExposureChance() { return SURFACE_EXPOSURE_CHANCE.get().floatValue(); }
-    public static float surfaceDepositChance() { return SURFACE_DEPOSIT_CHANCE.get().floatValue(); }
-    public static float attackExposureChance() { return ATTACK_EXPOSURE_CHANCE.get().floatValue(); }
-    public static float foodExposureChance() { return FOOD_EXPOSURE_CHANCE.get().floatValue(); }
-    public static float waterExposureChance() { return WATER_EXPOSURE_CHANCE.get().floatValue(); }
-    public static float bloodExposureChance() { return BLOOD_EXPOSURE_CHANCE.get().floatValue(); }
+    public static float surfaceExposureChance() {
+        return SURFACE_EXPOSURE_CHANCE.get().floatValue() * transmissionChanceMultiplier();
+    }
+    public static float surfaceDepositChance() {
+        return SURFACE_DEPOSIT_CHANCE.get().floatValue() * transmissionChanceMultiplier();
+    }
+    public static float attackExposureChance() {
+        return ATTACK_EXPOSURE_CHANCE.get().floatValue() * transmissionChanceMultiplier();
+    }
+    public static float foodExposureChance() {
+        return FOOD_EXPOSURE_CHANCE.get().floatValue() * transmissionChanceMultiplier();
+    }
+    public static float waterExposureChance() {
+        return WATER_EXPOSURE_CHANCE.get().floatValue() * transmissionChanceMultiplier();
+    }
+    public static float bloodExposureChance() {
+        return BLOOD_EXPOSURE_CHANCE.get().floatValue() * transmissionChanceMultiplier();
+    }
     public static int decontaminationRadius() { return DECONTAMINATION_RADIUS.get(); }
 
     private static String normalizeId(String id) {

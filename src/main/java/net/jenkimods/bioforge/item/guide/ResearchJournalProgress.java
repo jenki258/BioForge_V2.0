@@ -27,6 +27,8 @@ public final class ResearchJournalProgress {
     private static final String ACTIVE_KEY = "Active";
     private static final String UNLOCKED_KEY = "UnlockedPages";
     private static final String LOCKED_KEY = "LockedPages";
+    private static final String DATA_VERSION_KEY = "DataVersion";
+    private static final int CURRENT_DATA_VERSION = 2;
 
     private ResearchJournalProgress() {}
 
@@ -59,6 +61,7 @@ public final class ResearchJournalProgress {
 
     public static void activate(ServerPlayer player, boolean notifyUnlocks) {
         CompoundTag data = journalData(player, true);
+        migrateData(data);
         boolean wasActive = data.getBoolean(ACTIVE_KEY);
         data.putBoolean(ACTIVE_KEY, true);
         saveJournalData(player, data);
@@ -78,6 +81,7 @@ public final class ResearchJournalProgress {
         CompoundTag data = journalData(player, false);
         Set<ResourceLocation> result = new LinkedHashSet<>();
         if (data == null) return result;
+        if (migrateData(data)) saveJournalData(player, data);
         ListTag list = data.getList(key, Tag.TAG_STRING);
         for (Tag entry : list) {
             ResourceLocation id = ResourceLocation.tryParse(entry.getAsString());
@@ -107,8 +111,8 @@ public final class ResearchJournalProgress {
         Set<ResourceLocation> locked = lockedPages(player);
         int changed = 0;
         for (ResourceLocation id : pageIds) {
-            boolean updated = locked.add(id);
-            updated |= unlocked.remove(id);
+            boolean updated = unlocked.remove(id);
+            updated |= locked.remove(id);
             if (updated) changed++;
         }
         writePages(player, UNLOCKED_KEY, unlocked);
@@ -177,7 +181,9 @@ public final class ResearchJournalProgress {
 
     private static boolean isActive(Player player) {
         CompoundTag data = journalData(player, false);
-        return data != null && data.getBoolean(ACTIVE_KEY);
+        if (data == null) return false;
+        if (migrateData(data)) saveJournalData(player, data);
+        return data.getBoolean(ACTIVE_KEY);
     }
 
     private static void writeUnlocked(Player player, Set<ResourceLocation> unlocked) {
@@ -209,5 +215,12 @@ public final class ResearchJournalProgress {
         CompoundTag persisted = root.getCompound(Player.PERSISTED_NBT_TAG);
         persisted.put(DATA_KEY, data);
         root.put(Player.PERSISTED_NBT_TAG, persisted);
+    }
+
+    private static boolean migrateData(CompoundTag data) {
+        if (data.getInt(DATA_VERSION_KEY) >= CURRENT_DATA_VERSION) return false;
+        data.remove(LOCKED_KEY);
+        data.putInt(DATA_VERSION_KEY, CURRENT_DATA_VERSION);
+        return true;
     }
 }

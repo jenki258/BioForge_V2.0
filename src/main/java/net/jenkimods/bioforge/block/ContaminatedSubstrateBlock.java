@@ -5,6 +5,7 @@ import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.item.infection.ColonyCoreBlockEntity;
 import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -71,6 +72,7 @@ public class ContaminatedSubstrateBlock extends Block {
                 placer.sendSystemMessage(
                         Component.translatable("item.bioforge.contaminated_substrate.incompatible_pathogen",
                                 pathogen != null ? pathogen.name() : "unknown")
+                                .withStyle(ChatFormatting.RED)
                 );
             }
             return;

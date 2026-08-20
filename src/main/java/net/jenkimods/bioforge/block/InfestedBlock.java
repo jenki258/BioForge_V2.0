@@ -5,6 +5,7 @@ import net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms;
 import net.jenkimods.bioforge.item.infection.InfestedBlockEntity;
 import net.jenkimods.bioforge.item.infection.SwabItem;
 import net.jenkimods.bioforge.util.NbtObfuscator;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -96,7 +97,8 @@ public class InfestedBlock extends BaseEntityBlock {
                 NbtObfuscator.writeString(held.getOrCreateTag(), mat.getStrainData());
                 player.setItemInHand(hand, held);
                 level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.8f, 1.2f);
-                player.sendSystemMessage(Component.translatable("item.bioforge.swab.collected_mat"));
+                player.sendSystemMessage(Component.translatable(
+                        "item.bioforge.swab.collected_mat").withStyle(ChatFormatting.GREEN));
                 return InteractionResult.CONSUME;
             }
         }

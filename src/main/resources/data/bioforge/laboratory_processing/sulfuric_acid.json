@@ -1,9 +1,9 @@
 {
   "station": "chemical_synthesizer",
   "ingredients": [
-    { "tag": "bioforge:ingredients/minecraft/potion" },
+    { "type": "forge:nbt", "item": "minecraft:potion", "nbt": "{Potion:\"minecraft:water\"}" },
     { "tag": "bioforge:ingredients/minecraft/gunpowder" },
-    { "tag": "bioforge:ingredients/minecraft/blaze_powder" }
+    { "tag": "bioforge:ingredients/minecraft/gunpowder" }
   ],
   "output": "bioforge:sulfuric_acid",
   "count": 2,

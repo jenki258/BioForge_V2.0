@@ -1,15 +1,47 @@
 {
   "order": 580,
-  "unlock_items": ["bioforge:barrel_press", "bioforge:wine_must", "bioforge:ethanol"],
+  "unlock_items": [
+    "bioforge:barrel_press",
+    "bioforge:wine_must",
+    "bioforge:ethanol"
+  ],
   "recipes": [
     "bioforge:barrel_press",
-    { "type": "laboratory", "id": "bioforge:wine_must" },
-    { "type": "laboratory", "id": "bioforge:ethanol" }
+    {
+      "type": "laboratory",
+      "id": "bioforge:wine_must"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:ethanol"
+    }
   ],
-  "title": { "text": "PRESSING & ETHANOL", "color": "dark_aqua", "bold": true },
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.barrel_press.title"
+  },
   "content": [
-    { "component": { "text": "The Barrel Press accepts three compatible fruits and a glass bottle, then compresses them into two portions of Wine Must. Apples, sweet berries, glow berries and melon slices are suitable feedstock.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Wine Must is the biological feedstock for ethanol. Combine it with sugar and water in a Chemical Synthesizer to refine ethanol efficiently.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Sterilizing solution, surfactants, chemical-resistant coating, vaccine cloning and other ethanol-based processes now inherit this production step. JEI lists every valid fruit through the Barrel Press category.", "color": "black" }, "line_breaks": 0 }
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.barrel_press.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.barrel_press.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.barrel_press.content.3"
+      },
+      "line_breaks": 0
+    }
   ]
 }

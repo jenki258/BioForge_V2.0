@@ -37,7 +37,7 @@ import java.util.Set;
 @Mod.EventBusSubscriber(modid = BioForge.MODID)
 public final class NaturalInfectionManager extends SimpleJsonResourceReloadListener {
     private static final String CHECKED_TAG = "BioForgeNaturalInfectionChecked";
-    private static final int CHECK_VERSION = 2;
+    private static final int CHECK_VERSION = 3;
     public static final NaturalInfectionManager INSTANCE = new NaturalInfectionManager();
     private final Map<ResourceLocation, NaturalStrainDefinition> javaStrains = new LinkedHashMap<>();
     private final Map<ResourceLocation, NaturalInfectionRule> javaRules = new LinkedHashMap<>();

@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public final class StrainNameStore extends SavedData {
     private static final String DATA_NAME = "bioforge_strain_names";
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
     private final Map<String, Entry> entries = new LinkedHashMap<>();
 
     public record Entry(String fingerprint, String name, @Nullable UUID researcherId,
@@ -45,13 +45,20 @@ public final class StrainNameStore extends SavedData {
 
     private static StrainNameStore load(CompoundTag root) {
         StrainNameStore store = new StrainNameStore();
+        int version = root.getInt("Version");
         CompoundTag records = root.getCompound("Records");
         for (String fingerprint : records.getAllKeys()) {
             CompoundTag tag = records.getCompound(fingerprint);
             UUID researcher = tag.hasUUID("Researcher")
                     ? tag.getUUID("Researcher") : null;
-            Entry entry = new Entry(fingerprint, tag.getString("Name"), researcher,
-                    tag.getString("ResearcherName"), tag.getLong("DiscoveredAt"));
+            String name = tag.getString("Name");
+            String researcherName = tag.getString("ResearcherName");
+            if (version < VERSION && name.isBlank()) {
+                researcher = null;
+                researcherName = "";
+            }
+            Entry entry = new Entry(fingerprint, name, researcher,
+                    researcherName, tag.getLong("DiscoveredAt"));
             store.entries.put(fingerprint, entry);
         }
         return store;

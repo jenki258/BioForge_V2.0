@@ -1,6 +1,7 @@
 package net.jenkimods.bioforge.infection.spread;
 
 import net.jenkimods.bioforge.BioForgeTags;
+import net.jenkimods.bioforge.compat.CuriosCompat;
 import net.jenkimods.bioforge.config.BioForgeServerConfig;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
@@ -54,7 +55,7 @@ public final class ProtectiveEquipment {
         for (ItemStack stack : entity.getHandSlots()) {
             if (!stack.isEmpty() && stack.is(tag)) return true;
         }
-        return false;
+        return CuriosCompat.anyEquipped(entity, stack -> stack.is(tag));
     }
 
     public static boolean hasFullHazcureSuit(LivingEntity entity) {

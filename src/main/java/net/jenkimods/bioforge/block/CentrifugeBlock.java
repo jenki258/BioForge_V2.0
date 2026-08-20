@@ -33,6 +33,7 @@ public class CentrifugeBlock extends BaseEntityBlock implements EntityBlock {
         super(BlockBehaviour.Properties.of()
                 .strength(3.0F, 6.0F)
                 .sound(SoundType.METAL)
+                .noOcclusion()
                 .requiresCorrectToolForDrops());
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }

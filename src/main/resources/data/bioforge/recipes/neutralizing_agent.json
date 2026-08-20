@@ -12,7 +12,9 @@
       "tag": "bioforge:ingredients/bioforge/sterilizing_solution"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/potion"
+      "type": "forge:nbt",
+      "item": "minecraft:potion",
+      "nbt": "{Potion:\"minecraft:water\"}"
     }
   ],
   "result": {

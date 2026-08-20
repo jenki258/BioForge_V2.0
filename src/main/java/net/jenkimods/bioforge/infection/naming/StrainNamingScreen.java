@@ -22,6 +22,7 @@ public final class StrainNamingScreen extends Screen {
     };
     private final String fingerprint;
     private EditBox nameField;
+    private boolean submitted;
 
     public StrainNamingScreen(String fingerprint) {
         super(Component.translatable("gui.bioforge.strain_naming.title"));
@@ -45,26 +46,45 @@ public final class StrainNamingScreen extends Screen {
                 .bounds(center - 100, height / 2 + 28, 96, 20).build());
         addRenderableWidget(Button.builder(
                 Component.translatable("gui.bioforge.strain_naming.later"),
-                button -> onClose()).bounds(center + 4, height / 2 + 28, 96, 20).build());
+                button -> submitRandom()).bounds(center + 4, height / 2 + 28, 96, 20).build());
         setInitialFocus(nameField);
     }
 
     private void randomizeName() {
+        nameField.setValue(randomName());
+        setFocused(nameField);
+    }
+
+    private static String randomName() {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         String value = RANDOM_PREFIXES[random.nextInt(RANDOM_PREFIXES.length)] + " "
                 + RANDOM_SUFFIXES[random.nextInt(RANDOM_SUFFIXES.length)];
         if (random.nextInt(4) == 0) {
             value += "-" + random.nextInt(2, 100);
         }
-        nameField.setValue(value);
-        setFocused(nameField);
+        return value;
+    }
+
+    private void submitRandom() {
+        nameField.setValue(randomName());
+        submit();
     }
 
     private void submit() {
         String value = nameField.getValue();
         if (StrainNamingManager.sanitizeName(value) == null) return;
+        submitted = true;
         StrainNameNetworkHandler.submit(fingerprint, value);
-        onClose();
+        super.onClose();
+    }
+
+    @Override
+    public void onClose() {
+        if (!submitted) {
+            submitRandom();
+            return;
+        }
+        super.onClose();
     }
 
     @Override

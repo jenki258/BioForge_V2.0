@@ -40,7 +40,6 @@ public class InfectedFoodHandler {
         InfectionData data = InfectionCapability.get(entity);
         if (data == null) return;
         float chance = waterRoute ? BioForgeServerConfig.waterExposureChance()
-                : animalRoute ? Math.max(0.65F, BioForgeServerConfig.foodExposureChance())
                 : BioForgeServerConfig.foodExposureChance();
         float strength = strain.getSymptom("infection_strength")
                 .map(InfectedFoodHandler::parseStrength).orElse(0.5F);

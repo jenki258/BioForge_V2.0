@@ -33,7 +33,7 @@ public final class BioForgeTexturedButton extends Button {
             super.renderWidget(graphics, mouseX, mouseY, partialTick);
             return;
         }
-        int frame = !active ? 2 : isHovered() || isFocused() ? 1 : 0;
+        int frame = !active ? 2 : isHovered() ? 1 : 0;
         graphics.setColor(1.0f, 1.0f, 1.0f, alpha);
         graphics.blit(texture, getX(), getY(), frame * width, 0,
                 width, height, width * 3, height);

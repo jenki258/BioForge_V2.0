@@ -1,10 +1,39 @@
 {
   "order": 740,
-  "unlock_items": ["bioforge:thermometer", "bioforge:stethoscope", "bioforge:otoscope", "bioforge:pulse_oximeter", "bioforge:reflex_hammer", "bioforge:symptom_tablet"],
-  "title": { "text": "SYMPTOM REFERENCE", "color": "dark_aqua", "bold": true },
+  "unlock_items": [
+    "bioforge:thermometer",
+    "bioforge:stethoscope",
+    "bioforge:otoscope",
+    "bioforge:pulse_oximeter",
+    "bioforge:reflex_hammer",
+    "bioforge:symptom_tablet"
+  ],
+  "title": {
+    "color": "dark_aqua",
+    "bold": true,
+    "translate": "research.bioforge.page.symptom_reference.title"
+  },
   "content": [
-    { "component": { "text": "Thermometer: elevated or reduced temperature. Stethoscope: heart rhythm and crackling lungs. Otoscope: redness, lesions, secretion and swelling. Pulse Oximeter: oxygen saturation and perfusion. Reflex Hammer: delay, strength and neural damage.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Low oxygen reduces available underwater breath. Temperature symptoms can cause periodic heat or chill damage; an Ice Bag blocks heat harm and a Magma Bag blocks chill harm while worn as head equipment.", "color": "black" }, "line_breaks": 2 },
-    { "component": { "text": "Crackling lungs produce respiratory feedback. Other symptoms influence movement, damage, senses or diagnostics according to their behavior definition. Suppression hides the active consequence temporarily but does not remove the infection.", "color": "black" }, "line_breaks": 0 }
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.symptom_reference.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.symptom_reference.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.symptom_reference.content.3"
+      },
+      "line_breaks": 0
+    }
   ]
 }
