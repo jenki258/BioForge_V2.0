@@ -138,8 +138,10 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
     private void loadDefinition(ResourceLocation sourceId, JsonElement element) {
         try {
             JsonObject json = GsonHelper.convertToJsonObject(element, "mutation");
-            if (json.has("definitions")) {
-                JsonArray definitions = GsonHelper.getAsJsonArray(json, "definitions");
+            String collectionKey = json.has("definitions") ? "definitions"
+                    : (json.has("mutations") ? "mutations" : "");
+            if (!collectionKey.isEmpty()) {
+                JsonArray definitions = GsonHelper.getAsJsonArray(json, collectionKey);
                 for (int index = 0; index < definitions.size(); index++) {
                     ResourceLocation nestedId = ResourceLocation.tryBuild(sourceId.getNamespace(),
                             sourceId.getPath() + "/" + index);
@@ -154,6 +156,8 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
 
             String name = GsonHelper.getAsString(json, "name", id);
             String description = GsonHelper.getAsString(json, "description", "");
+            String nameKey = GsonHelper.getAsString(json, "name_key", "");
+            String descriptionKey = GsonHelper.getAsString(json, "description_key", "");
             Set<ResourceLocation> pathogenIds = parsePathogenIds(json);
             String rarity = GsonHelper.getAsString(json, "rarity", "common");
             int weight = GsonHelper.getAsInt(json, "weight", defaultWeight(rarity));
@@ -173,6 +177,8 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
                     .id(id)
                     .name(name)
                     .description(description)
+                    .nameKey(nameKey)
+                    .descriptionKey(descriptionKey)
                     .pathogenIds(pathogenIds)
                     .effects(effects)
                     .rarity(rarity)

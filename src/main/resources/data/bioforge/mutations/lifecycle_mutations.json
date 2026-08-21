@@ -1,5 +1,5 @@
 {
-  "mutations": [
+  "definitions": [
     {
       "id": "heat_adaptation",
       "name": "Heat Adaptation",

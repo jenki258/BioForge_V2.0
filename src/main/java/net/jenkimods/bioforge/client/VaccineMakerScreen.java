@@ -445,11 +445,14 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         drawFitted(graphics, state, left + 10, top + 35, 220, color);
         addPageTooltip(left + 9, top + 33, 224, font.lineHeight + 4, state);
         if (notes != null) {
-            drawFitted(graphics, Component.literal("gRNA-1  " + notes.guideOne()),
+            drawFitted(graphics, Component.translatable(
+                            "book.bioforge.crispr.guide", 1, notes.guideOne()),
                     left + 10, top + 52, 218, 0xFFD8FAFF);
-            drawFitted(graphics, Component.literal("gRNA-2  " + notes.guideTwo()),
+            drawFitted(graphics, Component.translatable(
+                            "book.bioforge.crispr.guide", 2, notes.guideTwo()),
                     left + 10, top + 65, 218, 0xFFD8FAFF);
-            drawFitted(graphics, Component.literal("gRNA-3  " + notes.guideThree()),
+            drawFitted(graphics, Component.translatable(
+                            "book.bioforge.crispr.guide", 3, notes.guideThree()),
                     left + 10, top + 78, 218, 0xFFD8FAFF);
         }
         drawInfoBadge(graphics, left + 10, top + 96, mouseX, mouseY,
@@ -690,7 +693,10 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                                 ? "microscope.symptom." + id : view.translationKey(),
                         prettifyId(id));
             }
-            case MUTATION -> Component.literal(prettifyId(id));
+            case MUTATION -> translatedOrLiteral(
+                    net.jenkimods.bioforge.crispr.CrisprDisplayNames
+                            .mutationTranslationKey(id),
+                    prettifyId(id));
             case TRANSMISSION -> {
                 ResourceLocation definitionId = ResourceLocation.tryParse(
                         id.contains(":") ? id : "bioforge:" + id);

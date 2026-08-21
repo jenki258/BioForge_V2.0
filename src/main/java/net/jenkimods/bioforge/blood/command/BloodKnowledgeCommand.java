@@ -74,29 +74,24 @@ public class BloodKnowledgeCommand {
         BloodKnowledgeStore store = BloodKnowledgeStore.get(ctx.getSource().getServer());
         Collection<BloodKnowledge> entries = store.getAllForPlayer(player.getUUID());
         if (entries.isEmpty()) {
-            ctx.getSource().sendSuccess(() -> Component.literal(
-                    "[BioForge] " + player.getName().getString() + " has no blood knowledge entries."
-            ), false);
+            ctx.getSource().sendSuccess(() -> Component.translatable(
+                    "command.bioforge.blood_knowledge.empty", player.getDisplayName()), false);
             return 0;
         }
 
-        ctx.getSource().sendSuccess(() -> Component.literal(
-                "[BioForge] Blood knowledge for " + player.getName().getString() + " (" + entries.size() + " entries):"
-        ), false);
+        ctx.getSource().sendSuccess(() -> Component.translatable(
+                "command.bioforge.blood_knowledge.header",
+                player.getDisplayName(), entries.size()), false);
 
         for (BloodKnowledge entry : entries) {
             String antiA = reaction(entry.getAntiA());
             String antiB = reaction(entry.getAntiB());
             String antiD = reaction(entry.getAntiD());
 
-            ctx.getSource().sendSuccess(() -> Component.literal(
-                    "- " + entry.getSubjectName()
-                            + " [" + entry.getSubjectType() + "] "
-                            + "UUID=" + entry.getSubjectUUID()
-                            + " A=" + antiA
-                            + " B=" + antiB
-                            + " D=" + antiD
-            ), false);
+            ctx.getSource().sendSuccess(() -> Component.translatable(
+                    "command.bioforge.blood_knowledge.entry",
+                    entry.getSubjectName(), entry.getSubjectType(), entry.getSubjectUUID(),
+                    antiA, antiB, antiD), false);
         }
         return entries.size();
     }
@@ -132,17 +127,15 @@ public class BloodKnowledgeCommand {
         }
 
         if (updated == 0) {
-            ctx.getSource().sendFailure(Component.literal(
-                    "[BioForge] No valid blood-capable entities were provided."
-            ));
+            ctx.getSource().sendFailure(Component.translatable(
+                    "command.bioforge.blood_knowledge.no_valid_entities"));
             return 0;
         }
 
         int finalUpdated = updated;
-        ctx.getSource().sendSuccess(() -> Component.literal(
-                "[BioForge] Added/updated blood knowledge for " + finalUpdated
-                        + " subject(s) for " + player.getName().getString() + "."
-        ), true);
+        ctx.getSource().sendSuccess(() -> Component.translatable(
+                "command.bioforge.blood_knowledge.updated",
+                finalUpdated, player.getDisplayName()), true);
         return updated;
     }
 
@@ -151,15 +144,14 @@ public class BloodKnowledgeCommand {
         int removed = store.clearAllForPlayer(player.getUUID());
 
         if (removed == 0) {
-            ctx.getSource().sendFailure(Component.literal(
-                    "[BioForge] No blood knowledge data found for " + player.getName().getString() + "."
-            ));
+            ctx.getSource().sendFailure(Component.translatable(
+                    "command.bioforge.blood_knowledge.no_data", player.getDisplayName()));
             return 0;
         }
 
-        ctx.getSource().sendSuccess(() -> Component.literal(
-                "[BioForge] Removed " + removed + " blood knowledge entries for " + player.getName().getString() + "."
-        ), true);
+        ctx.getSource().sendSuccess(() -> Component.translatable(
+                "command.bioforge.blood_knowledge.cleared",
+                removed, player.getDisplayName()), true);
         return removed;
     }
 
@@ -167,9 +159,8 @@ public class BloodKnowledgeCommand {
         BloodKnowledgeStore store = BloodKnowledgeStore.get(ctx.getSource().getServer());
         int sep = entryText.lastIndexOf('|');
         if (sep < 0) {
-            ctx.getSource().sendFailure(Component.literal(
-                    "[BioForge] Invalid entry format. Use: name | uuid"
-            ));
+            ctx.getSource().sendFailure(Component.translatable(
+                    "command.bioforge.blood_knowledge.invalid_format"));
             return 0;
         }
 
@@ -180,26 +171,23 @@ public class BloodKnowledgeCommand {
         try {
             subjectUUID = UUID.fromString(uuidText);
         } catch (IllegalArgumentException e) {
-            ctx.getSource().sendFailure(Component.literal(
-                    "[BioForge] Invalid UUID in entry: " + uuidText
-            ));
+            ctx.getSource().sendFailure(Component.translatable(
+                    "command.bioforge.blood_knowledge.invalid_uuid", uuidText));
             return 0;
         }
 
         boolean removed = store.removeForPlayer(player.getUUID(), subjectUUID);
 
         if (!removed) {
-            ctx.getSource().sendFailure(Component.literal(
-                    "[BioForge] No knowledge entry for '" + subjectName + "'"
-                            + " in " + player.getName().getString() + "'s data."
-            ));
+            ctx.getSource().sendFailure(Component.translatable(
+                    "command.bioforge.blood_knowledge.missing_entry",
+                    subjectName, player.getDisplayName()));
             return 0;
         }
 
-        ctx.getSource().sendSuccess(() -> Component.literal(
-                "[BioForge] Removed knowledge entry for '" + subjectName + "'"
-                        + " from " + player.getName().getString() + "."
-        ), true);
+        ctx.getSource().sendSuccess(() -> Component.translatable(
+                "command.bioforge.blood_knowledge.removed_entry",
+                subjectName, player.getDisplayName()), true);
         return 1;
     }
 

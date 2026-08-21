@@ -21,30 +21,31 @@ public final class BioForgeValidateCommand {
 
     private static int execute(CommandSourceStack source) {
         List<String> issues = BioForgeDefinitionManager.validateCurrent();
-        source.sendSuccess(() -> Component.literal(String.format(
-                "BioForge schema v%d, generation %d: %d pathogens, %d transmissions, %d symptoms, %d mutations",
+        source.sendSuccess(() -> Component.translatable(
+                "command.bioforge.validate.summary",
                 BioForgeDefinitionManager.SCHEMA_VERSION, BioForgeDefinitionManager.generation(),
                 BioForgeDefinitionManager.PATHOGENS.ids().size(),
                 BioForgeDefinitionManager.TRANSMISSIONS.ids().size(),
                 BioForgeDefinitionManager.SYMPTOMS.ids().size(),
-                MutationLoader.INSTANCE.getAllMutations().size())), false);
-        source.sendSuccess(() -> Component.literal(String.format(
-                "Addon handlers: %d transmission, %d symptom, %d mutation effect, %d Vaccine Maker operation",
+                MutationLoader.INSTANCE.getAllMutations().size()), false);
+        source.sendSuccess(() -> Component.translatable(
+                "command.bioforge.validate.handlers",
                 BioForgeBehaviorRegistry.transmissionIds().size(),
                 BioForgeBehaviorRegistry.symptomIds().size(),
                 BioForgeBehaviorRegistry.mutationEffectIds().size(),
-                BioForgeBehaviorRegistry.vaccineOperationIds().size())), false);
+                BioForgeBehaviorRegistry.vaccineOperationIds().size()), false);
         if (issues.isEmpty() && BioForgeDefinitionManager.lastReloadSuccessful()) {
-            source.sendSuccess(() -> Component.literal(
-                    "Validation passed: active snapshot is internally consistent."), false);
+            source.sendSuccess(() -> Component.translatable(
+                    "command.bioforge.validate.passed"), false);
             return 1;
         }
-        source.sendFailure(Component.literal("Validation found " + issues.size()
-                + " issue(s); active gameplay snapshot was preserved."));
+        source.sendFailure(Component.translatable(
+                "command.bioforge.validate.failed", issues.size()));
         issues.stream().limit(20).forEach(issue ->
-                source.sendFailure(Component.literal("- " + issue)));
-        if (issues.size() > 20) source.sendFailure(Component.literal(
-                "- ... and " + (issues.size() - 20) + " more"));
+                source.sendFailure(Component.translatable(
+                        "command.bioforge.validate.issue", issue)));
+        if (issues.size() > 20) source.sendFailure(Component.translatable(
+                "command.bioforge.validate.more", issues.size() - 20));
         return 0;
     }
 }

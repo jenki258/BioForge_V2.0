@@ -67,11 +67,11 @@ public class CrisprNotesItem extends Item {
                     data.sampleFingerprint()).withStyle(ChatFormatting.DARK_AQUA));
             tooltip.add(Component.translatable("item.bioforge.crispr_notes.assay_required")
                     .withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal("gRNA-1  " + data.guideOne())
+            tooltip.add(Component.translatable("book.bioforge.crispr.guide", 1, data.guideOne())
                     .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("gRNA-2  " + data.guideTwo())
+            tooltip.add(Component.translatable("book.bioforge.crispr.guide", 2, data.guideTwo())
                     .withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("gRNA-3  " + data.guideThree())
+            tooltip.add(Component.translatable("book.bioforge.crispr.guide", 3, data.guideThree())
                     .withStyle(ChatFormatting.GRAY));
         }
         if (correction != null) {

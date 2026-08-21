@@ -101,7 +101,7 @@ public class BloodSlideItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.blood_slide.filled").withStyle(ChatFormatting.RED));
         tooltip.add(Component.translatable("item.bioforge.blood_slide.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
         BloodType type = BloodType.fromName(data.typeName());
-        tooltip.add(Component.translatable("item.bioforge.blood_slide.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.blood_slide.blood_type", type.getDisplayNameComponent()).withStyle(ChatFormatting.DARK_RED));
 
         appendKnowledgeLines(data, tooltip);
     }

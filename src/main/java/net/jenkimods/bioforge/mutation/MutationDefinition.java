@@ -6,6 +6,7 @@ import com.google.gson.JsonPrimitive;
 import net.jenkimods.bioforge.infection.InfectionData;
 import net.jenkimods.bioforge.infection.PathogenType;
 import net.jenkimods.bioforge.api.definition.BioForgeIds;
+import net.jenkimods.bioforge.BioForge;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -326,6 +327,8 @@ public final class MutationDefinition {
     private final String id;
     private final String name;
     private final String description;
+    private final String nameKey;
+    private final String descriptionKey;
     private final Set<PathogenType> pathogens;
     private final Set<ResourceLocation> pathogenIds;
     private final List<Effect> effects;
@@ -343,6 +346,11 @@ public final class MutationDefinition {
         this.id = builder.id;
         this.name = builder.name == null || builder.name.isBlank() ? builder.id : builder.name;
         this.description = builder.description;
+        String translationBase = translationBase(builder.id);
+        this.nameKey = builder.nameKey == null || builder.nameKey.isBlank()
+                ? translationBase + ".name" : builder.nameKey;
+        this.descriptionKey = builder.descriptionKey == null || builder.descriptionKey.isBlank()
+                ? translationBase + ".description" : builder.descriptionKey;
         this.pathogens = Collections.unmodifiableSet(EnumSet.copyOf(builder.pathogens));
         this.pathogenIds = Collections.unmodifiableSet(new LinkedHashSet<>(builder.pathogenIds));
         this.effects = List.copyOf(builder.effects);
@@ -360,6 +368,8 @@ public final class MutationDefinition {
     public String id() { return id; }
     public String name() { return name; }
     public String description() { return description; }
+    public String nameKey() { return nameKey; }
+    public String descriptionKey() { return descriptionKey; }
     public Set<PathogenType> pathogens() { return pathogens; }
     public Set<ResourceLocation> pathogenIds() { return pathogenIds; }
     public List<Effect> effects() { return effects; }
@@ -434,10 +444,20 @@ public final class MutationDefinition {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
+    private static String translationBase(String id) {
+        String normalized = id == null ? "" : id.trim().toLowerCase(Locale.ROOT);
+        int separator = normalized.indexOf(':');
+        String namespace = separator >= 0 ? normalized.substring(0, separator) : BioForge.MODID;
+        String path = separator >= 0 ? normalized.substring(separator + 1) : normalized;
+        return "mutation." + namespace + "." + path.replace('/', '.');
+    }
+
     public static final class Builder {
         private String id;
         private String name;
         private String description = "";
+        private String nameKey;
+        private String descriptionKey;
         private final EnumSet<PathogenType> pathogens = EnumSet.noneOf(PathogenType.class);
         private final Set<ResourceLocation> pathogenIds = new LinkedHashSet<>();
         private final List<Effect> effects = new ArrayList<>();
@@ -458,6 +478,8 @@ public final class MutationDefinition {
 
         public Builder name(String name) { this.name = name; return this; }
         public Builder description(String description) { this.description = description == null ? "" : description; return this; }
+        public Builder nameKey(String nameKey) { this.nameKey = nameKey; return this; }
+        public Builder descriptionKey(String descriptionKey) { this.descriptionKey = descriptionKey; return this; }
 
         public Builder pathogen(PathogenType pathogen) {
             if (pathogen != null) {
@@ -539,9 +561,9 @@ public final class MutationDefinition {
             Objects.requireNonNull(id, "Mutation ID cannot be null");
             if (id.isBlank()) throw new IllegalArgumentException("Mutation ID cannot be empty");
             if (pathogenIds.isEmpty()) pathogen(PathogenType.UNIVERSAL);
-            if (effects.isEmpty() && interactions.isEmpty()) {
+            if (effects.isEmpty() && interactions.isEmpty() && tags.isEmpty()) {
                 throw new IllegalArgumentException(
-                        "Mutation must define at least one effect or interaction");
+                        "Mutation must define at least one effect, interaction, or marker tag");
             }
             return new MutationDefinition(this);
         }

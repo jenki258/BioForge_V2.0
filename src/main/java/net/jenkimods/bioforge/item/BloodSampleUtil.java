@@ -86,7 +86,7 @@ public final class BloodSampleUtil {
         if (k.getAntiA() != null && k.getAntiB() != null && k.getAntiD() != null) {
             BloodType type = BloodType.fromName(raw.typeName());
             tooltip.add(Component.translatable("item.bioforge.needle.tooltip.blood_type",
-                    type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+                    type.getDisplayNameComponent()).withStyle(ChatFormatting.DARK_RED));
         }
 
         tooltip.add(Component.translatable("item.bioforge.needle.tooltip.reactions",

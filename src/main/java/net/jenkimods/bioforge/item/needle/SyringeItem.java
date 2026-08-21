@@ -250,7 +250,7 @@ public class SyringeItem extends Item {
         if (k.getAntiA() != null && k.getAntiB() != null && k.getAntiD() != null) {
             BloodType type = BloodType.fromName(data.typeName());
             tooltip.add(Component.translatable("item.bioforge.syringe.blood_type",
-                    type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+                    type.getDisplayNameComponent()).withStyle(ChatFormatting.DARK_RED));
         }
         tooltip.add(Component.translatable("item.bioforge.syringe.reactions").withStyle(ChatFormatting.DARK_GREEN));
         if (k.getAntiA() != null) {

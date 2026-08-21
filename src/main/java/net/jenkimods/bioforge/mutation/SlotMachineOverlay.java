@@ -6,6 +6,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -373,7 +374,7 @@ public class SlotMachineOverlay {
                     int iconX = x + (REEL_WIDTH - ICON_SIZE) / 2;
                     int iconY = drawY + 2;
 
-                    String name = fitText(mc.font, def.name(), REEL_WIDTH - 6);
+                    String name = fitText(mc.font, displayName(def), REEL_WIDTH - 6);
                     int nameX = x + (REEL_WIDTH - mc.font.width(name)) / 2;
                     int nameY = drawY + ICON_SIZE + NAME_GAP + 2;
 
@@ -409,7 +410,7 @@ public class SlotMachineOverlay {
                         gfx.drawString(mc.font, name, nameX, nameY, 0xFFE8FFF9, false);
                     }
                 } else {
-                    String rawName = (def != null) ? def.name() : mutationId;
+                    String rawName = (def != null) ? displayName(def) : mutationId;
                     String name = fitText(mc.font, rawName, REEL_WIDTH - 6);
                     int color = isWinner ? 0xFF8CFFF2 : 0xFFE8FFF9;
                     int textX = x + (REEL_WIDTH - mc.font.width(name)) / 2;
@@ -467,7 +468,7 @@ public class SlotMachineOverlay {
                 int resultGlowAlpha = 30 + (int) (resultPulse * 45);
                 int resultGlow = (resultGlowAlpha << 24) | (finalColor & 0x00FFFFFF);
 
-                String resultName = fitText(mc.font, selectedDefinition.name(), reelAreaWidth - 14);
+                String resultName = fitText(mc.font, displayName(selectedDefinition), reelAreaWidth - 14);
                 String rarityText = Component.translatable(
                         "mutation.slot.rarity",
                         selectedDefinition.rarity().toUpperCase(Locale.ROOT)
@@ -507,6 +508,13 @@ public class SlotMachineOverlay {
             reelNames = null;
             guiParticles.clear();
         }
+    }
+
+    private static String displayName(MutationVisual visual) {
+        if (visual == null) return "";
+        return I18n.exists(visual.nameKey())
+                ? Component.translatable(visual.nameKey()).getString()
+                : visual.fallbackName();
     }
 
     private static String fitText(Font font, String text, int maxWidth) {

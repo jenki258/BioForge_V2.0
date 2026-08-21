@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -99,13 +100,13 @@ public final class VaccineResearchNotes {
                                        String samplePayload, ResourceLocation recipeId) {
         CompoundTag tag = book.getOrCreateTag();
         ListTag pages = tag.getList("pages", Tag.TAG_STRING);
-        String page = "BIOFORGE / CRISPR\n"
-                + "Batch " + sampleFingerprint(samplePayload) + "\n"
-                + "Efficacy requires blood assay\n"
-                + "gRNA-1 " + guide(sequence, 0) + "\n"
-                + "gRNA-2 " + guide(sequence, 1) + "\n"
-                + "gRNA-3 " + guide(sequence, 2) + "\n"
-                + recipeId;
+        String page = line("book.bioforge.crispr.header")
+                + "\n" + line("book.bioforge.crispr.batch", sampleFingerprint(samplePayload))
+                + "\n" + line("book.bioforge.crispr.assay_required")
+                + "\n" + line("book.bioforge.crispr.guide", 1, guide(sequence, 0))
+                + "\n" + line("book.bioforge.crispr.guide", 2, guide(sequence, 1))
+                + "\n" + line("book.bioforge.crispr.guide", 3, guide(sequence, 2))
+                + "\n" + line("book.bioforge.crispr.recipe", recipeId);
         pages.add(StringTag.valueOf(page));
         tag.put("pages", pages);
     }
@@ -114,13 +115,13 @@ public final class VaccineResearchNotes {
         if (!book.is(Items.WRITABLE_BOOK) || data == null) return;
         CompoundTag tag = book.getOrCreateTag();
         ListTag pages = tag.getList("pages", Tag.TAG_STRING);
-        String page = "BIOFORGE / CRISPR\n"
-                + "Batch " + data.sampleFingerprint() + "\n"
-                + "Efficacy requires blood assay\n"
-                + "gRNA-1 " + data.guideOne() + "\n"
-                + "gRNA-2 " + data.guideTwo() + "\n"
-                + "gRNA-3 " + data.guideThree() + "\n"
-                + data.recipeId();
+        String page = line("book.bioforge.crispr.header")
+                + "\n" + line("book.bioforge.crispr.batch", data.sampleFingerprint())
+                + "\n" + line("book.bioforge.crispr.assay_required")
+                + "\n" + line("book.bioforge.crispr.guide", 1, data.guideOne())
+                + "\n" + line("book.bioforge.crispr.guide", 2, data.guideTwo())
+                + "\n" + line("book.bioforge.crispr.guide", 3, data.guideThree())
+                + "\n" + line("book.bioforge.crispr.recipe", data.recipeId());
         pages.add(StringTag.valueOf(page));
         tag.put("pages", pages);
     }
@@ -133,5 +134,9 @@ public final class VaccineResearchNotes {
 
     public static String sampleFingerprint(String payload) {
         return StrainFingerprint.ofPayload(payload);
+    }
+
+    private static String line(String key, Object... args) {
+        return Component.translatable(key, args).getString();
     }
 }

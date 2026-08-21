@@ -199,7 +199,8 @@ public class ReflexHammerClientHandler {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) { targetName = ""; return; }
         if (selfMode) {
-            targetName = "Self";
+            targetName = net.minecraft.network.chat.Component.translatable(
+                    "gui.bioforge.reflex_hammer.self").getString();
             return;
         }
         if (targetEntityId >= 0) {

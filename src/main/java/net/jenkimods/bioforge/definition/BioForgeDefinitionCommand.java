@@ -63,17 +63,21 @@ public final class BioForgeDefinitionCommand {
                               boolean persistent) {
         pathogenId = BioForgeDefinitionManager.PATHOGENS.canonicalId(pathogenId);
         if (BioForgeDefinitionManager.PATHOGENS.get(pathogenId).isEmpty()) {
-            source.sendFailure(Component.literal("Unknown BioForge pathogen: " + pathogenId));
+            source.sendFailure(Component.translatable(
+                    "command.bioforge.definition.unknown_pathogen", pathogenId));
             return 0;
         }
         Set<ResourceLocation> transmissions = parseTransmissions(transmissionList);
         for (ResourceLocation transmission : transmissions) {
             if (BioForgeDefinitionManager.TRANSMISSIONS.get(transmission).isEmpty()) {
-                source.sendFailure(Component.literal("Unknown BioForge transmission: " + transmission));
+                source.sendFailure(Component.translatable(
+                        "command.bioforge.definition.unknown_transmission", transmission));
                 return 0;
             }
             if (!BioForgeDefinitionManager.allowsTransmission(pathogenId, transmission)) {
-                source.sendFailure(Component.literal(pathogenId + " does not allow " + transmission));
+                source.sendFailure(Component.translatable(
+                        "command.bioforge.definition.disallowed_transmission",
+                        pathogenId, transmission));
                 return 0;
             }
         }
@@ -102,8 +106,8 @@ public final class BioForgeDefinitionCommand {
         }
         int result = changed;
         ResourceLocation finalPathogenId = pathogenId;
-        source.sendSuccess(() -> Component.literal("Applied " + finalPathogenId + " to "
-                + result + " living target(s)."), true);
+        source.sendSuccess(() -> Component.translatable(
+                "command.bioforge.definition.applied", finalPathogenId, result), true);
         return changed;
     }
 

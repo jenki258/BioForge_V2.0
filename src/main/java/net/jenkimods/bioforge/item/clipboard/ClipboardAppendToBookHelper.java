@@ -1,5 +1,6 @@
 package net.jenkimods.bioforge.item.clipboard;
 
+import net.jenkimods.bioforge.blood.BloodType;
 import net.minecraft.locale.Language;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -65,24 +66,24 @@ public class ClipboardAppendToBookHelper {
         StringBuilder sb = new StringBuilder();
 
         String patient = tag.contains("SubjectName") ? tag.getString("SubjectName") : "???";
-        sb.append("Patient: ").append(patient).append("\n\n");
+        sb.append(translate(player, "clipboard.entry.patient", patient)).append("\n\n");
 
         sb.append(translate(player, "clipboard.section.vital")).append("\n");
 
         if (tag.contains("TemperatureC")) {
             float temp = tag.getFloat("TemperatureC");
             String statusKey = temp >= 38.5f
-                    ? "clipboard.stethoscope.tachy"
+                    ? "clipboard.temperature.fever"
                     : (temp <= 35.5f
-                       ? "clipboard.stethoscope.brady"
-                       : "clipboard.stethoscope.normal");
+                       ? "clipboard.temperature.hypothermia"
+                       : "clipboard.temperature.normal");
             String status = translate(player, statusKey);
             String unstable = tag.getBoolean("TempUnstable") ? " (?)" : "";
             String tempStr = translate(player, "clipboard.entry.temperature",
                     String.format("%.1f°C", temp) + " (" + status + ")" + unstable);
             sb.append(tempStr).append("\n");
         } else {
-            sb.append("Temperature: --\n");
+            sb.append(translate(player, "clipboard.entry.temperature", "--")).append("\n");
         }
 
         if (tag.contains("HeartRate")) {
@@ -92,7 +93,7 @@ public class ClipboardAppendToBookHelper {
             String heartStr = translate(player, "clipboard.entry.heart", rate + unstable);
             sb.append(heartStr).append("\n");
         } else {
-            sb.append("Heart Rate: --\n");
+            sb.append(translate(player, "clipboard.entry.heart", "--")).append("\n");
         }
 
         if (tag.contains("OxygenSaturation")) {
@@ -109,7 +110,7 @@ public class ClipboardAppendToBookHelper {
                     String.format("%.0f%%", o2 * 100), piDesc + unstable);
             sb.append(o2Str).append("\n");
         } else {
-            sb.append("SpO₂: --\n");
+            sb.append(translate(player, "clipboard.entry.oxygen", "--", "--")).append("\n");
         }
 
         sb.append("\n").append(translate(player, "clipboard.section.respiratory")).append("\n");
@@ -121,7 +122,7 @@ public class ClipboardAppendToBookHelper {
             String lungStr = translate(player, "clipboard.entry.lungs", sound + unstable);
             sb.append(lungStr).append("\n");
         } else {
-            sb.append("Lung Sounds: --\n");
+            sb.append(translate(player, "clipboard.entry.lungs", "--")).append("\n");
         }
 
         sb.append("\n").append(translate(player, "clipboard.section.neurological")).append("\n");
@@ -136,7 +137,7 @@ public class ClipboardAppendToBookHelper {
             String reflexStr = translate(player, "clipboard.entry.reflex", delay, strength, unstable);
             sb.append(reflexStr).append("\n");
         } else {
-            sb.append("Reflex: --\n");
+            sb.append(translate(player, "clipboard.entry.reflex", "--", "--", "")).append("\n");
         }
 
         sb.append("\n").append(translate(player, "clipboard.section.visual")).append("\n");
@@ -152,10 +153,10 @@ public class ClipboardAppendToBookHelper {
             sb.append(translate(player, "clipboard.entry.swelling",
                     visualDesc(tag.getFloat("Swelling")) + unstable)).append("\n");
         } else {
-            sb.append("Redness: --\n");
-            sb.append("Lesions: --\n");
-            sb.append("Secretion: --\n");
-            sb.append("Swelling: --\n");
+            sb.append(translate(player, "clipboard.entry.redness", "--")).append("\n");
+            sb.append(translate(player, "clipboard.entry.lesions", "--")).append("\n");
+            sb.append(translate(player, "clipboard.entry.secretion", "--")).append("\n");
+            sb.append(translate(player, "clipboard.entry.swelling", "--")).append("\n");
         }
 
         sb.append("\n").append(translate(player, "clipboard.section.blood")).append("\n");
@@ -168,7 +169,7 @@ public class ClipboardAppendToBookHelper {
             sb.append(translate(player, "clipboard.blood.incomplete")).append("\n");
         } else if (tag.contains("BloodType")) {
             sb.append(translate(player, "clipboard.entry.blood_group",
-                    tag.getString("BloodType"))).append("\n");
+                    localizedBloodType(player, tag.getString("BloodType")))).append("\n");
 
             String antiA = tag.getBoolean("AntiA") ? "+" : "-";
             String antiB = tag.getBoolean("AntiB") ? "+" : "-";
@@ -180,6 +181,13 @@ public class ClipboardAppendToBookHelper {
         }
 
         return sb.toString();
+    }
+
+    private static String localizedBloodType(Player player, String storedName) {
+        BloodType type = BloodType.findByName(storedName);
+        if (type == null) return storedName;
+        return type == BloodType.ANIMAL_BLOOD
+                ? translate(player, "blood.type.animal") : type.getDisplayName();
     }
 
     private static String translate(Player player, String key, String... args) {

@@ -1,5 +1,6 @@
 package net.jenkimods.bioforge.blood;
 
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
@@ -31,6 +32,17 @@ public enum BloodType {
     }
 
     public String getDisplayName() { return displayName; }
+    public Component getDisplayNameComponent() {
+        return this == ANIMAL_BLOOD
+                ? Component.translatable("blood.type.animal")
+                : Component.literal(displayName);
+    }
+
+    public static Component displayNameComponent(String storedName) {
+        BloodType type = findByName(storedName);
+        return type == null ? Component.literal(storedName == null ? "" : storedName)
+                : type.getDisplayNameComponent();
+    }
     public Category getCategory() { return category; }
 
     public boolean isRhPositive() {

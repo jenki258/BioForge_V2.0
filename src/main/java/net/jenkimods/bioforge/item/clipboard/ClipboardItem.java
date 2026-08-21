@@ -128,10 +128,14 @@ public class ClipboardItem extends Item {
 
         if (tag.contains("TemperatureC")) {
             float temp = tag.getFloat("TemperatureC");
-            String status = temp >= 38.5f ? "Fever" : (temp <= 35.5f ? "Hypothermia" : "Normal");
+            String statusKey = temp >= 38.5f ? "clipboard.temperature.fever"
+                    : (temp <= 35.5f ? "clipboard.temperature.hypothermia"
+                    : "clipboard.temperature.normal");
             String unstable = tag.getBoolean("TempUnstable") ? " (?)" : "";
+            Component reading = Component.literal(String.format("%.1f°C (", temp))
+                    .append(Component.translatable(statusKey)).append(")").append(unstable);
             tooltip.add(Component.translatable("clipboard.entry.temperature",
-                    String.format("%.1f°C (%s)", temp, status) + unstable).withStyle(ChatFormatting.WHITE));
+                    reading).withStyle(ChatFormatting.WHITE));
         } else {
             tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY));
         }
@@ -147,10 +151,12 @@ public class ClipboardItem extends Item {
         if (tag.contains("OxygenSaturation")) {
             float o2 = tag.getFloat("OxygenSaturation");
             float pi = tag.contains("PerfusionIndex") ? tag.getFloat("PerfusionIndex") : 0.7f;
-            String piDesc = pi > 0.7f ? "Strong" : (pi > 0.3f ? "Moderate" : "Weak");
+            String piKey = pi > 0.7f ? "clipboard.pi.strong"
+                    : (pi > 0.3f ? "clipboard.pi.moderate" : "clipboard.pi.weak");
             String unstable = tag.getBoolean("O2Unstable") ? " (?)" : "";
+            Component perfusion = Component.translatable(piKey).copy().append(unstable);
             tooltip.add(Component.translatable("clipboard.entry.oxygen",
-                    String.format("%.0f%%", o2 * 100f), piDesc + unstable).withStyle(ChatFormatting.WHITE));
+                    String.format("%.0f%%", o2 * 100f), perfusion).withStyle(ChatFormatting.WHITE));
         } else {
             tooltip.add(Component.translatable("clipboard.no_data").withStyle(ChatFormatting.DARK_GRAY));
         }
@@ -202,7 +208,8 @@ public class ClipboardItem extends Item {
             tooltip.add(Component.translatable("clipboard.blood.incomplete").withStyle(ChatFormatting.DARK_GRAY));
         } else if (tag.contains("BloodType")) {
             tooltip.add(Component.translatable("clipboard.entry.blood_group",
-                    tag.getString("BloodType")).withStyle(ChatFormatting.WHITE));
+                    net.jenkimods.bioforge.blood.BloodType.displayNameComponent(
+                            tag.getString("BloodType"))).withStyle(ChatFormatting.WHITE));
 
             if (tag.contains("AntiA")) {
                 tooltip.add(Component.translatable("clipboard.entry.anti_a",

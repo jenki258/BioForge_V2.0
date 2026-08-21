@@ -44,7 +44,7 @@ public class CellPelletItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.cell_pellet.filled").withStyle(ChatFormatting.DARK_RED));
         tooltip.add(Component.translatable("item.bioforge.cell_pellet.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
         BloodType type = BloodType.fromName(data.typeName());
-        tooltip.add(Component.translatable("item.bioforge.cell_pellet.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.cell_pellet.blood_type", type.getDisplayNameComponent()).withStyle(ChatFormatting.DARK_RED));
 
         appendKnowledgeLines(data, tooltip);
     }

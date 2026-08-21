@@ -95,7 +95,9 @@ public class PetriDishItem extends BlockItem {
             tooltip.add(Component.translatable("item.bioforge.petri_dish.tooltip.cultured")
                     .withStyle(ChatFormatting.DARK_RED));
             int growth = stack.getOrCreateTag().getInt("Growth");
-            tooltip.add(Component.literal("Growth stage: " + growth).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable(
+                    "item.bioforge.petri_dish.growth_stage", growth)
+                    .withStyle(ChatFormatting.GRAY));
         }
     }
 }

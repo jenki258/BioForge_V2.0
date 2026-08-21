@@ -54,9 +54,9 @@ public final class BioForgeTestCommand {
     private static int runAll(CommandSourceStack source) {
         int report = report(source);
         int stress = stress(source, 5_000);
-        source.sendSuccess(() -> Component.literal(report > 0 && stress > 0
-                ? "[BioForge Test] Full automated test passed."
-                : "[BioForge Test] Full automated test found failures."), false);
+        source.sendSuccess(() -> Component.translatable(report > 0 && stress > 0
+                ? "command.bioforge.test.full_passed"
+                : "command.bioforge.test.full_failed"), false);
         return report > 0 && stress > 0 ? 1 : 0;
     }
 
@@ -71,19 +71,19 @@ public final class BioForgeTestCommand {
                 + CentrifugeRecipeManager.INSTANCE.getRecipes().size()
                 + DecalcificationRecipeManager.INSTANCE.getRecipes().size();
         int pages = ResearchJournalRegistry.pages().size();
-        source.sendSuccess(() -> Component.literal(String.format(
-                "[BioForge Test] Data: %d pathogens, %d transmissions, %d symptoms, "
-                        + "%d mutations, %d machine recipes, %d tablet pages.",
-                pathogens, transmissions, symptoms, mutations, recipes, pages)), false);
+        source.sendSuccess(() -> Component.translatable(
+                "command.bioforge.test.data", pathogens, transmissions, symptoms,
+                mutations, recipes, pages), false);
         if (!issues.isEmpty() || !BioForgeDefinitionManager.lastReloadSuccessful()) {
-            source.sendFailure(Component.literal("[BioForge Test] Definition validation failed: "
-                    + issues.size() + " issue(s)."));
+            source.sendFailure(Component.translatable(
+                    "command.bioforge.test.validation_failed", issues.size()));
             issues.stream().limit(10).forEach(issue ->
-                    source.sendFailure(Component.literal("- " + issue)));
+                    source.sendFailure(Component.translatable(
+                            "command.bioforge.validate.issue", issue)));
             return 0;
         }
-        source.sendSuccess(() -> Component.literal(
-                "[BioForge Test] Definition and addon registries are consistent."), false);
+        source.sendSuccess(() -> Component.translatable(
+                "command.bioforge.test.registries_consistent"), false);
         return 1;
     }
 
@@ -114,14 +114,14 @@ public final class BioForgeTestCommand {
         double elapsedMs = (System.nanoTime() - started) / 1_000_000.0D;
         int finalFailures = failures;
         long finalChecksum = checksum;
-        source.sendSuccess(() -> Component.literal(String.format(
-                "[BioForge Test] Stress: %,d iterations in %.2f ms (%.3f us/op), "
-                        + "failures=%d, checksum=%016X.",
-                iterations, elapsedMs, elapsedMs * 1000.0D / iterations,
-                finalFailures, finalChecksum)), false);
+        source.sendSuccess(() -> Component.translatable(
+                "command.bioforge.test.stress",
+                String.format("%,d", iterations), String.format("%.2f", elapsedMs),
+                String.format("%.3f", elapsedMs * 1000.0D / iterations),
+                finalFailures, String.format("%016X", finalChecksum)), false);
         if (failures > 0) {
-            source.sendFailure(Component.literal(
-                    "[BioForge Test] Blood sample NBT round-trip failed."));
+            source.sendFailure(Component.translatable(
+                    "command.bioforge.test.nbt_failed"));
             return 0;
         }
         return 1;
@@ -132,14 +132,14 @@ public final class BioForgeTestCommand {
         for (BloodType type : BloodType.values()) {
             ItemStack tube = new ItemStack(BioForge.TUBE.get());
             BloodSampleUtil.setData(tube, 1, type,
-                    "BioForge Test - " + type.getDisplayName(), null);
+                    "BioForge QA - " + type.getDisplayName(), null);
             if (!player.getInventory().add(tube)) player.drop(tube, false);
             given++;
         }
         int finalGiven = given;
-        source.sendSuccess(() -> Component.literal("[BioForge Test] Gave "
-                + player.getName().getString() + " " + finalGiven
-                + " filled Test Tubes (every blood type)."), true);
+        source.sendSuccess(() -> Component.translatable(
+                "command.bioforge.test.gave_tubes",
+                player.getDisplayName(), finalGiven), true);
         return given;
     }
 }

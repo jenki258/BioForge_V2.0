@@ -44,7 +44,7 @@ public class PlasmaSampleItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.plasma_sample.filled").withStyle(ChatFormatting.DARK_RED));
         tooltip.add(Component.translatable("item.bioforge.plasma_sample.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
         BloodType type = BloodType.fromName(data.typeName());
-        tooltip.add(Component.translatable("item.bioforge.plasma_sample.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.plasma_sample.blood_type", type.getDisplayNameComponent()).withStyle(ChatFormatting.DARK_RED));
 
         appendKnowledgeLines(data, tooltip);
     }

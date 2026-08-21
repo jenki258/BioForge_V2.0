@@ -77,18 +77,17 @@ public class BloodCommand {
     private static int executeGet(CommandContext<CommandSourceStack> ctx, Entity entity) {
         BloodData data = BloodCapability.get(entity);
         if (data == null) {
-            ctx.getSource().sendFailure(Component.literal(
-                    entity.getName().getString() + " has no blood data."));
+            ctx.getSource().sendFailure(Component.translatable(
+                    "command.bioforge.blood.no_data", entity.getDisplayName()));
             return 0;
         }
 
-        ctx.getSource().sendSuccess(() -> Component.literal(
-                String.format("[BioForge] %s - Blood: %d/%d  Type: %s  Phase: %s",
-                        entity.getName().getString(),
-                        data.getBlood(),
-                        BloodData.MAX_BLOOD,
-                        data.getBloodType().getDisplayName(),
-                        data.getPhase().name())), false);
+        ctx.getSource().sendSuccess(() -> Component.translatable(
+                "command.bioforge.blood.summary",
+                entity.getDisplayName(), data.getBlood(), BloodData.MAX_BLOOD,
+                data.getBloodType().getDisplayNameComponent(),
+                Component.translatable("blood.phase."
+                        + data.getPhase().name().toLowerCase(java.util.Locale.ROOT))), false);
         return 1;
     }
 
@@ -102,9 +101,9 @@ public class BloodCommand {
             if (entity instanceof ServerPlayer sp) {
                 BloodEventHandler.syncToClient(sp, data);
             }
-            ctx.getSource().sendSuccess(() -> Component.literal(
-                    "[BioForge] Set blood of " + entity.getName().getString()
-                            + " to " + amount), true);
+            ctx.getSource().sendSuccess(() -> Component.translatable(
+                    "command.bioforge.blood.set_amount",
+                    entity.getDisplayName(), amount), true);
             count++;
         }
         return count;
@@ -116,9 +115,8 @@ public class BloodCommand {
         try {
             type = BloodType.valueOf(typeName.toUpperCase());
         } catch (IllegalArgumentException e) {
-            ctx.getSource().sendFailure(Component.literal(
-                    "[BioForge] Unknown blood type: " + typeName
-                            + ". Valid: " + getTypeList()));
+            ctx.getSource().sendFailure(Component.translatable(
+                    "command.bioforge.blood.unknown_type", typeName, getTypeList()));
             return 0;
         }
 
@@ -135,9 +133,9 @@ public class BloodCommand {
                 BloodEventHandler.syncToClient(sp, data);
             }
 
-            ctx.getSource().sendSuccess(() -> Component.literal(
-                    "[BioForge] Set blood type of " + entity.getName().getString()
-                            + " to " + type.getDisplayName()), true);
+            ctx.getSource().sendSuccess(() -> Component.translatable(
+                    "command.bioforge.blood.set_type",
+                    entity.getDisplayName(), type.getDisplayNameComponent()), true);
             count++;
         }
         return count;
@@ -165,8 +163,8 @@ public class BloodCommand {
                 BloodEventHandler.syncToClient(sp, data);
             }
 
-            ctx.getSource().sendSuccess(() -> Component.literal(
-                    "[BioForge] Reset blood for " + entity.getName().getString()), true);
+            ctx.getSource().sendSuccess(() -> Component.translatable(
+                    "command.bioforge.blood.reset", entity.getDisplayName()), true);
             count++;
         }
         return count;

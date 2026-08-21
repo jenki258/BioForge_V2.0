@@ -318,6 +318,6 @@ public class VaccineItem extends Item {
             return;
         }
         tooltip.add(Component.translatable("item.bioforge.vaccine.host.profile",
-                host.bloodType().getDisplayName()).withStyle(ChatFormatting.DARK_AQUA));
+                host.bloodType().getDisplayNameComponent()).withStyle(ChatFormatting.DARK_AQUA));
     }
 }

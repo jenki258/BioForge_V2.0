@@ -224,7 +224,7 @@ public class TubeItem extends Item {
         tooltip.add(Component.translatable("item.bioforge.tube.filled").withStyle(ChatFormatting.RED));
         tooltip.add(Component.translatable("item.bioforge.tube.source", data.sourceName()).withStyle(ChatFormatting.WHITE));
         BloodType type = BloodType.fromName(data.typeName());
-        tooltip.add(Component.translatable("item.bioforge.tube.blood_type", type.getDisplayName()).withStyle(ChatFormatting.DARK_RED));
+        tooltip.add(Component.translatable("item.bioforge.tube.blood_type", type.getDisplayNameComponent()).withStyle(ChatFormatting.DARK_RED));
         tooltip.add(Component.translatable("item.bioforge.tube.tooltip.return_to_syringe")
                 .withStyle(ChatFormatting.DARK_GRAY));
 

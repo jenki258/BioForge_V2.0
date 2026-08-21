@@ -1,5 +1,5 @@
 {
-  "mutations": [
+  "definitions": [
     {
       "id": "porcine_receptor_shift",
       "name": "Porcine Receptor Shift",

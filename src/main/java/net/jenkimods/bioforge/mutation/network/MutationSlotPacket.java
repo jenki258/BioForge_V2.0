@@ -19,6 +19,7 @@ import java.util.function.Supplier;
 public final class MutationSlotPacket {
     private static final int MAX_CATALOG_SIZE = 32;
     private static final int MAX_ID_LENGTH = 256;
+    private static final int MAX_TRANSLATION_KEY_LENGTH = 256;
     private static final int MAX_NAME_LENGTH = 160;
     private static final int MAX_RARITY_LENGTH = 32;
     private static final int MAX_ICON_LENGTH = 256;
@@ -55,7 +56,8 @@ public final class MutationSlotPacket {
         for (int index = 0; index < size; index++) {
             MutationVisual visual = message.catalog.get(index);
             buffer.writeUtf(visual.id(), MAX_ID_LENGTH);
-            buffer.writeUtf(visual.name(), MAX_NAME_LENGTH);
+            buffer.writeUtf(visual.nameKey(), MAX_TRANSLATION_KEY_LENGTH);
+            buffer.writeUtf(visual.fallbackName(), MAX_NAME_LENGTH);
             buffer.writeUtf(visual.rarity(), MAX_RARITY_LENGTH);
             buffer.writeBoolean(visual.icon() != null);
             if (visual.icon() != null) {
@@ -73,13 +75,14 @@ public final class MutationSlotPacket {
         List<MutationVisual> catalog = new ArrayList<>(size);
         for (int index = 0; index < size; index++) {
             String id = buffer.readUtf(MAX_ID_LENGTH);
-            String name = buffer.readUtf(MAX_NAME_LENGTH);
+            String nameKey = buffer.readUtf(MAX_TRANSLATION_KEY_LENGTH);
+            String fallbackName = buffer.readUtf(MAX_NAME_LENGTH);
             String rarity = buffer.readUtf(MAX_RARITY_LENGTH);
             ResourceLocation icon = null;
             if (buffer.readBoolean()) {
                 icon = ResourceLocation.tryParse(buffer.readUtf(MAX_ICON_LENGTH));
             }
-            catalog.add(new MutationVisual(id, name, rarity, icon));
+            catalog.add(new MutationVisual(id, nameKey, fallbackName, rarity, icon));
         }
         return new MutationSlotPacket(selectedId, catalog);
     }

@@ -14,8 +14,9 @@ public final class CrisprDisplayNames {
         }
         return switch (category) {
             case MUTATION -> MutationLoader.INSTANCE.getMutation(target)
-                    .map(definition -> Component.literal(definition.name()))
-                    .orElseGet(() -> Component.literal(humanize(target)));
+                    .map(definition -> Component.translatable(definition.nameKey()))
+                    .orElseGet(() -> Component.translatable(
+                            mutationTranslationKey(target)));
             case TRANSMISSION -> Component.translatable(
                     "infection_type.bioforge." + target.toLowerCase(Locale.ROOT));
             case SYMPTOM -> Component.translatable(
@@ -38,5 +39,13 @@ public final class CrisprDisplayNames {
                     .append(word.substring(1).toLowerCase(Locale.ROOT));
         }
         return result.isEmpty() ? value : result.toString();
+    }
+
+    public static String mutationTranslationKey(String value) {
+        String normalized = value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+        int separator = normalized.indexOf(':');
+        String namespace = separator >= 0 ? normalized.substring(0, separator) : "bioforge";
+        String path = separator >= 0 ? normalized.substring(separator + 1) : normalized;
+        return "mutation." + namespace + "." + path.replace('/', '.') + ".name";
     }
 }

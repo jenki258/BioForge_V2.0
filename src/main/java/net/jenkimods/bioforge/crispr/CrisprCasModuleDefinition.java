@@ -14,6 +14,7 @@ import java.util.Set;
 public record CrisprCasModuleDefinition(
         ResourceLocation id,
         String displayName,
+        String translationKey,
         String pam,
         float efficiency,
         Set<ResourceLocation> compatibleGuideProfiles,
@@ -23,6 +24,9 @@ public record CrisprCasModuleDefinition(
     public CrisprCasModuleDefinition {
         if (displayName == null || displayName.isBlank()) {
             displayName = CrisprDisplayNames.humanize(id.getPath());
+        }
+        if (translationKey == null || translationKey.isBlank()) {
+            translationKey = "crispr.cas_module." + id.getNamespace() + "." + id.getPath();
         }
         if (pam == null || pam.isBlank()) {
             throw new IllegalArgumentException("Cas module PAM cannot be empty");
@@ -37,9 +41,18 @@ public record CrisprCasModuleDefinition(
                                      float efficiency,
                                      Set<ResourceLocation> compatibleGuideProfiles,
                                      Set<PathogenType> compatiblePathogens) {
-        this(id, displayName, pam, efficiency, compatibleGuideProfiles, compatiblePathogens,
+        this(id, displayName, "", pam, efficiency, compatibleGuideProfiles, compatiblePathogens,
                 compatiblePathogens.stream().map(BioForgeIds::pathogen)
                         .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new)));
+    }
+
+    public CrisprCasModuleDefinition(ResourceLocation id, String displayName, String pam,
+                                     float efficiency,
+                                     Set<ResourceLocation> compatibleGuideProfiles,
+                                     Set<PathogenType> compatiblePathogens,
+                                     Set<ResourceLocation> compatiblePathogenIds) {
+        this(id, displayName, "", pam, efficiency, compatibleGuideProfiles,
+                compatiblePathogens, compatiblePathogenIds);
     }
 
     public static CrisprCasModuleDefinition fromJson(ResourceLocation id, JsonObject json) {
@@ -75,6 +88,7 @@ public record CrisprCasModuleDefinition(
                 id,
                 GsonHelper.getAsString(json, "display_name",
                         CrisprDisplayNames.humanize(id.getPath())),
+                GsonHelper.getAsString(json, "translation_key", ""),
                 GsonHelper.getAsString(json, "pam", "NGG"),
                 GsonHelper.getAsFloat(json, "efficiency", 1.0f),
                 profiles,

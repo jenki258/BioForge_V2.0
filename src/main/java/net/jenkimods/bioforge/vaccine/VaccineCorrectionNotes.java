@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -128,16 +129,17 @@ public final class VaccineCorrectionNotes {
         ListTag pages = tag.getList("pages", Tag.TAG_STRING);
         int pageNumber = 1;
         for (int start = 0; start < data.entries().size(); start += 7) {
-            StringBuilder page = new StringBuilder("BIOFORGE / MATRIX ")
-                    .append(pageNumber++).append('\n')
-                    .append("Batch ").append(data.sampleFingerprint()).append('\n');
+            StringBuilder page = new StringBuilder(Component.translatable(
+                    "book.bioforge.correction.header", pageNumber++).getString())
+                    .append('\n')
+                    .append(Component.translatable("book.bioforge.crispr.batch",
+                            data.sampleFingerprint()).getString()).append('\n');
             int end = Math.min(data.entries().size(), start + 7);
             for (int index = start; index < end; index++) {
                 Entry entry = data.entries().get(index);
-                page.append(entry.family()).append(' ')
-                        .append(entry.target()).append(" = ")
-                        .append(entry.state() + 1).append('/')
-                        .append(entry.states()).append('\n');
+                page.append(Component.translatable("book.bioforge.correction.entry",
+                        entry.family(), entry.target(), entry.state() + 1,
+                        entry.states()).getString()).append('\n');
             }
             pages.add(StringTag.valueOf(page.toString()));
         }

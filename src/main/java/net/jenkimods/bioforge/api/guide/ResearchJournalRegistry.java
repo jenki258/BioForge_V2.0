@@ -64,9 +64,11 @@ public final class ResearchJournalRegistry {
     public static List<Component> createBookPages() {
         List<ResearchJournalPageDefinition> definitions = pages;
         if (definitions.isEmpty()) {
-            return List.of(Component.literal("BIOFORGE RESEARCH JOURNAL\n\n")
+            return List.of(Component.translatable("research.bioforge.page.contents.title")
+                    .append("\n\n")
                     .withStyle(ChatFormatting.DARK_AQUA, ChatFormatting.BOLD)
-                    .append(Component.literal("Journal data is not loaded yet.")
+                    .append(Component.translatable(
+                                    "gui.bioforge.research_journal.not_loaded")
                             .withStyle(ChatFormatting.BLACK)));
         }
 

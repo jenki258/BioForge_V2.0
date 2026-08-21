@@ -119,7 +119,7 @@ public class ReagentVialItem extends Item {
                 );
 
                 ClipboardHelper.recordBloodData(
-                        bloodType.getDisplayName(),
+                        bloodType.name(),
                         type == Type.ANTI_A ? reacted : null,
                         type == Type.ANTI_B ? reacted : null,
                         type == Type.ANTI_D ? reacted : null,

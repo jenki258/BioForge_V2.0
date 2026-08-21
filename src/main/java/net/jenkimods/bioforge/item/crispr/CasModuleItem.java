@@ -61,9 +61,9 @@ public class CasModuleItem extends Item {
     public static Component getModuleName(ItemStack stack) {
         ResourceLocation id = getModuleId(stack);
         return BioForgeResearchData.casModule(id)
-                .map(definition -> Component.literal(definition.displayName()))
-                .orElseGet(() -> Component.literal(
-                        net.jenkimods.bioforge.crispr.CrisprDisplayNames.humanize(id.getPath())));
+                .map(definition -> Component.translatable(definition.translationKey()))
+                .orElseGet(() -> Component.translatable(
+                        "crispr.cas_module." + id.getNamespace() + "." + id.getPath()));
     }
 
     @Nullable
