@@ -6,12 +6,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.world.recipe.BioForgeRecipeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -94,15 +97,36 @@ public class CentrifugeRecipeManager extends SimpleJsonResourceReloadListener {
         javaRegistrationsFrozen = true;
     }
 
-    public Optional<CentrifugeRecipe> getRecipe(ItemStack inputStack) {
+    public Optional<CentrifugeRecipe> getRecipe(@Nullable Level level, ItemStack inputStack) {
         if (inputStack.isEmpty()) return Optional.empty();
+        if (level != null) {
+            for (var dataRecipe : level.getRecipeManager().getAllRecipesFor(
+                    BioForgeRecipeRegistration.CENTRIFUGE_TYPE)) {
+                if (dataRecipe.recipe().input().test(inputStack)) {
+                    return Optional.of(dataRecipe.recipe());
+                }
+            }
+        }
         for (CentrifugeRecipe recipe : recipes) {
             if (recipe.input().test(inputStack)) return Optional.of(recipe);
         }
         return Optional.empty();
     }
 
+    public Optional<CentrifugeRecipe> getRecipe(ItemStack inputStack) {
+        return getRecipe(null, inputStack);
+    }
+
     public List<CentrifugeRecipe> getRecipes() {
         return java.util.Collections.unmodifiableList(recipes);
+    }
+
+    public List<CentrifugeRecipe> getRecipes(@Nullable Level level) {
+        if (level == null) return getRecipes();
+        List<CentrifugeRecipe> combined = new ArrayList<>();
+        level.getRecipeManager().getAllRecipesFor(BioForgeRecipeRegistration.CENTRIFUGE_TYPE)
+                .forEach(recipe -> combined.add(recipe.recipe()));
+        combined.addAll(recipes);
+        return List.copyOf(combined);
     }
 }

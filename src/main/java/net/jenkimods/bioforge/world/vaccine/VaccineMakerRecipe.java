@@ -103,6 +103,7 @@ public record VaccineMakerRecipe(
         errorMutationThreshold = Mth.clamp(errorMutationThreshold, 0.0f, 1.0f);
         if ((operation == VaccineMakerOperation.FULL
                 || operation == VaccineMakerOperation.RANDOM_MUTATION
+                || operation == VaccineMakerOperation.RANDOM_MUTATION_UPGRADE
                 || operation == VaccineMakerOperation.RESISTANCE_PILL
                 || operation == VaccineMakerOperation.SYMPTOM_TABLET)
                 && fullResult == null) {

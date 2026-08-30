@@ -1,6 +1,5 @@
 package net.jenkimods.bioforge.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.infection.MicroscopeVisibility;
 import net.jenkimods.bioforge.item.crispr.GeneImprintItem;
@@ -342,7 +341,7 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                     }
                 }
 
-                RenderSystem.setShaderTexture(0, icon);
+                GuiRenderCompat.prepare(icon);
                 g.blit(icon, cx + 3, y + 1, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
             }
         }
@@ -375,7 +374,10 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                     if (value == null) {
                         tipText = "-";
                     } else {
-                        String nameKey = "microscope.symptom." + entry.symptomKey();
+                        boolean mutation = entry.symptomKey().startsWith("mutation:");
+                        String nameKey = mutation
+                                ? mutationNameKey(entry.symptomKey().substring("mutation:".length()))
+                                : "microscope.symptom." + entry.symptomKey();
                         String translatedName = Component.translatable(nameKey).getString();
                         if (translatedName.equals(nameKey)) {
                             translatedName = entry.symptomKey();
@@ -393,7 +395,18 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
                                     ? "microscope.value.present"
                                     : "microscope.value.absent").getString();
                         } else if (value instanceof Float f) {
-                            if (entry.displayPercentage()) {
+                            if (mutation) {
+                                stateText = Component.translatable(
+                                        "microscope.value.mutation_tier", Math.max(1, Math.round(f)))
+                                        .getString();
+                            } else if ("active_lifespan".equals(entry.symptomKey()) && f < 0.0F) {
+                                stateText = Component.translatable(
+                                        "microscope.value.infinite").getString();
+                            } else if ("incubation_time".equals(entry.symptomKey())
+                                    || "active_lifespan".equals(entry.symptomKey())) {
+                                stateText = Component.translatable(
+                                        "microscope.value.seconds", Math.round(f)).getString();
+                            } else if (entry.displayPercentage()) {
                                 stateText = String.format("%.0f%%", f * 100);
                             } else {
                                 stateText = String.format("%.0f", f);
@@ -410,9 +423,18 @@ public class MicroscopeScreen extends AbstractContainerScreen<MicroscopeMenu> {
         }
     }
 
+    private static String mutationNameKey(String mutationId) {
+        ResourceLocation id = mutationId.contains(":")
+                ? ResourceLocation.tryParse(mutationId)
+                : ResourceLocation.tryBuild(BioForge.MODID, mutationId);
+        if (id == null) return "mutation." + BioForge.MODID + ".unknown.name";
+        return "mutation." + id.getNamespace() + "."
+                + id.getPath().replace('/', '.') + ".name";
+    }
+
     @Override
     protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
-        RenderSystem.setShaderTexture(0, GUI_TEXTURE);
+        GuiRenderCompat.prepare(GUI_TEXTURE);
         g.blit(GUI_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
     }
 

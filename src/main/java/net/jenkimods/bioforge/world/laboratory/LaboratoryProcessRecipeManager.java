@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.world.recipe.BioForgeRecipeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -12,6 +13,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -48,10 +50,10 @@ public final class LaboratoryProcessRecipeManager extends SimpleJsonResourceRelo
                         JsonObject entry = element.getAsJsonObject();
                         String name = GsonHelper.getAsString(entry, "id", Integer.toString(index++));
                         ResourceLocation recipeId = ResourceLocation.tryBuild(id.getNamespace(), id.getPath() + "/" + name);
-                        loaded.put(recipeId, parse(recipeId, entry));
+                        loaded.put(recipeId, parseRecipe(recipeId, entry));
                     }
                 } else {
-                    loaded.put(id, parse(id, root));
+                    loaded.put(id, parseRecipe(id, root));
                 }
             } catch (Exception exception) {
                 BioForge.LOGGER.error("Unable to load laboratory recipe {}: {}", id, exception.getMessage());
@@ -61,7 +63,7 @@ public final class LaboratoryProcessRecipeManager extends SimpleJsonResourceRelo
         BioForge.LOGGER.info("Loaded {} laboratory processing recipes", recipes.size());
     }
 
-    private LaboratoryProcessRecipe parse(ResourceLocation id, JsonObject root) {
+    public static LaboratoryProcessRecipe parseRecipe(ResourceLocation id, JsonObject root) {
         LaboratoryStation station = LaboratoryStation.byName(GsonHelper.getAsString(root, "station"));
         List<Ingredient> ingredients = new ArrayList<>();
         root.getAsJsonArray("ingredients").forEach(element -> ingredients.add(Ingredient.fromJson(element)));
@@ -100,15 +102,16 @@ public final class LaboratoryProcessRecipeManager extends SimpleJsonResourceRelo
         return item;
     }
 
-    public Optional<LaboratoryProcessRecipe> find(LaboratoryStation station,
+    public Optional<LaboratoryProcessRecipe> find(Level level, LaboratoryStation station,
                                                    ItemStackHandler inventory) {
-        return recipes.stream().filter(recipe -> recipe.station() == station && recipe.matches(inventory)).findFirst();
+        return recipes(level).stream().filter(recipe -> recipe.station() == station
+                && recipe.matches(inventory)).findFirst();
     }
 
-    public Optional<LaboratoryProcessRecipe> findSingle(LaboratoryStation station,
+    public Optional<LaboratoryProcessRecipe> findSingle(Level level, LaboratoryStation station,
                                                          ItemStack input) {
         if (input.isEmpty()) return Optional.empty();
-        return recipes.stream().filter(recipe -> recipe.station() == station
+        return recipes(level).stream().filter(recipe -> recipe.station() == station
                 && recipe.matchesSingle(input)).findFirst();
     }
 
@@ -125,6 +128,15 @@ public final class LaboratoryProcessRecipeManager extends SimpleJsonResourceRelo
 
     public List<LaboratoryProcessRecipe> recipes() {
         return recipes;
+    }
+
+    public List<LaboratoryProcessRecipe> recipes(Level level) {
+        if (level == null) return recipes();
+        List<LaboratoryProcessRecipe> combined = new ArrayList<>();
+        level.getRecipeManager().getAllRecipesFor(BioForgeRecipeRegistration.LABORATORY_TYPE)
+                .forEach(recipe -> combined.add(recipe.recipe()));
+        combined.addAll(recipes);
+        return List.copyOf(combined);
     }
 
     @SubscribeEvent

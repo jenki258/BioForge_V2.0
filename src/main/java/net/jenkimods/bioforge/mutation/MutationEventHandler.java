@@ -1,14 +1,11 @@
 package net.jenkimods.bioforge.mutation;
 
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.BioForgeTags;
 import net.jenkimods.bioforge.infection.InfectionCapability;
 import net.jenkimods.bioforge.infection.InfectionData;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,8 +18,6 @@ import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = BioForge.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class MutationEventHandler {
-    private static final TagKey<Item> MEAT_FOODS = TagKey.create(Registries.ITEM,
-            ResourceLocation.tryBuild(BioForge.MODID, "foods/meat"));
     private static final String CRAVING_MESSAGE_COOLDOWN = "BioForgeFleshCravingMessage";
 
     private MutationEventHandler() {}
@@ -39,7 +34,7 @@ public final class MutationEventHandler {
     @SubscribeEvent
     public static void onUseItemStart(LivingEntityUseItemEvent.Start event) {
         if (event.getEntity().level().isClientSide() || !event.getItem().isEdible()
-                || event.getItem().is(MEAT_FOODS)) return;
+                || event.getItem().is(BioForgeTags.FLESH_CRAVING_MEAT)) return;
         InfectionData data = InfectionCapability.get(event.getEntity());
         if (data == null || !data.isInfectionActive()
                 || !MutationManager.hasMutation(data, "flesh_cravings")) return;
@@ -57,7 +52,8 @@ public final class MutationEventHandler {
 
     @SubscribeEvent
     public static void onUseItemFinish(LivingEntityUseItemEvent.Finish event) {
-        if (event.getEntity().level().isClientSide() || !event.getItem().is(MEAT_FOODS)) return;
+        if (event.getEntity().level().isClientSide()
+                || !event.getItem().is(BioForgeTags.FLESH_CRAVING_MEAT)) return;
         InfectionData data = InfectionCapability.get(event.getEntity());
         if (data == null || !data.isInfectionActive()
                 || !MutationManager.hasMutation(data, "flesh_cravings")) return;

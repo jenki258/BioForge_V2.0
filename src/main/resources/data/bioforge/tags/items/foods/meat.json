@@ -2,6 +2,13 @@
   "replace": false,
   "values": [
     {"id": "#forge:foods/meat", "required": false},
+    {"id": "#forge:foods/raw_meat", "required": false},
+    {"id": "#forge:foods/cooked_meat", "required": false},
+    {"id": "#forge:foods/raw_meats", "required": false},
+    {"id": "#forge:foods/cooked_meats", "required": false},
+    {"id": "#forge:foods/raw_fish", "required": false},
+    {"id": "#forge:foods/cooked_fish", "required": false},
+    {"id": "#forge:foods/fish", "required": false},
     "minecraft:beef",
     "minecraft:cooked_beef",
     "minecraft:porkchop",

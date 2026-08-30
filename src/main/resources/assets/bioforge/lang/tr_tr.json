@@ -5,12 +5,9 @@
   "itemGroup.bioforge.machinery_tab": "BioForge — Makineler",
   "itemGroup.bioforge.samples_tab": "BioForge — Numuneler",
   "itemGroup.bioforge.materials_tab": "BioForge — Malzemeler",
-
   "key.bioforge.reflex_strike": "Refleks Çekici Darbesi",
   "key.categories.bioforge": "BioForge",
-
   "item.bioforge.activated_carbon": "Aktif Karbon",
-  "item.bioforge.laboratory_waste": "Laboratuvar Atığı",
   "item.bioforge.black_steel_blend": "Siyah Çelik Alaşımı",
   "item.bioforge.black_steel_ingot": "Siyah Çelik Külçesi",
   "item.bioforge.black_steel_nugget": "Siyah Çelik Parçası",
@@ -29,13 +26,13 @@
   "item.bioforge.laboratory_frame": "Laboratuvar Çerçevesi",
   "item.bioforge.biomedical_processor": "Biyomedikal İşlemci",
   "block.bioforge.black_steel_block": "Siyah Çelik Blok",
-
+  "block.bioforge.black_steel_tiles": "Siyah Çelik Karolar",
+  "block.bioforge.black_steel_grate": "Siyah Çelik Izgara",
   "block.bioforge.colony_core": "Koloni Çekirdeği",
   "block.bioforge.microbial_mat": "Mikrobiyal Örtü",
   "block.bioforge.sporocarp": "Sporokarp",
   "block.bioforge.necrotic_patch": "Nekrotik Bölge",
   "block.bioforge.infested_block": "İstila Edilmiş Blok",
-
   "item.bioforge.wooden_needle": "Tahta İğne",
   "item.bioforge.iron_needle": "Siyah Çelik İğne",
   "item.bioforge.hardened_needle": "Sertleştirilmiş İğne",
@@ -50,13 +47,12 @@
   "item.bioforge.needle.tooltip.anti_b": "Anti-B: %s",
   "item.bioforge.needle.tooltip.anti_d": "Anti-D (Rh): %s",
   "item.bioforge.needle.tooltip.warning_blood": "⚠ Kan yoluyla bulaşan enfeksiyona sahip bir canlıdan kan almak iğneyi kirletecektir.",
-
   "item.bioforge.anti_a_vial": "Anti-A Reaktif Flakonu",
   "item.bioforge.anti_b_vial": "Anti-B Reaktif Flakonu",
   "item.bioforge.anti_d_vial": "Anti-D Reaktif Flakonu",
-  "item.bioforge.reagent_vial.anti_a.desc": "Kanda A antijeni tespit edildi",
-  "item.bioforge.reagent_vial.anti_b.desc": "Kanda B antijeni tespit edildi",
-  "item.bioforge.reagent_vial.anti_d.desc": "Kanda Rh faktörü tespit edildi",
+  "item.bioforge.reagent_vial.anti_a.desc": "Kandaki A antijenini tespit eder",
+  "item.bioforge.reagent_vial.anti_b.desc": "Kandaki B antijenini tespit eder",
+  "item.bioforge.reagent_vial.anti_d.desc": "Kandaki Rh faktörünü tespit eder",
   "item.bioforge.reagent_vial.tooltip.instructions": "Diğer elinizde dolu bir iğne veya kemik iliği tutun ve sağ tıklayın",
   "item.bioforge.reagent_vial.tooltip.positive": "⊕ Reaksiyon algılandı",
   "item.bioforge.reagent_vial.tooltip.negative": "⊖ Reaksiyon yok",
@@ -66,9 +62,8 @@
   "item.bioforge.reagent_vial.needle_empty": "İğnede kan yok.",
   "item.bioforge.reagent_vial.no_sample": "Diğer elinizde bir kan örneği tutun.",
   "item.bioforge.reagent_vial.invalid_sample": "Burada yalnızca kanlı bir iğne veya kemik iliği kullanılabilir.",
-
   "item.bioforge.pathogen_reagent": "Patojen Reaktifi",
-  "item.bioforge.visibility_reagent": "Görünürlük Reaktifi",
+  "item.bioforge.visibility_reagent": "Kontrast Reaktifi",
   "item.bioforge.pathogen_reagent.description": "Enfekte kandaki patojen sınıfını belirler.",
   "item.bioforge.pathogen_reagent.result": "Tespit edilen patojen: %s",
   "item.bioforge.pathogen_reagent.negative": "Patojen tespit edilmedi",
@@ -80,12 +75,11 @@
   "item.bioforge.diagnostic_reagent.no_sample": "Diğer elinizde dolu bir kan örneği tutun ve sağ tıklayın.",
   "item.bioforge.diagnostic_reagent.already_used": "Bu reaktif zaten kullanılmış.",
   "item.bioforge.diagnostic_reagent.spent": "Tek kullanımlık — kullanıldı",
-
   "item.bioforge.syringe": "Şırınga",
   "item.bioforge.syringe.empty": "Şırınga Boş",
   "item.bioforge.syringe.filled": "Kan Dolu",
   "item.bioforge.syringe.source": "Kaynak: %s",
-  "item.bioforge.syringe.uses_left": "Kalan kullanım hakkı: %s",
+  "item.bioforge.syringe.uses_left": "Kalan kan kullanımı: %s",
   "item.bioforge.syringe.blood_type": "Kan grubu: %s",
   "item.bioforge.syringe.reactions": "Reaksiyonlar",
   "item.bioforge.syringe.anti_a": "Anti-A: %s",
@@ -96,32 +90,26 @@
   "item.bioforge.syringe.tooltip.inject_self": "Kendinize enjekte etmek için havaya sağ tıklayın.",
   "item.bioforge.syringe.tooltip.inject_mob": "Bir canlıya enjekte etmek için sağ tıklayın.",
   "item.bioforge.syringe.tooltip.warning_blood": "⚠ Kan yoluyla bulaşan enfeksiyona sahip bir canlıdan kan almak şırıngayı kirletecektir.",
-
   "item.bioforge.bone_saw": "Kemik Testeresi",
   "item.bioforge.bone_saw.sampled": "Parçalanmış kemik örneği elde edildi.",
   "item.bioforge.bone_saw.tooltip.use": "Parçalanmış kemik örnekleri toplamak için iskeletlere saldırın.",
   "item.bioforge.bone_saw.tooltip.withered": "Solmuş parçalanmış kemik örnekleri elde etmek için Wither iskeletlerine saldırın.",
-
   "item.bioforge.split_bone": "Parçalanmış Kemik",
   "item.bioforge.split_bone.tooltip.empty": "İlik örneği bulunamadı.",
   "item.bioforge.split_bone.tooltip.filled": "Ham kemik iliği içeriyor.",
   "item.bioforge.split_bone.tooltip.raw": "Ham iskelet örneği",
-
   "item.bioforge.bone_marrow": "Kemik İliği",
   "item.bioforge.bone_marrow.tooltip.empty": "İlik verisi yok",
   "item.bioforge.bone_marrow.tooltip.filled": "Saflaştırılmış ilik örneği",
   "item.bioforge.bone_marrow.tooltip.processed": "Santrifüjde işlendi",
-
   "item.bioforge.withered_split_bone": "Solmuş Parçalanmış Kemik",
   "item.bioforge.withered_split_bone.tooltip.raw": "Solmuş ilik örneği içeriyor",
   "item.bioforge.withered_split_bone.tooltip.needs_decalcification": "Kullanmadan önce dekalsifiye edilmesi gerekir.",
   "item.bioforge.withered_split_bone.tooltip.empty": "Boş solmuş kemik parçası",
-
   "item.bioforge.withered_bone_marrow": "Solmuş Kemik İliği",
   "item.bioforge.withered_bone_marrow.tooltip.empty": "Boş örnek",
   "item.bioforge.withered_bone_marrow.tooltip.filled": "İlik örneği içeriyor",
   "item.bioforge.withered_bone_marrow.tooltip.processed": "Dekalsifiye edildi",
-
   "item.bioforge.decalcification_fluid": "Dekalsifikasyon Sıvısı",
   "jei.bioforge.category.decalcification": "Dekalsifikasyon",
   "jei.bioforge.decalcification.hand_crafted": "Sıvıyı ana elinizde, eşyayı diğer elinizde tutun ve sağ tıklayın.",
@@ -130,15 +118,13 @@
   "item.bioforge.decalcification_fluid.wrong_hand_fluid": "Sıvıyı ana elinizde tutun.",
   "item.bioforge.decalcification_fluid.invalid_target": "Diğer elinizde kalsifiye eşya bulunamadı.",
   "item.bioforge.decalcification_fluid.no_sample": "Kalsifiye eşya uygun örnek içermiyor.",
-
   "block.bioforge.centrifuge": "Santrifüj",
   "jei.bioforge.category.centrifuge": "Santrifüj",
   "block.bioforge.centrifuge.no_recipe": "Bu eşya için santrifüj tarifi yok.",
-  "block.bioforge.centrifuge.missing_sample": "Girdi verisinde kan bilgisi yok.",
+  "block.bioforge.centrifuge.missing_sample": "Girdi örneğinde kan verisi yok.",
   "jei.bioforge.centrifuge.processing_time": "İşlem süresi: %s tik",
   "jei.bioforge.centrifuge.transfers_blood": "Kan verilerini aktarır",
   "jei.bioforge.centrifuge.transfers_infection": "Enfeksiyonu aktarır",
-
   "item.bioforge.thermometer": "Termometre",
   "item.bioforge.thermometer.reading_header": "Son ölçüm:",
   "item.bioforge.thermometer.reading_header_target": "Son ölçüm (%s):",
@@ -156,8 +142,7 @@
   "item.bioforge.thermometer.no_infection": "%s için anormal sıcaklık tespit edilmedi.",
   "item.bioforge.thermometer.hold_shift": "Sıcaklık ölçmek için bir canlıya Shift ile sağ tıklayın.",
   "item.bioforge.thermometer.reading_taken_self": "Sıcaklık ölçüldü.",
-  "item.bioforge.thermometer.reading_taken_mob": "%s adlı canlıdan sıcaklık ölçüldü.",
-
+  "item.bioforge.thermometer.reading_taken_mob": "%s adlı canlının sıcaklığı ölçüldü.",
   "item.bioforge.stethoscope": "Stetoskop",
   "item.bioforge.stethoscope.tooltip.hold": "Dinlemeye başlamak için sağ tıklayın",
   "item.bioforge.stethoscope.tooltip.look": "Hayati belirtileri duymak için bir canlıya nişan alın",
@@ -172,7 +157,6 @@
   "overlay.bioforge.stethoscope.listening": "Dinleniyor",
   "overlay.bioforge.stethoscope.heart": "KALP",
   "overlay.bioforge.stethoscope.lungs": "AKCİĞER",
-
   "item.bioforge.otoscope": "Otoskop",
   "overlay.bioforge.otoscope.redness": "Kızarıklık",
   "overlay.bioforge.otoscope.lesion": "Lezyon",
@@ -185,10 +169,8 @@
   "item.bioforge.otoscope.tooltip.target": "İncelemek için canlıya nişan alın; kendiniz için diğer elinizde Ayna tutun",
   "item.bioforge.otoscope.tooltip.move": "Seçiciyi hareket ettirmek için yön tuşlarını / WASD kullanın",
   "item.bioforge.otoscope.tooltip.exit": "Kapatmak için sağ tıklamayı bırakın",
-
   "item.bioforge.mirror": "Ayna",
   "item.bioforge.mirror.tooltip": "Kendinizi incelemek için diğer elinizde Otoskop ile tutun",
-
   "item.bioforge.reflex_hammer": "Refleks Çekici",
   "overlay.bioforge.reflex.target": "Hedef: %s",
   "overlay.bioforge.reflex.prompt": "İşaretçi açık mavi alana geldiğinde [%s] tuşuna basın!",
@@ -207,7 +189,6 @@
   "item.bioforge.reflex_hammer.tooltip.target": "Test etmek için bir canlıya bakın; aksi takdirde kendinizi test edersiniz",
   "item.bioforge.reflex_hammer.tooltip.strike": "İşaretçi açık mavi alana geldiğinde [%s] tuşuna basın!",
   "item.bioforge.reflex_hammer.tooltip.success": "Teşhis için üst üste 5 kusursuz vuruş yapın",
-
   "item.bioforge.pulse_oximeter": "Nabız Oksimetresi",
   "overlay.bioforge.pulse_oximeter.stabilizing": "Sabitleniyor...",
   "overlay.bioforge.pulse_oximeter.spo2": "SpO₂",
@@ -215,7 +196,6 @@
   "item.bioforge.pulse_oximeter.tooltip.hold": "Etkinleştirmek için sağ tıklayın",
   "item.bioforge.pulse_oximeter.tooltip.target": "Oksijen seviyesi için bir varlığa bakın",
   "item.bioforge.pulse_oximeter.tooltip.stabilize": "Net bir okuma için hareketsiz kalın",
-
   "item.bioforge.clipboard": "Belirti Panosu",
   "item.bioforge.clipboard.tooltip": "Hasta olarak atamak için bir canlıya sağ tıklayın",
   "item.bioforge.clipboard.patient_set": "İncelenen hasta: %s",
@@ -231,7 +211,6 @@
   "item.bioforge.clipboard.hint_print_book": "Eklemek için Kitap ve Tüy Kalem tutup sağ tıklayın",
   "item.bioforge.clipboard.hint_clear": "Temizlemek için Shift + Sağ tık",
   "item.bioforge.clipboard.now_inspecting": "İncelenen hasta: %s",
-
   "item.bioforge.medical_report": "Tıbbi Rapor",
   "item.bioforge.medical_report.patient": "Hasta: %s",
   "item.bioforge.medical_report.page": "Sayfa %s / %s",
@@ -242,7 +221,6 @@
   "item.bioforge.medical_report.hint_copy": "Kopyalamak için diğer elinizde kağıt tutup sağ tıklayın",
   "item.bioforge.medical_report.hint_book": "Eklemek için Kitap ve Tüy Kalem tutup sağ tıklayın",
   "item.bioforge.medical_report.hint_vaccine_maker": "Doldurulmuş rapor, Aşı Sentezleyicinin kanıt güvenilirliğini artırır ve partiyi hastanın kanına göre kalibre eder.",
-
   "clipboard.blood.incomplete": "Eksik — tüm reaktifleri test edin",
   "clipboard.section.vital": "Hayati Bulgular",
   "clipboard.section.respiratory": "Solunum",
@@ -278,7 +256,6 @@
   "clipboard.stethoscope.brady": "Bradikardi",
   "clipboard.stethoscope.clear": "Temiz",
   "clipboard.stethoscope.crackle": "Hırıltılı",
-
   "item.bioforge.swab": "Örnek Çubuğu",
   "item.bioforge.swab.tooltip.clean": "Temiz örnek çubuğu",
   "item.bioforge.swab.tooltip.usage": "Bir canlıya ya da kendiniz için havaya sağ tıklayın",
@@ -292,7 +269,6 @@
   "item.bioforge.swab.collected_sporocarp": "Örnek çubuğu sporokarp türüyle kontamine oldu.",
   "item.bioforge.swab.collected_core": "Örnek çubuğu koloni çekirdeği türüyle kontamine oldu.",
   "item.bioforge.swab.collected_infected_crop": "Örnek çubuğu enfekte ekin suşuyla kontamine oldu.",
-
   "item.bioforge.petri_dish": "Petri Kabı",
   "block.bioforge.petri_dish": "Petri Kabı",
   "item.bioforge.petri_dish.harvested": "Kaptan örnek toplandı.",
@@ -301,7 +277,6 @@
   "item.bioforge.petri_dish.tooltip.cultured": "Kültür büyüyor",
   "item.bioforge.petri_dish.need_swab": "Diğer elinizde kontamine örnek çubuğu tutun.",
   "item.bioforge.petri_dish.inoculated": "Petri Kabı aşılandı.",
-
   "item.bioforge.contaminated_substrate": "Kontamine Substrat",
   "block.bioforge.contaminated_substrate": "Kontamine Substrat",
   "item.bioforge.contaminated_substrate.incompatible_pathogen": "Bu patojen (%s) koloni oluşturamaz. Yalnızca mantar ve bakteriler çevresel patojendir.",
@@ -312,7 +287,6 @@
   "item.bioforge.contaminated_substrate.tooltip.clean": "Boş — aşılama gerekiyor",
   "item.bioforge.contaminated_substrate.tooltip.usage": "Diğer elinizde kontamine örnek çubuğu tutun",
   "item.bioforge.contaminated_substrate.tooltip.inoculated": "Aşılandı — yerleştirmeye hazır",
-
   "item.bioforge.blood_slide": "Lam",
   "item.bioforge.blood_slide.empty": "Boş lam",
   "item.bioforge.blood_slide.filled": "Kan örneği içeriyor",
@@ -325,7 +299,6 @@
   "item.bioforge.blood_slide.tooltip.usage": "Diğer elinizde kan dolu iğne veya şırınga tutup sağ tıklayın",
   "item.bioforge.blood_slide.need_blood": "Diğer elinizde kan dolu iğne veya şırınga tutun.",
   "item.bioforge.blood_slide.transferred": "Kan örneği lama aktarıldı.",
-
   "item.bioforge.tube": "Deney Tüpü",
   "item.bioforge.tube.empty": "Boş tüp",
   "item.bioforge.tube.filled": "Kan içeriyor",
@@ -348,7 +321,6 @@
   "item.bioforge.tube.assay.scanned": "Aşılanmış kan tahlili: tarandı",
   "item.bioforge.tube.assay.result": "Ölçülen etki: %s",
   "item.bioforge.tube.assay.microscope_hint": "Bu örneği Mikroskopta kalibre edin ve tarayın",
-
   "item.bioforge.plasma_sample": "Plazma Örneği",
   "item.bioforge.plasma_sample.empty": "Boş plazma örneği",
   "item.bioforge.plasma_sample.filled": "Plazma örneği",
@@ -358,7 +330,6 @@
   "item.bioforge.plasma_sample.anti_a": "Anti-A: %s",
   "item.bioforge.plasma_sample.anti_b": "Anti-B: %s",
   "item.bioforge.plasma_sample.anti_d": "Anti-D (Rh): %s",
-
   "item.bioforge.cell_pellet": "Hücre Tortusu",
   "item.bioforge.cell_pellet.empty": "Boş hücre tortusu",
   "item.bioforge.cell_pellet.filled": "Hücre tortusu örneği",
@@ -368,7 +339,6 @@
   "item.bioforge.cell_pellet.anti_a": "Anti-A: %s",
   "item.bioforge.cell_pellet.anti_b": "Anti-B: %s",
   "item.bioforge.cell_pellet.anti_d": "Anti-D (Rh): %s",
-
   "item.bioforge.microscope": "Mikroskop",
   "block.bioforge.microscope": "Mikroskop",
   "microscope.symptom.heart_rate": "Kalp Atış Hızı",
@@ -378,6 +348,7 @@
   "microscope.symptom.temperature_plus": "Ateş",
   "microscope.symptom.temperature_minus": "Hipotermi",
   "microscope.symptom.infection_strength": "Enfeksiyon Şiddeti",
+  "microscope.symptom.incubation_time": "Kuluçka süresi (sn)",
   "microscope.symptom.lung_sound": "Akciğer Sesleri",
   "microscope.symptom.lung_sound.normal": "Temiz",
   "microscope.symptom.lung_sound.crackle": "Hırıltılı",
@@ -417,7 +388,6 @@
   "message.bioforge.microscope.calibration_incomplete": "Mikroskop kalibrasyonu tamamlanmadı.",
   "message.bioforge.microscope.assay_complete": "Aşı kan tahlili tamamlandı.",
   "message.bioforge.microscope.sample_researched": "Örnek analizi tamamlandı. Suş artık adlandırılabilir.",
-
   "block.bioforge.incubator": "İnkübatör",
   "jei.bioforge.category.incubator": "İnkübatör",
   "jei.bioforge.incubator.processing_time": "İşlem süresi: %s tik",
@@ -429,7 +399,6 @@
   "jei.bioforge.incubator.primary_cost.per_output": "Birincil maliyet: yuva başına %s",
   "jei.bioforge.incubator.primary_cost.per_batch": "Birincil maliyet: parti başına %s",
   "jei.bioforge.incubator.catalyst_cost": "Katalizör maliyeti: parti başına %s",
-
   "item.bioforge.catalyst_vial": "Katalizör Flakonu",
   "item.bioforge.catalyst_vial.empty": "Boş — Patojen Reaktifi gerekiyor",
   "item.bioforge.catalyst_vial.tooltip": "Diğer elinizde reaktif tutun ve sağ tıklayın",
@@ -442,10 +411,8 @@
   "item.bioforge.catalyst_vial.mappings_header": "Reaktifler:",
   "item.bioforge.catalyst_vial.nether_star_hint": "Nether Yıldızı → nadir Evrensel şansına sahip rastgele patojen",
   "item.bioforge.catalyst_vial.place_in_incubator": "Virüs Örneği büyütmek için İnkübatörde Besiyeri ile birleştirin",
-
   "item.bioforge.nutrient_medium": "Besiyeri",
   "item.bioforge.nutrient_medium.tooltip": "Virüs Örnekleri büyütmek için alt İnkübatör yuvalarına yerleştirin",
-
   "item.bioforge.virus_sample": "Virüs Örneği",
   "item.bioforge.virus_sample.empty": "Boş virüs örneği",
   "item.bioforge.virus_sample.filled": "Patojen örneği içeriyor",
@@ -455,7 +422,6 @@
   "item.bioforge.virus_sample.use_in_incubator": "Canlı Kültür Flakonları büyütmek için üst yuvaya yerleştirin",
   "item.bioforge.virus_sample.use_with_live_culture": "Alt yuvalara boş Canlı Kültür Flakonları yerleştirin",
   "item.bioforge.virus_sample.tooltip": "İnkübatörde Katalizör Flakonu ve Besiyerinden oluşturulur",
-
   "item.bioforge.live_culture_vial": "Canlı Kültür Flakonu",
   "item.bioforge.live_culture_vial.empty": "Boş — Virüs Örneği gerekiyor",
   "item.bioforge.live_culture_vial.tooltip": "Kültür büyütmek için Virüs Örneği ile kuluçkaya yatırın",
@@ -468,19 +434,20 @@
   "item.bioforge.live_culture_vial.use_infect": "Yiyecek, içecek veya petri kaplarını enfekte etmek için sağ tıklayın",
   "item.bioforge.live_culture_vial.grow_in_incubator": "Virüs Örneği veya dolu Canlı Kültür Flakonunun altına yerleştirin",
   "item.bioforge.live_culture_vial.sealed_profile": "Genetik profil mühürlü; analiz için laboratuvar ekipmanı kullanın",
-
   "item.bioforge.dirty_culture_vial": "Kirli Kültür Flakonu",
   "item.bioforge.dirty_culture_vial.tooltip": "Bu flakon kullanılmış ve kontamine olmuş.",
   "item.bioforge.dirty_culture_vial.tooltip.clean": "Yeniden kullanmak için Etanol veya Islak Mendil ile temizleyin.",
-
   "item.bioforge.ethanol": "Etanol",
   "item.bioforge.ethanol.cleaned": "Kültür Flakonu temizlendi.",
   "item.bioforge.ethanol.syringe_cleaned": "Şırıngadan enfeksiyon giderildi.",
   "item.bioforge.ethanol.syringe_not_empty": "Dezenfekte edilmeden önce şırınga boş olmalıdır.",
+  "item.bioforge.ethanol.coating_applied": "Etanol kaplaması uygulandı. Blok ve çevresindeki alan artık temas yoluyla bulaşmaya karşı korumalı.",
+  "item.bioforge.ethanol.already_coated": "Bu blokta zaten etanol kaplaması var.",
   "item.bioforge.ethanol.tooltip.clean_vial": "Kirli Kültür Flakonlarını temizler",
   "item.bioforge.ethanol.tooltip.clean_syringe": "Boş şırıngalardan enfeksiyonu giderir",
+  "item.bioforge.ethanol.tooltip.coat_black_steel": "Varil Presi dışındaki tüm BioForge bloklarını kaplar",
+  "item.bioforge.ethanol.tooltip.protection_radius": "5×5×5 alanı temas yoluyla bulaşmadan temiz tutar",
   "item.bioforge.ethanol.tooltip.usage": "Temizlenecek eşyayı diğer elinizde tutun ve sağ tıklayın",
-
   "item.bioforge.wipes": "Islak Mendil",
   "item.bioforge.wipe.cleaned": "Kültür Flakonu silinerek temizlendi.",
   "item.bioforge.wipe.syringe_cleaned": "Şırıngadan enfeksiyon giderildi.",
@@ -488,9 +455,7 @@
   "item.bioforge.wipe.tooltip.clean_vial": "Kirli Kültür Flakonlarını temizler",
   "item.bioforge.wipe.tooltip.clean_syringe": "Boş şırıngalardan enfeksiyonu giderir",
   "item.bioforge.wipe.tooltip.usage": "Temizlenecek eşyayı diğer elinizde tutun ve sağ tıklayın",
-
   "item.bioforge.wine_must": "Şarap Şırası",
-
   "subtitles.bioforge.symptom.cough": "Biri öksürüyor",
   "subtitles.bioforge.symptom.sneeze": "Biri hapşırıyor",
   "subtitles.bioforge.symptom.paranoia_voice": "Belirsiz sesler fısıldıyor",
@@ -503,14 +468,13 @@
   "subtitles.bioforge.machine.chemicals_complete": "Kimyasal süreç tamamlanıyor",
   "subtitles.bioforge.ui.button": "Arayüz butonuna tıklanıyor",
   "subtitles.bioforge.ui.satisfying": "Mutasyon makarası kilitleniyor",
-
   "pathogen.bioforge.virus": "Virüs",
   "pathogen.bioforge.bacteria": "Bakteri",
   "pathogen.bioforge.fungi": "Mantar",
   "pathogen.bioforge.parasite": "Parazit",
   "pathogen.bioforge.prion": "Prion",
   "pathogen.bioforge.universal": "Evrensel",
-"infection_type.bioforge.air_borne": "Hava Yoluyla",
+  "infection_type.bioforge.air_borne": "Hava Yoluyla",
   "infection_type.bioforge.food_borne": "Gıda Yoluyla",
   "infection_type.bioforge.water_borne": "Su Yoluyla",
   "infection_type.bioforge.contact_based": "Temas Yoluyla",
@@ -522,12 +486,10 @@
   "command.bioforge.infect.cleared": "%s üzerindeki enfeksiyon temizlendi.",
   "command.bioforge.infect.incompatible": "'%s' patojeni '%s' bulaşma türünü desteklemiyor.",
   "command.bioforge.cure.success": "%s iyileştirildi.",
-
   "mutation.slot.title": "MUTASYON SENTEZİ",
   "mutation.slot.jackpot": "DİZİLİM STABİLİZE EDİLDİ",
   "mutation.slot.result": "%s (%s)",
   "mutation.slot.rarity": "SINIF // %s",
-
   "item.bioforge.vaccine": "Suş Aşısı",
   "item.bioforge.vaccine.empty": "Yapılandırılmamış Aşı",
   "item.bioforge.vaccine.empty_hint": "Aşı Sentezleyicide taşıyıcı olarak kullanın.",
@@ -567,7 +529,6 @@
   "command.bioforge.vaccinemake.not_infected": "%s profili çıkarılacak bir enfeksiyona sahip değil.",
   "command.bioforge.vaccinemake.unavailable": "Aşı eşyası kayıtlı değil.",
   "command.bioforge.vaccinemake.success": "%s kaynağından aşı oluşturuldu: %s, kalite %s, %s doz.",
-
   "item.bioforge.mutation_vaccine": "Mutasyon Aşısı",
   "item.bioforge.transmission_vaccine": "Bulaşma Aşısı",
   "item.bioforge.symptom_vaccine": "Semptom Aşısı",
@@ -577,7 +538,6 @@
   "message.bioforge.random_mutation_vaccine.applied": "%s bilinmeyen bir mutasyon geliştirdi.",
   "message.bioforge.random_mutation_vaccine.no_target": "%s için uygun bir mutasyon bulunmuyor.",
   "message.bioforge.random_mutation_vaccine.mismatch": "Deneysel doz %s varlığının aktif enfeksiyonuyla eşleşmiyor.",
-
   "item.bioforge.viral_suppressor_pill": "Viral Baskılayıcı Hap",
   "item.bioforge.viral_inhibitor_pill": "Viral İnhibitör Hap",
   "item.bioforge.viral_blocker_pill": "Viral Engelleyici Hap",
@@ -589,7 +549,6 @@
   "item.bioforge.resistance_pill.warning": "Yalnızca koruyucudur: aktif bir enfeksiyonu iyileştirmez",
   "message.bioforge.resistance_pill.blank": "Bu hapın kodlanmış bir suş hedefi yok.",
   "message.bioforge.resistance_pill.applied": "Tam suş direnci etkin: %s%%.",
-
   "item.bioforge.crispr_cartridge": "CRISPR gRNA Kartuşu",
   "item.bioforge.crispr_cartridge.sequence": "Dizilim: %s",
   "item.bioforge.crispr_cartridge.assignment": "Atanan: gRNA %s, fragman %s",
@@ -600,7 +559,6 @@
   "message.bioforge.crispr.assay_no_growth": "Kültürde analiz için büyüme alanı kalmadı.",
   "message.bioforge.crispr.assay_result": "CRISPR kültür reaksiyonu: %s/%s baz eşleşti.",
   "message.bioforge.crispr.assay_result_hidden": "Kültür niteliksel bir CRISPR reaksiyonu üretti.",
-
   "item.bioforge.cas_module": "Cas/PAM Modülü",
   "item.bioforge.cas_module.module": "Nükleaz profili: %s",
   "item.bioforge.cas_module.pam": "PAM kuralı: %s",
@@ -610,7 +568,6 @@
   "item.bioforge.cas_module.tooltip": "Uyumsuz bir nükleaz bu suşun aşısını sentezleyemez",
   "item.bioforge.cas_module.cycle": "Yüklü Cas/PAM profilini değiştirmek için sağ tıklayın",
   "message.bioforge.cas_module.selected": "Cas/PAM profili seçildi: %s.",
-
   "item.bioforge.gene_imprint": "Gen İzi",
   "item.bioforge.gene_imprint.empty": "Boş gen izi",
   "item.bioforge.gene_imprint.copy_hint": "Diğer elinizde boş bir Gen İzi tutun ve kopyalamak için sağ tıklayın",
@@ -628,7 +585,6 @@
   "message.bioforge.gene_imprint.use_vaccine_maker": "Aşı Sentezleyicideki bir suş örneğinden gen fragmanı çıkarın.",
   "message.bioforge.gene_imprint.use_microscope": "Bu fragman kalibre edilmiş bir Mikroskopta tanımlanmalıdır.",
   "message.bioforge.gene_imprint.identified": "Mikroskop fragmanı tanımladı: %s / %s.",
-
   "item.bioforge.crispr_notes": "CRISPR Araştırma Notları",
   "item.bioforge.crispr_notes.blank": "Boş CRISPR araştırma ortamı",
   "item.bioforge.crispr_notes.batch": "Suş imzası: %s",
@@ -639,7 +595,6 @@
   "item.bioforge.crispr_notes.hint_book": "Diğer elinizde Kitap ve Tüy tutun ve eklemek için sağ tıklayın",
   "item.bioforge.crispr_notes.correction_batch": "Matris suş imzası: %s",
   "item.bioforge.crispr_notes.correction_entries": "Programlanmış antijen kanalları: %s",
-
   "item.bioforge.directed_vaccine.encoded": "Kodlanmış yönlendirilmiş yanıt partisi",
   "vaccine.category.mutation": "Mutasyon",
   "vaccine.category.transmission": "Bulaşma",
@@ -656,13 +611,12 @@
   "message.bioforge.directed_vaccine.resisted_hidden": "%s kesin bir yönlendirilmiş yanıt göstermedi.",
   "message.bioforge.directed_vaccine.mismatch_hidden": "%s yönlendirilmiş parti profilini reddetti.",
   "message.bioforge.directed_vaccine.no_target_hidden": "Parti, ölçülebilir bir hedef değişimi olmadan tamamlandı.",
-
   "block.bioforge.vaccine_maker": "Aşı Sentezleyici",
   "item.bioforge.vaccine_maker": "Aşı Sentezleyici",
   "message.bioforge.vaccine_maker.no_gene_target": "Örnekte çıkarılabilir gen fragmanı bulunamadı.",
   "message.bioforge.vaccine_maker.gene_extracted": "Bilinmeyen gen fragmanı çıkarıldı. Mikroskopta tanımlayın.",
   "message.bioforge.vaccine_maker.no_research_program": "Takılı girdiler kaydedilebilir bir araştırma programı oluşturmuyor.",
-  "message.bioforge.vaccine_maker.research_recorded": "Mevcut makine okumaları belge açılmadan yazıldı.",
+  "message.bioforge.vaccine_maker.research_recorded": "Mevcut makine ölçümleri belge açılmadan kaydedildi.",
   "message.bioforge.vaccine_maker.template_mismatch": "Bu CRISPR şablonu farklı bir suş örneğine ait.",
   "message.bioforge.vaccine_maker.template_needs_cartridges": "Bir şablon yüklemeden önce 15 CRISPR kartuşunun tümünü takın.",
   "message.bioforge.vaccine_maker.template_applied": "Kaydedilen CRISPR dizilimi 15 kartuşun tümüne yüklendi.",
@@ -736,7 +690,7 @@
   "gui.bioforge.vaccine_maker.assay.required.short": "ANALİZ GEREKLİ",
   "gui.bioforge.vaccine_maker.assay.required.tooltip": "Sentez analiz olmadan da çalışır, ancak parti etkinliği gizli kalır ve kalitesi test edilene kadar araştırmayla sınırlı kalır.",
   "gui.bioforge.vaccine_maker.journal.clinical": "Klinik rapor: %s/7 bulgu",
-  "gui.bioforge.vaccine_maker.journal.ready": "Yeni bir makine okuması için boş ortam hazır",
+  "gui.bioforge.vaccine_maker.journal.ready": "Yeni bir makine ölçümü için boş ortam hazır",
   "gui.bioforge.vaccine_maker.journal.empty": "Kağıt, Kitap ve Tüy, CRISPR Notları veya Tıbbi Rapor takın",
   "gui.bioforge.vaccine_maker.journal.description": "Belgeler Sentez kısmına yerleştirilir. Dizilimleri CRISPR sekmesinde yazın, ardından burada inceleyin veya yeniden kullanın.",
   "gui.bioforge.vaccine_maker.craft.no_report": "Doğrulanmış klinik rapor yok: kalite araştırmayla sınırlı kalır",
@@ -804,7 +758,6 @@
   "message.bioforge.vaccine_maker.correction.recorded": "%s antijen matrisi kanalı kaydedildi.",
   "gui.bioforge.vaccine_maker.correction.family.lifecycle": "KULUÇKA",
   "gui.bioforge.vaccine_maker.correction.incubation_period": "Kuluçka Süresi",
-
   "command.bioforge.crispr.definitions": "CRISPR verisi: rehber profili: %s, Cas modülü: %s, eylem: %s, Aşı Sentezleyici tarifi: %s.",
   "command.bioforge.crispr.invalid_cartridge": "%s dizilimi %s profili için geçerli değil.",
   "command.bioforge.crispr.cartridge_success": "%3$s için %2$s dizilimiyle %1$s kartuşu oluşturuldu.",
@@ -812,7 +765,6 @@
   "command.bioforge.crispr.cas_success": "%s Cas/PAM modülü oluşturuldu.",
   "command.bioforge.crispr.invalid_action": "%s kategorisi %s eylemini kullanamaz.",
   "command.bioforge.crispr.directed_success": "%2$s için %3$s eylemi kullanılarak %1$s aşısı oluşturuldu.",
-
   "item.bioforge.strain_name": "Kataloglanmış suş: %s",
   "message.bioforge.strain.discovered": "Daha önce kaydedilmemiş bir suş tanımlandı (%s).",
   "message.bioforge.strain.name_prompt": "İlk araştırmacısı olarak ona bir kez kalıcı ad verebilirsiniz.",
@@ -838,13 +790,11 @@
   "command.bioforge.strain.list_header": "Kayıtlı BioForge suşları: %s",
   "command.bioforge.strain.list_entry": "[%s] %s — ilk araştırmacı: %s",
   "command.bioforge.strain.unnamed": "<adlandırılmamış>",
-
   "effect.bioforge.strain_immunity": "Suş Koruması",
   "gui.bioforge.immunity.title": "Etkin suş korumaları: %s",
   "gui.bioforge.immunity.uncatalogued": "Kataloglanmamış enfeksiyon",
   "gui.bioforge.immunity.entry": "%s — %s",
   "gui.bioforge.resistance.entry": "%s — %s%% direnç — %s",
-
   "item.bioforge.neutralizing_agent": "Nötralize Edici Ajan",
   "item.bioforge.surfactant_concentrate": "Yüzey Aktif Konsantresi",
   "item.bioforge.decontamination_flask": "Dekontaminasyon Matarası",
@@ -858,7 +808,6 @@
   "item.bioforge.chemical_resistant_coating": "Kimyasala Dayanıklı Kaplama",
   "item.bioforge.airtight_seal": "Hava Geçirmez Conta",
   "item.bioforge.decontamination_flask.tooltip": "%s blok genişliğindeki bir alanı dekontamine etmek için fırlatın",
-
   "item.bioforge.medical_mask": "Tıbbi Maske",
   "item.bioforge.protective_gloves": "Koruyucu Eldiven",
   "item.bioforge.ice_bag": "Buz Torbası",
@@ -873,7 +822,6 @@
   "item.bioforge.protective_gear.magma_bag": "Giyildiğinde soğuk ve hipotermi hasarını önler",
   "item.bioforge.protective_gear.hazcure": "Tam set: dışarı yayılımı engeller; hava, temas ve saldırı enfeksiyonlarına karşı güçlü koruma sağlar",
   "item.bioforge.protective_gear.hazcure_set": "Ayrıca şırıngaları, ısıyı ve soğuğu engeller; dört parçanın tamamı gereklidir",
-
   "item.bioforge.symptom_tablet": "Semptom Baskılayıcı Tablet",
   "item.bioforge.symptom_tablet.blank": "Programlanmamış semptom tableti",
   "item.bioforge.symptom_tablet.vaccine_maker": "Aşı Sentezleyicide tanımlanmış bir semptom Gen İzi kullanarak programlayın",
@@ -881,7 +829,6 @@
   "item.bioforge.symptom_tablet.not_cure": "Cezayı baskılar ancak semptomu iyileştirmez veya gizlemez",
   "message.bioforge.symptom_tablet.blank": "Bu tabletin aktif bir semptom programı yok.",
   "message.bioforge.symptom_tablet.applied": "%s, %s boyunca baskılandı.",
-
   "item.bioforge.area_contamination_scanner": "Alan Kontaminasyon Taraması",
   "item.bioforge.area_contamination_scanner.tooltip": "%s blok içindeki havayı ve kontamine yüzeyleri tarar",
   "item.bioforge.area_contamination_scanner.visualization": "Sarı/kırmızı yüzeyleri; mavi ise kontamine havayı işaretler",
@@ -892,30 +839,22 @@
   "item.bioforge.area_contamination_scanner.level.medium": "ORTA",
   "item.bioforge.area_contamination_scanner.level.high": "YÜKSEK",
   "item.bioforge.area_contamination_scanner.level.critical": "KRİTİK",
-
   "block.bioforge.chemical_synthesizer": "Kimyasal Sentezleyici",
   "jei.bioforge.category.chemical_synthesizer": "Kimyasal Sentezleyici",
-
   "block.bioforge.barrel_press": "Varil Presi",
   "jei.bioforge.category.barrel_press": "Varil Presi",
-
   "block.bioforge.pharma_mixer": "Farmasötik Karıştırıcı",
   "jei.bioforge.category.pharma_mixer": "Farmasötik Karıştırıcı",
-
   "block.bioforge.sterilization_chamber": "Sterilizasyon Odası",
   "jei.bioforge.category.sterilization_chamber": "Sterilizasyon Odası",
-
   "jei.bioforge.laboratory.time": "İşleme süresi: %s tik",
   "jei.bioforge.laboratory.waste.short": "ATIK",
   "jei.bioforge.laboratory.sterilization.generic": "Ayrıca kontamine eşyalardaki enfeksiyonu yerinde temizler",
-
   "block.bioforge.viral_scanner": "Viral Tarayıcı Kapısı",
   "block.bioforge.ceiling_viral_scanner": "Tavan Viral Tarayıcısı",
   "block.bioforge.open_left_viral_scanner": "Sol-Açık Viral Tarayıcı",
   "block.bioforge.open_right_viral_scanner": "Sağ-Açık Viral Tarayıcı",
-
   "block.bioforge.air_vent": "Havalandırma Izgarası",
-
   "item.bioforge.research_journal": "BioForge Araştırma Tableti",
   "item.bioforge.research_journal.tooltip": "BioForge keşifleri için kalıcı bir tablet",
   "item.bioforge.research_journal.progression": "Yeni araştırmalar ilgili eşyalar elde edildikten sonra açılır",
@@ -1081,7 +1020,6 @@
   "research.bioforge.page.viral_scanners.title": "VİRAL TARAYICI KAPILARI",
   "research.bioforge.page.viral_scanners.content.1": "Tarayıcı kapıları, enfekte canlı bir varlık algılama alanını işgal ettiğinde tam bir kızıltaş sinyali yayar. Kuluçka evresindeki taşıyıcılar hâlâ bir patojen barındırır ve bu nedenle semptomlar başlamadan önce bile tespit edilirler.",
   "research.bioforge.page.viral_scanners.content.2": "Tam kemer ve her iki tarafı açık kapılar iki blok yüksekliğindedir. Tavan tarayıcısı, asılı duran tek bir ünitenin altındaki alanı izler. Çıktıları alarmları, karantina kapılarını, ışıkları, dağıtıcıları veya bağlı diğer makineleri çalıştırabilir.",
-
   "toast.bioforge.research_journal.activated": "Araştırma Tableti Etkinleştirildi",
   "toast.bioforge.research_journal.unlocked": "Yeni BioForge Araştırması",
   "toast.bioforge.research_journal.ready": "Gelecekteki keşifler artık kaydedilecek",
@@ -1090,7 +1028,6 @@
   "gui.bioforge.research_journal.station.blasting": "MADEN ERİTME OCAGI",
   "gui.bioforge.research_journal.station.smoking": "DUMAN HANE",
   "gui.bioforge.research_journal.station.campfire": "KAMP ATEŞİ",
-
   "advancement.bioforge.root.title": "BioForge Araştırması",
   "advancement.bioforge.root.description": "Biyomedikal araştırmalarda belgelenmiş bir kariyere başlayın",
   "advancement.bioforge.field_diagnostics.title": "Saha Teşhisleri",
@@ -1133,9 +1070,7 @@
   "advancement.bioforge.containment.description": "Görünmez hava ve yüzey tehlikelerinin yerini tespit etmeye hazırlanın",
   "advancement.bioforge.decontamination.title": "Temiz Oda",
   "advancement.bioforge.decontamination.description": "Saha dekontaminasyon şişesi hazırlayın",
-
   "message.bioforge.mutation.flesh_cravings.reject": "Değişen metabolizmanız etten başka bir şeyi reddediyor.",
-
   "command.bioforge.researchtablet.unknown_page": "Bilinmeyen Araştırma Tableti sayfası: %s.",
   "command.bioforge.researchtablet.add": "%2$s hedef(ler)ine %1$s sayfası eklendi; %3$s kayıt değiştirildi.",
   "command.bioforge.researchtablet.remove": "%2$s hedef(ler)inden %1$s sayfası kaldırıldı; %3$s kayıt değiştirildi.",
@@ -1146,7 +1081,6 @@
   "command.bioforge.infectionimmune.disabled": "%s hedef(ler)i için tam enfeksiyon bağışıklığı devre dışı bırakıldı.",
   "command.bioforge.infectionimmune.status": "Seçilen %2$s hedeften %1$s tanesinde tam enfeksiyon bağışıklığı etkin.",
   "command.bioforge.infectionimmune.blocked": "%s tam enfeksiyon bağışıklığına sahip ve enfekte edilemez.",
-
   "gui.bioforge.research_journal.not_loaded": "Araştırma Tableti verileri henüz yüklenmedi.",
   "item.bioforge.petri_dish.growth_stage": "Büyüme aşaması: %s",
   "crispr.cas_module.bioforge.spcas9": "SpCas9 Hassasiyet Modülü",
@@ -1399,5 +1333,84 @@
   "mutation.bioforge.bovine_serum_stability.name": "Sığır Serumu Kararlılığı",
   "mutation.bioforge.bovine_serum_stability.description": "Enfekte sığır kanından izole edilmiş bir yabani konak geni.",
   "mutation.bioforge.avian_egg_tropism.name": "Kuş Yumurtası Tropizmi",
-  "mutation.bioforge.avian_egg_tropism.description": "Enfekte kuş kanından izole edilmiş bir yabani konak geni."
+  "mutation.bioforge.avian_egg_tropism.description": "Enfekte kuş kanından izole edilmiş bir yabani konak geni.",
+
+  "block.bioforge.black_steel_door": "Siyah Çelik Kapı",
+  "block.bioforge.black_steel_trapdoor": "Siyah Çelik Tuzak Kapısı",
+  "block.bioforge.black_steel_bars": "Siyah Çelik Parmaklık",
+  "block.bioforge.black_steel_tiles.copied": "Altı yüzün deseni de eldeki bloğa kopyalandı.",
+  "block.bioforge.black_steel_block.tooltip": "Ağır yapısal siyah çelik blok",
+  "block.bioforge.black_steel.coating_tooltip": "Etanol ile kalıcı olarak korunabilir",
+  "block.bioforge.black_steel_tiles.tooltip": "Her yüz 12 yüzey deseninden birini destekler",
+  "block.bioforge.black_steel_tiles.controls_tooltip": "Sol tık: yüzü değiştir • Shift + Sol tık: tüm yüzleri kopyala",
+  "block.bioforge.black_steel_grate.tooltip": "Güvenli laboratuvar yapıları için birleşen açık ızgara",
+  "block.bioforge.black_steel_door.tooltip": "Redstone kontrollü güçlendirilmiş laboratuvar kapısı",
+  "block.bioforge.black_steel_trapdoor.tooltip": "Redstone kontrollü güçlendirilmiş erişim kapağı",
+  "block.bioforge.black_steel_bars.tooltip": "Muhafaza alanları için birleşen güçlendirilmiş parmaklık",
+  "block.bioforge.air_vent.tooltip": "10 blok yarıçapındaki hava kaynaklı bulaşmayı pasif olarak bastırır",
+  "block.bioforge.air_vent.limits_tooltip": "Temas, gıda, su veya hayvan kaynaklı bulaşmayı gidermez",
+  "item.bioforge.area_contamination_scanner.coated_result": " • Etanol kaplı: %s",
+  "item.bioforge.area_contamination_scanner.ethanol_visualization": "Yeşil işaretler: etanol kaplamasıyla korunan bloklar",
+
+  "research.bioforge.item_guide.intro": "%s, BioForge ilerleyişinde kendine özgü bir göreve sahiptir. Mevcut üretim tarifi aşağıda gösterilir.",
+  "research.bioforge.item_guide.recipe_hint": "Aşağıdaki şema kesin malzemeleri gösterir. Etiketler, diğer modlardaki uyumlu malzemeleri kabul eder.",
+  "research.bioforge.item_guide.open_protocol": "İlgili tam protokolü aç →",
+  "research.bioforge.item_guide.general": "%s öğesini edin, ardından araç ipucunu ve bağlantılı protokolü izle. Laboratuvar veya ilerleme amacı anlaşılana kadar sakla.",
+  "research.bioforge.item_guide.machine": "%s öğesini yerleştir, arayüzünü aç, malzemeleri işaretli girişlere koy ve işlemi başlat. Makine hızı sunucudan yapılandırılabilir.",
+  "research.bioforge.item_guide.diagnostic": "%s öğesini doğru hasta veya numune üzerinde kullan. Kaydedilen gözlemler ancak bağlantılı tanı sürecine aktarıldığında yararlı olur.",
+  "research.bioforge.item_guide.sample": "%s biyolojik veri taşır. Tam suş ve hasta verisini koru; hatalı kopyalama veya aktarma sonraki analizi geçersiz kılabilir.",
+  "research.bioforge.item_guide.chemistry": "%s bir laboratuvar reaktifi veya ara üründür. Aşağıda gösterilen istasyonda üret ve sonraki ilaç ya da muhafaza tariflerinde kullan.",
+  "research.bioforge.item_guide.crispr": "%s tedavi mühendisliğine aittir. Önce suşu analiz et, ardından verileri Aşı Üreticisinde CRISPR, düzeltme ve deney çalışmasıyla birleştir.",
+  "research.bioforge.item_guide.containment": "%s fiziksel muhafazanın parçasıdır. Maruziyeti azaltır ancak tanı, dekontaminasyon veya doğru tedavinin yerini tutmaz.",
+  "research.bioforge.item_guide.environment": "%s çevresel bulaşmayı algılar veya kontrol eder. Menzili ve bulaşma yolu sınırları bağlantılı muhafaza protokolünde açıklanır.",
+
+  "research.bioforge.page.crispr_workflow.title": "CRISPR: Tam İş Akışı",
+  "research.bioforge.page.crispr_workflow.content.1": "1. Enfekte kan numunesi al ve patojeni Mikroskopta tanımla. Aynı suştan kopyalanan kültür hedef kimliğini korur.",
+  "research.bioforge.page.crispr_workflow.content.2": "2. Gen İzlerini ayır ve CRISPR Kartuşlarını hazırla. Bilinmeyen bir iz, tedavi bileşeni olarak kullanılmadan önce incelenmelidir.",
+  "research.bioforge.page.crispr_workflow.content.3": "3. CRISPR sekmesine yazı malzemesi koy. On beş dizi konumunun tamamını doldur, ardından diziyi yeniden kullanılabilir şablon olarak kaydet veya yükle.",
+  "research.bioforge.page.crispr_workflow.content.4": "4. Suşun gerektirdiği Cas/PAM modülünü seç. Bu modül dizinin bağlanmasını belirler; uyumsuzluk ulaşılabilecek kaliteyi sınırlar.",
+  "research.bioforge.page.crispr_workflow.content.5": "5. Düzeltme sekmesinde suşun belirtilerini, mutasyonlarını, bulaşma yollarını, kuluçka değerlerini ve ölçülebilen diğer özelliklerini olabildiğince doğru eşleştir.",
+  "research.bioforge.page.crispr_workflow.content.6": "6. Üretim sekmesine eşleşen suş numunesini, taşıyıcıyı, reaktifleri, kartuşları, raporu ve isteğe bağlı deney verisini ekle. Rapor aynı suşa ait olmalıdır.",
+  "research.bioforge.page.crispr_workflow.content.7": "7. Üretimi düğme veya redstone ile başlat. CRISPR ve düzeltme doğruluğu gizli nihai etkinliği oluşturur; eksik kanıt en iyi sonucu sınırlar.",
+  "research.bioforge.page.crispr_workflow.content.8": "8. Bitmiş tedaviyi enfekte kanda dene, Mikroskopta kalibre edip tara ve şablonu düzelt. Yüksek kaliteli sonuç daha uzun ve daha güvenilir çalışır.",
+  "research.bioforge.page.crispr_workflow.back": "← CRISPR ve Aşılara dön",
+  "research.bioforge.page.crispr_and_vaccines.content.workflow": "Tam adım adım CRISPR iş akışını aç →",
+  "gui.bioforge.vaccine_maker.gene_filter.short.0": "Tümü",
+  "gui.bioforge.vaccine_maker.gene_filter.short.1": "Mut",
+  "gui.bioforge.vaccine_maker.gene_filter.short.2": "Bul",
+  "gui.bioforge.vaccine_maker.gene_filter.short.3": "Bel",
+  "gui.bioforge.vaccine_maker.gene_filter.0": "Herhangi bir gen kategorisini ayır",
+  "gui.bioforge.vaccine_maker.gene_filter.1": "Yalnızca mutasyon genlerini ayır",
+  "gui.bioforge.vaccine_maker.gene_filter.2": "Yalnızca bulaşma genlerini ayır",
+  "gui.bioforge.vaccine_maker.gene_filter.3": "Yalnızca belirti genlerini ayır",
+  "gui.bioforge.vaccine_maker.correction.active_lifespan": "Etkin Yaşam Süresi",
+  "gui.bioforge.research_journal.tab.general": "Genel",
+  "gui.bioforge.research_journal.tab.mutations": "Mutasyonlar",
+  "research.bioforge.mutation_catalog.rarity": "Nadirlik: %s",
+  "research.bioforge.mutation_catalog.upgrade": "Şuna yükselir: %s",
+  "research.bioforge.mutation_catalog.requires": "Gerektirir: %s",
+  "microscope.symptom.active_lifespan": "Etkin Yaşam Süresi",
+  "microscope.value.mutation_tier": "Kademe %s",
+  "microscope.value.infinite": "Sınırsız",
+  "microscope.value.seconds": "%s sn",
+  "item.bioforge.mutation_upgrade_vaccine": "Mutasyon Güçlendirme Aşısı",
+  "item.bioforge.mutation_upgrade_vaccine.encoded": "Deneysel mutasyon güçlendirme dozu",
+  "item.bioforge.mutation_upgrade_vaccine.warning": "Eşleşen aktif enfeksiyonda bulunan ve yükseltilebilen bir mutasyonu rastgele bir üst seviyeye çıkarır",
+  "message.bioforge.mutation_upgrade_vaccine.applied": "%s üzerindeki mutasyon %s seviyesinden %s seviyesine yükseltildi.",
+  "message.bioforge.mutation_upgrade_vaccine.no_target": "%s üzerinde yükseltmesi bulunan bir mutasyon yok.",
+  "message.bioforge.mutation_upgrade_vaccine.mismatch": "Güçlendirme dozu %s üzerindeki aktif enfeksiyonla eşleşmiyor.",
+  "message.bioforge.mutation_upgrade_vaccine.failed": "%s üzerindeki seçili mutasyon yükseltilemedi.",
+  "jei.bioforge.vaccine_maker.operation.random_mutation_upgrade": "Rastgele Mutasyon Güçlendirme",
+  "research.bioforge.item_summary.function": "İşlev",
+  "research.bioforge.item_summary.component": "%s bir ilerleme bileşenidir. Tam görevi, onu kullanan tariflerde ve sistemlerde gösterilir.",
+  "research.bioforge.item_summary.acquisition": "Elde Etme",
+  "research.bioforge.item_summary.produced_at": "Üretildiği istasyon: %s.",
+  "research.bioforge.item_summary.no_direct_recipe": "Doğrudan üretim veya makine tarifi yoktur. Saha çalışması, ganimet, canlı etkileşimi ya da başka bir aracın mekaniğiyle elde edilir.",
+  "research.bioforge.item_summary.used_for": "Kullanıldığı yerler",
+  "research.bioforge.item_summary.more_uses": ", ayrıca %s kullanım daha",
+  "research.bioforge.item_summary.source.split_bone": "Bir İskelete Kemik Testeresiyle vurularak çıkarılır.",
+  "research.bioforge.item_summary.source.withered_split_bone": "Bir Wither İskeletine Kemik Testeresiyle vurularak çıkarılır.",
+  "research.bioforge.item_summary.source.bone_marrow": "Parçalanmış Kemiğin santrifüjlenmesiyle üretilir.",
+  "research.bioforge.item_summary.source.withered_bone_marrow": "Solmuş Parçalanmış Kemiği Kireç Giderme Sıvısıyla işleyin: sıvıyı ana elde, kemiği diğer elde tutup sağ tıklayın.",
+  "research.bioforge.item_summary.source.centrifuged_tube": "Dolu bir Test Tüpünün santrifüjlenmesiyle üretilir."
 }

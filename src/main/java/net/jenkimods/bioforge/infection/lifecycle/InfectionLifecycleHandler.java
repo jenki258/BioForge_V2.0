@@ -46,6 +46,7 @@ public final class InfectionLifecycleHandler {
                     + (1.0F - profile.hostileClimateIncubationRate()) * adaptation;
         }
         if (data.isIncubating()) state.advanceIncubation(20.0F * climateRate);
+        if (wasActive) state.advanceActiveAge(20L);
 
         float points = profile.adaptationPointsPerSecond() * profile.adaptationSpeed();
         if (hot && !MutationManager.hasMutationTag(data, "heat_immunity")) {
@@ -70,8 +71,9 @@ public final class InfectionLifecycleHandler {
             sync(entity, data);
         }
 
+        int lifespanTicks = state.effectiveLifespanTicks(profile.lifespanTicks());
         if (state.selfDestructRequested()
-                || (profile.lifespanTicks() >= 0 && state.infectionAgeTicks() >= profile.lifespanTicks())) {
+                || (lifespanTicks >= 0 && state.activeAgeTicks() >= lifespanTicks)) {
             MutationManager.clearMutations(data, entity);
             data.clearInfection();
             if (entity instanceof ServerPlayer player) {

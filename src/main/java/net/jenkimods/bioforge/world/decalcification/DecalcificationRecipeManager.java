@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.jenkimods.bioforge.BioForge;
+import net.jenkimods.bioforge.world.recipe.BioForgeRecipeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -15,6 +16,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
@@ -78,12 +80,24 @@ public class DecalcificationRecipeManager extends SimpleJsonResourceReloadListen
         javaRegistrationsFrozen = true;
     }
 
-    public Optional<DecalcificationRecipe> getRecipe(ItemStack input) {
+    public Optional<DecalcificationRecipe> getRecipe(Level level, ItemStack input) {
         if (input.isEmpty()) return Optional.empty();
+        if (level != null) {
+            for (var dataRecipe : level.getRecipeManager().getAllRecipesFor(
+                    BioForgeRecipeRegistration.DECALCIFICATION_TYPE)) {
+                if (matchesInput(dataRecipe.recipe().input(), input)) {
+                    return Optional.of(dataRecipe.recipe());
+                }
+            }
+        }
         for (DecalcificationRecipe recipe : recipes) {
             if (matchesInput(recipe.input(), input)) return Optional.of(recipe);
         }
         return Optional.empty();
+    }
+
+    public Optional<DecalcificationRecipe> getRecipe(ItemStack input) {
+        return getRecipe(null, input);
     }
 
     private boolean matchesInput(String inputStr, ItemStack stack) {
@@ -120,5 +134,14 @@ public class DecalcificationRecipeManager extends SimpleJsonResourceReloadListen
 
     public List<DecalcificationRecipe> getRecipes() {
         return Collections.unmodifiableList(recipes);
+    }
+
+    public List<DecalcificationRecipe> getRecipes(Level level) {
+        if (level == null) return getRecipes();
+        List<DecalcificationRecipe> combined = new ArrayList<>();
+        level.getRecipeManager().getAllRecipesFor(BioForgeRecipeRegistration.DECALCIFICATION_TYPE)
+                .forEach(recipe -> combined.add(recipe.recipe()));
+        combined.addAll(recipes);
+        return List.copyOf(combined);
     }
 }

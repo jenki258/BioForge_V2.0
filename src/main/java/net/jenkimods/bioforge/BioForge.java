@@ -9,6 +9,7 @@ import net.jenkimods.bioforge.client.LaboratoryProcessorScreen;
 import net.jenkimods.bioforge.client.MicroscopeScreen;
 import net.jenkimods.bioforge.client.VaccineMakerScreen;
 import net.jenkimods.bioforge.client.render.CentrifugeBlockEntityRenderer;
+import net.jenkimods.bioforge.client.render.BlackSteelTilesBlockEntityRenderer;
 import net.jenkimods.bioforge.client.render.MicroscopeBlockEntityRenderer;
 import net.jenkimods.bioforge.api.vaccine.VaccineMakerPageRegistry;
 import net.jenkimods.bioforge.api.guide.ResearchJournalRegistry;
@@ -29,6 +30,7 @@ import net.jenkimods.bioforge.infection.spread.AirborneReservoirManager;
 import net.jenkimods.bioforge.infection.spread.TransmissionEngine;
 import net.jenkimods.bioforge.item.bone_saw.BoneSawItem;
 import net.jenkimods.bioforge.item.AreaContaminationScannerItem;
+import net.jenkimods.bioforge.item.DescribedBlockItem;
 import net.jenkimods.bioforge.item.bones.BoneMarrowItem;
 import net.jenkimods.bioforge.item.bones.SplitBoneItem;
 import net.jenkimods.bioforge.item.bones.WitheredBoneMarrowItem;
@@ -103,6 +105,13 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelEvent;
@@ -139,8 +148,6 @@ public class BioForge {
 
     public static final RegistryObject<Item> ACTIVATED_CARBON = ITEMS.register(
             "activated_carbon", () -> new Item(new Item.Properties()));
-    public static final RegistryObject<Item> LABORATORY_WASTE = ITEMS.register(
-            "laboratory_waste", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> BLACK_STEEL_BLEND = ITEMS.register(
             "black_steel_blend", () -> new Item(new Item.Properties()));
     public static final RegistryObject<Item> BLACK_STEEL_INGOT = ITEMS.register(
@@ -245,8 +252,58 @@ public class BioForge {
     public static final RegistryObject<Block> BLACK_STEEL_BLOCK = BLOCKS.register(
             "black_steel_block", BlackSteelBlock::new);
     public static final RegistryObject<BlockItem> BLACK_STEEL_BLOCK_ITEM = ITEMS.register(
-            "black_steel_block", () -> new BlockItem(
-                    BLACK_STEEL_BLOCK.get(), new Item.Properties()));
+            "black_steel_block", () -> new DescribedBlockItem(
+                    BLACK_STEEL_BLOCK.get(), new Item.Properties(),
+                    "block.bioforge.black_steel_block.tooltip",
+                    "block.bioforge.black_steel.coating_tooltip"));
+    public static final RegistryObject<Block> BLACK_STEEL_TILES = BLOCKS.register(
+            "black_steel_tiles", BlackSteelTilesBlock::new);
+    public static final RegistryObject<BlockItem> BLACK_STEEL_TILES_ITEM = ITEMS.register(
+            "black_steel_tiles", () -> new DescribedBlockItem(
+                    BLACK_STEEL_TILES.get(), new Item.Properties(),
+                    "block.bioforge.black_steel_tiles.tooltip",
+                    "block.bioforge.black_steel_tiles.controls_tooltip"));
+    public static final RegistryObject<BlockEntityType<net.jenkimods.bioforge.world.decoration.BlackSteelTilesBlockEntity>>
+            BLACK_STEEL_TILES_BE = BLOCK_ENTITIES.register(
+                    "black_steel_tiles", () -> BlockEntityType.Builder.of(
+                            net.jenkimods.bioforge.world.decoration.BlackSteelTilesBlockEntity::new,
+                            BLACK_STEEL_TILES.get()).build(null));
+    public static final RegistryObject<Block> BLACK_STEEL_GRATE = BLOCKS.register(
+            "black_steel_grate", BlackSteelGrateBlock::new);
+    public static final RegistryObject<BlockItem> BLACK_STEEL_GRATE_ITEM = ITEMS.register(
+            "black_steel_grate", () -> new DescribedBlockItem(
+                    BLACK_STEEL_GRATE.get(), new Item.Properties(),
+                    "block.bioforge.black_steel_grate.tooltip",
+                    "block.bioforge.black_steel.coating_tooltip"));
+    public static final RegistryObject<Block> BLACK_STEEL_DOOR = BLOCKS.register(
+            "black_steel_door", () -> new DoorBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL).strength(7.0F, 9.0F)
+                    .sound(SoundType.METAL).noOcclusion().requiresCorrectToolForDrops(),
+                    BlockSetType.IRON));
+    public static final RegistryObject<BlockItem> BLACK_STEEL_DOOR_ITEM = ITEMS.register(
+            "black_steel_door", () -> new DescribedBlockItem(
+                    BLACK_STEEL_DOOR.get(), new Item.Properties(),
+                    "block.bioforge.black_steel_door.tooltip",
+                    "block.bioforge.black_steel.coating_tooltip"));
+    public static final RegistryObject<Block> BLACK_STEEL_TRAPDOOR = BLOCKS.register(
+            "black_steel_trapdoor", () -> new TrapDoorBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL).strength(7.0F, 9.0F)
+                    .sound(SoundType.METAL).noOcclusion().requiresCorrectToolForDrops(),
+                    BlockSetType.IRON));
+    public static final RegistryObject<BlockItem> BLACK_STEEL_TRAPDOOR_ITEM = ITEMS.register(
+            "black_steel_trapdoor", () -> new DescribedBlockItem(
+                    BLACK_STEEL_TRAPDOOR.get(), new Item.Properties(),
+                    "block.bioforge.black_steel_trapdoor.tooltip",
+                    "block.bioforge.black_steel.coating_tooltip"));
+    public static final RegistryObject<Block> BLACK_STEEL_BARS = BLOCKS.register(
+            "black_steel_bars", () -> new IronBarsBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL).strength(7.0F, 9.0F)
+                    .sound(SoundType.METAL).noOcclusion().requiresCorrectToolForDrops()));
+    public static final RegistryObject<BlockItem> BLACK_STEEL_BARS_ITEM = ITEMS.register(
+            "black_steel_bars", () -> new DescribedBlockItem(
+                    BLACK_STEEL_BARS.get(), new Item.Properties(),
+                    "block.bioforge.black_steel_bars.tooltip",
+                    "block.bioforge.black_steel.coating_tooltip"));
 
     public static final RegistryObject<Item> WOODEN_NEEDLE = ITEMS.register("wooden_needle", () -> new NeedleItem(NeedleItem.Tier.WOODEN));
     public static final RegistryObject<Item> IRON_NEEDLE = ITEMS.register("iron_needle", () -> new NeedleItem(NeedleItem.Tier.IRON));
@@ -270,6 +327,9 @@ public class BioForge {
     public static final RegistryObject<Item> RANDOM_MUTATION_VACCINE =
             ITEMS.register("random_mutation_vaccine",
                     () -> new VaccineItem(VaccineItem.Kind.RANDOM_MUTATION));
+    public static final RegistryObject<Item> MUTATION_UPGRADE_VACCINE =
+            ITEMS.register("mutation_upgrade_vaccine",
+                    () -> new VaccineItem(VaccineItem.Kind.RANDOM_MUTATION_UPGRADE));
     public static final RegistryObject<Item> VIRAL_SUPPRESSOR_PILL =
             ITEMS.register("viral_suppressor_pill", ResistancePillItem::new);
     public static final RegistryObject<Item> VIRAL_INHIBITOR_PILL =
@@ -328,7 +388,9 @@ public class BioForge {
             () -> new BlockItem(OPEN_RIGHT_VIRAL_SCANNER.get(), new Item.Properties()));
     public static final RegistryObject<Block> AIR_VENT = BLOCKS.register("air_vent", AirVentBlock::new);
     public static final RegistryObject<BlockItem> AIR_VENT_ITEM = ITEMS.register("air_vent",
-            () -> new BlockItem(AIR_VENT.get(), new Item.Properties()));
+            () -> new DescribedBlockItem(AIR_VENT.get(), new Item.Properties(),
+                    "block.bioforge.air_vent.tooltip",
+                    "block.bioforge.air_vent.limits_tooltip"));
 
     public static final RegistryObject<Block> MICROBIAL_MAT = BLOCKS.register("microbial_mat", MicrobialMatBlock::new);
     public static final RegistryObject<BlockEntityType<MicrobialMatBlockEntity>> MICROBIAL_MAT_BE =
@@ -432,6 +494,7 @@ public class BioForge {
 
     public BioForge(FMLJavaModLoadingContext context) {
         IEventBus modEventBus = context.getModEventBus();
+        net.jenkimods.bioforge.infection.BioForgeGameRules.register();
         context.registerConfig(ModConfig.Type.SERVER, BioForgeServerConfig.SPEC,
                 "bioforge-server.toml");
         LegacyMutationBehaviors.register();
@@ -462,6 +525,7 @@ public class BioForge {
             VaccineMakerCorrectionNetwork.register();
             MutationNetworkHandler.register();
             ResearchJournalNetwork.register();
+            net.jenkimods.bioforge.world.decoration.BlackSteelTilesNetworkHandler.register();
         });
     }
 
@@ -518,6 +582,9 @@ public class BioForge {
                 net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(
                         BioForge.MICROSCOPE_BE.get(),
                         MicroscopeBlockEntityRenderer::new);
+                net.minecraft.client.renderer.blockentity.BlockEntityRenderers.register(
+                        BioForge.BLACK_STEEL_TILES_BE.get(),
+                        BlackSteelTilesBlockEntityRenderer::new);
                 ResourceLocation filledRL = ResourceLocation.tryBuild(BioForge.MODID, "filled");
                 ResourceLocation reactedRL = ResourceLocation.tryBuild(BioForge.MODID, "reacted");
                 net.minecraft.client.renderer.item.ItemProperties.register(BioForge.SWAB.get(), filledRL, (stack, level, entity, seed) -> SwabItem.isContaminated(stack) ? 1.0f : 0.0f);

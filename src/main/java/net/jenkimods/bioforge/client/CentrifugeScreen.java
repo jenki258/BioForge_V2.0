@@ -1,6 +1,5 @@
 package net.jenkimods.bioforge.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.jenkimods.bioforge.world.centrifuge.CentrifugeMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -27,7 +26,7 @@ public class CentrifugeScreen extends AbstractContainerScreen<CentrifugeMenu> {
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderTexture(0, GUI_TEXTURE);
+        GuiRenderCompat.prepare(GUI_TEXTURE);
         guiGraphics.blit(GUI_TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, TEX_W, TEX_H);
 
         int progress = menu.getScaledProgress32();

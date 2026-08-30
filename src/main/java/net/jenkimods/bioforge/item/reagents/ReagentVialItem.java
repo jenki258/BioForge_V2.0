@@ -76,13 +76,9 @@ public class ReagentVialItem extends Item {
         boolean   isAnimal  = bloodType.getCategory() == BloodType.Category.NON_HUMAN;
         boolean   reacted   = !isAnimal && checkReaction(bloodType);
 
-        ItemStack usedVial;
-        if (vialStack.getCount() > 1) {
-            vialStack.shrink(1);
-            usedVial = new ItemStack(this, 1);
-        } else {
-            usedVial = vialStack;
-        }
+        ItemStack usedVial = vialStack.copy();
+        usedVial.setCount(1);
+        vialStack.shrink(1);
 
         CompoundTag tag = usedVial.getOrCreateTag();
         tag.putBoolean(KEY_USED,     true);
@@ -137,8 +133,8 @@ public class ReagentVialItem extends Item {
             BloodSampleUtil.clear(otherStack);
         }
 
-        if (vialStack.getCount() == 0) {
-            return InteractionResultHolder.success(usedVial);
+        if (vialStack.isEmpty()) {
+            player.setItemInHand(hand, usedVial);
         } else {
             if (!player.getInventory().add(usedVial)) {
                 level.addFreshEntity(new ItemEntity(level, player.getX(), player.getY(), player.getZ(), usedVial));
@@ -146,7 +142,7 @@ public class ReagentVialItem extends Item {
         }
 
         level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 1.0f, 1.2f);
-        return InteractionResultHolder.success(vialStack);
+        return InteractionResultHolder.success(player.getItemInHand(hand));
     }
 
     private static ReagentType toReagentType(Type t) {

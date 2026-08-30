@@ -1,6 +1,5 @@
 package net.jenkimods.bioforge.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.world.incubator.IncubatorMenu;
 import net.minecraft.client.gui.GuiGraphics;
@@ -28,7 +27,7 @@ public class IncubatorScreen extends AbstractContainerScreen<IncubatorMenu> {
 
     @Override
     protected void renderBg(GuiGraphics g, float pt, int mx, int my) {
-        RenderSystem.setShaderTexture(0, TEXTURE);
+        GuiRenderCompat.prepare(TEXTURE);
         g.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight);
 
         int progress = menu.getProgress();

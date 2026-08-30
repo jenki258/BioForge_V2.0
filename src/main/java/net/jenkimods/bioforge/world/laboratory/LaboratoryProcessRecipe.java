@@ -1,5 +1,7 @@
 package net.jenkimods.bioforge.world.laboratory;
 
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -51,7 +53,7 @@ public record LaboratoryProcessRecipe(ResourceLocation id, LaboratoryStation sta
         if (ingredientIndex >= ingredients.size()) return true;
         Ingredient ingredient = ingredients.get(ingredientIndex);
         for (int slot = 0; slot < station.inputSlots(); slot++) {
-            if (used[slot] || !ingredient.test(inventory.getStackInSlot(slot))) continue;
+            if (used[slot] || !ingredientMatches(ingredient, inventory.getStackInSlot(slot))) continue;
             used[slot] = true;
             assignment[ingredientIndex] = slot;
             if (assign(inventory, ingredientIndex + 1, assignment, used)) return true;
@@ -61,6 +63,17 @@ public record LaboratoryProcessRecipe(ResourceLocation id, LaboratoryStation sta
     }
 
     public boolean matchesSingle(ItemStack stack) {
-        return ingredients.size() == 1 && ingredients.get(0).test(stack);
+        return ingredients.size() == 1 && ingredientMatches(ingredients.get(0), stack);
+    }
+
+    private static boolean ingredientMatches(Ingredient ingredient, ItemStack stack) {
+        if (ingredient.test(stack)) return true;
+        CompoundTag actualTag = stack.getTag();
+        if (actualTag == null) return false;
+        for (ItemStack expected : ingredient.getItems()) {
+            if (!ItemStack.isSameItem(expected, stack) || !expected.hasTag()) continue;
+            if (NbtUtils.compareNbt(expected.getTag(), actualTag, true)) return true;
+        }
+        return false;
     }
 }

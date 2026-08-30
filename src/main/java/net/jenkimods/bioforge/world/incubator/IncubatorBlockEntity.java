@@ -91,7 +91,8 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
             be.activeRecipeId = recipe.id();
             be.activePrimarySignature = primarySignature;
         }
-        be.maxProgress = recipe.processingTime();
+        be.maxProgress = BioForgeServerConfig
+                .incubatorProcessingTime(recipe.processingTime());
         be.progress++;
         if (be.progress >= be.maxProgress) {
             be.progress = 0;
