@@ -1,14 +1,10 @@
 package net.jenkimods.bioforge.item.reflex_hammer;
 
-import net.jenkimods.bioforge.BioForgeTags;
-import net.jenkimods.bioforge.client.BioForgeKeyBindings;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -17,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -44,15 +40,8 @@ public class ReflexHammerItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if (level.isClientSide()) {
-            Entity target = pickTargetEntity(player, level);
-            if (target instanceof LivingEntity
-                    && player.distanceTo(target) <= MAX_TARGET_DISTANCE
-                    && !target.getType().is(BioForgeTags.NO_DIAGNOSTICS)
-                    && !target.getType().is(NO_REFLEX_HAMMER_TAG)) {
-                ReflexHammerClientHandler.beginCharge(target.getId(), false);
-            } else {
-                ReflexHammerClientHandler.beginCharge(-1, true);
-            }
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> () -> ReflexHammerClientHandler.beginChargeFromPlayer(player));
         }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(player.getItemInHand(hand));
@@ -61,16 +50,9 @@ public class ReflexHammerItem extends Item {
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeCharged) {
         if (level.isClientSide()) {
-            ReflexHammerClientHandler.cancelCharge();
+            DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> ReflexHammerClientHandler::cancelCharge);
         }
-    }
-
-    private Entity pickTargetEntity(Player player, Level level) {
-        if (level.isClientSide()) {
-            HitResult hit = Minecraft.getInstance().hitResult;
-            if (hit instanceof EntityHitResult ehr) return ehr.getEntity();
-        }
-        return null;
     }
 
     @Override
@@ -80,7 +62,7 @@ public class ReflexHammerItem extends Item {
                 .withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.reflex_hammer.tooltip.target")
                 .withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
-        tooltip.add(Component.translatable("item.bioforge.reflex_hammer.tooltip.strike", BioForgeKeyBindings.REFLEX_STRIKE.getTranslatedKeyMessage())
+        tooltip.add(Component.translatable("item.bioforge.reflex_hammer.tooltip.strike", Component.translatable("key.bioforge.reflex_strike"))
                 .withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.reflex_hammer.tooltip.success")
                 .withStyle(net.minecraft.ChatFormatting.DARK_GRAY));

@@ -3,6 +3,8 @@ package net.jenkimods.bioforge.item.reflex_hammer;
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.client.BioForgeKeyBindings;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -77,6 +79,21 @@ public class ReflexHammerClientHandler {
             lastStrikeTargetId = entityId;
         }
         updateTargetName();
+    }
+
+    public static void beginChargeFromPlayer(Player player) {
+        Minecraft mc = Minecraft.getInstance();
+        Entity target = null;
+        HitResult hit = mc.hitResult;
+        if (hit instanceof EntityHitResult ehr) target = ehr.getEntity();
+        if (target instanceof LivingEntity
+                && player.distanceTo(target) <= MAX_DISTANCE
+                && !target.getType().is(net.jenkimods.bioforge.BioForgeTags.NO_DIAGNOSTICS)
+                && !target.getType().is(ReflexHammerItem.NO_REFLEX_HAMMER_TAG)) {
+            beginCharge(target.getId(), false);
+        } else {
+            beginCharge(-1, true);
+        }
     }
 
     public static void cancelCharge() {
