@@ -67,7 +67,7 @@ public class TubeItem extends Item {
                             .withStyle(ChatFormatting.RED), true);
                     return InteractionResultHolder.fail(slide);
                 }
-                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL,
+                level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.tube.fill").get(),
                         SoundSource.PLAYERS, 0.8F, 1.15F);
                 player.displayClientMessage(Component.translatable(
                         "message.bioforge.vaccine.assay_created")
@@ -112,7 +112,7 @@ public class TubeItem extends Item {
             NeedleItem.clearBlood(tool);
         }
 
-        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+        level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.tube.fill").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
         if (player instanceof ServerPlayer sp)
             sp.sendSystemMessage(Component.translatable("item.bioforge.tube.transferred"));
         if (filledTube != slide && !player.getInventory().add(filledTube)) {
@@ -178,7 +178,7 @@ public class TubeItem extends Item {
         BloodSampleUtil.clear(tube);
         NbtObfuscator.clearInfection(tube.getOrCreateTag());
         player.setItemInHand(syringeHand, syringe);
-        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY,
+        level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.tube.empty").get(),
                 SoundSource.PLAYERS, 0.8f, 1.2f);
         player.sendSystemMessage(Component.translatable(
                 "item.bioforge.tube.transferred_to_syringe"));

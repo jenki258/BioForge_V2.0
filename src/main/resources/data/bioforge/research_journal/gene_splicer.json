@@ -1,0 +1,23 @@
+{
+  "order": 2004,
+  "unlock_items": [
+    "bioforge:gene_splicer"
+  ],
+  "recipes": [
+    {
+      "type": "crafting",
+      "id": "bioforge:gene_splicer"
+    }
+  ],
+  "title": {
+    "translate": "block.bioforge.gene_splicer"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.splicer.instructions"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

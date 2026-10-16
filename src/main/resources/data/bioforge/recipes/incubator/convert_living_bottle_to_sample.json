@@ -1,0 +1,10 @@
+{
+  "type": "bioforge:incubator",
+  "primary_input": "bioforge:live_culture_vial",
+  "secondary_input": "bioforge:nutrient_medium",
+  "output": "bioforge:virus_sample",
+  "operation": "convert_sample",
+  "processing_time": 200,
+  "primary_item_cost": 1,
+  "primary_cost_mode": "per_output"
+}

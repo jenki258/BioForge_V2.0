@@ -1,0 +1,17 @@
+{
+  "station": "herbal_mortar",
+  "ingredients": [
+    {
+      "item": "minecraft:sugar"
+    },
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:dried_kelp"
+    }
+  ],
+  "output": "bioforge:cough_tablet",
+  "count": 4,
+  "processing_time": 160
+}

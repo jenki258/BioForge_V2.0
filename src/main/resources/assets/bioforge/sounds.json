@@ -33,31 +33,45 @@
   },
   "machine.disinfecting": {
     "subtitle": "subtitles.bioforge.machine.disinfecting",
-    "sounds": ["bioforge:machine/disinfecting"]
+    "sounds": [
+      "bioforge:machine/disinfecting"
+    ]
   },
   "machine.genes_complete": {
     "subtitle": "subtitles.bioforge.machine.genes_complete",
-    "sounds": ["bioforge:machine/genes_complete"]
+    "sounds": [
+      "bioforge:machine/genes_complete"
+    ]
   },
   "machine.emergency": {
     "subtitle": "subtitles.bioforge.machine.emergency",
-    "sounds": ["bioforge:machine/emergency"]
+    "sounds": [
+      "bioforge:machine/emergency"
+    ]
   },
   "machine.testing_complete": {
     "subtitle": "subtitles.bioforge.machine.testing_complete",
-    "sounds": ["bioforge:machine/testing_complete"]
+    "sounds": [
+      "bioforge:machine/testing_complete"
+    ]
   },
   "machine.centrifuge": {
     "subtitle": "subtitles.bioforge.machine.centrifuge",
-    "sounds": ["bioforge:machine/centrifuge"]
+    "sounds": [
+      "bioforge:machine/centrifuge"
+    ]
   },
   "machine.liquid_pour": {
     "subtitle": "subtitles.bioforge.machine.liquid_pour",
-    "sounds": ["bioforge:machine/liquid_pour"]
+    "sounds": [
+      "bioforge:machine/liquid_pour"
+    ]
   },
   "machine.chemicals_complete": {
     "subtitle": "subtitles.bioforge.machine.chemicals_complete",
-    "sounds": ["bioforge:machine/chemicals_complete"]
+    "sounds": [
+      "bioforge:machine/chemicals_complete"
+    ]
   },
   "ui.button": {
     "subtitle": "subtitles.bioforge.ui.button",
@@ -74,6 +88,496 @@
       "bioforge:ui/satisfying_2",
       "bioforge:ui/satisfying_3",
       "bioforge:ui/satisfying_4"
+    ]
+  },
+  "stethoscope.heartbeat.normal": {
+    "subtitle": "subtitles.bioforge.stethoscope.heartbeat.normal",
+    "sounds": [
+      "bioforge:stethoscope/heartbeat_normal"
+    ]
+  },
+  "stethoscope.heartbeat.fast": {
+    "subtitle": "subtitles.bioforge.stethoscope.heartbeat.fast",
+    "sounds": [
+      "bioforge:stethoscope/heartbeat_fast"
+    ]
+  },
+  "stethoscope.heartbeat.slow": {
+    "subtitle": "subtitles.bioforge.stethoscope.heartbeat.slow",
+    "sounds": [
+      "bioforge:stethoscope/heartbeat_slow"
+    ]
+  },
+  "stethoscope.lungs.normal": {
+    "subtitle": "subtitles.bioforge.stethoscope.lungs.normal",
+    "sounds": [
+      "bioforge:stethoscope/lungs_normal"
+    ]
+  },
+  "stethoscope.lungs.crackle": {
+    "subtitle": "subtitles.bioforge.stethoscope.lungs.crackle",
+    "sounds": [
+      "bioforge:stethoscope/lungs_crackle"
+    ]
+  },
+  "symptom.ear_pulse": {
+    "subtitle": "subtitles.bioforge.symptom.ear_pulse",
+    "sounds": [
+      "bioforge:stethoscope/ear_pulse"
+    ]
+  },
+  "symptom.ear_scratching": {
+    "subtitle": "subtitles.bioforge.symptom.ear_scratching",
+    "sounds": [
+      "bioforge:stethoscope/ear_scratching"
+    ]
+  },
+  "machine.barrel_press.work": {
+    "subtitle": "subtitles.bioforge.machine.barrel_press.work",
+    "sounds": [
+      "bioforge:machine/barrel_press/work"
+    ]
+  },
+  "machine.barrel_press.complete": {
+    "subtitle": "subtitles.bioforge.machine.barrel_press.complete",
+    "sounds": [
+      "bioforge:machine/barrel_press/complete"
+    ]
+  },
+  "machine.chemical_synthesizer.work": {
+    "subtitle": "subtitles.bioforge.machine.chemical_synthesizer.work",
+    "sounds": [
+      "bioforge:machine/chemical_synthesizer/work"
+    ]
+  },
+  "machine.chemical_synthesizer.complete": {
+    "subtitle": "subtitles.bioforge.machine.chemical_synthesizer.complete",
+    "sounds": [
+      "bioforge:machine/chemical_synthesizer/complete"
+    ]
+  },
+  "machine.sterilization_chamber.work": {
+    "subtitle": "subtitles.bioforge.machine.sterilization_chamber.work",
+    "sounds": [
+      "bioforge:machine/sterilization_chamber/work"
+    ]
+  },
+  "machine.sterilization_chamber.complete": {
+    "subtitle": "subtitles.bioforge.machine.sterilization_chamber.complete",
+    "sounds": [
+      "bioforge:machine/sterilization_chamber/complete"
+    ]
+  },
+  "machine.pharma_mixer.work": {
+    "subtitle": "subtitles.bioforge.machine.pharma_mixer.work",
+    "sounds": [
+      "bioforge:machine/pharma_mixer/work"
+    ]
+  },
+  "machine.pharma_mixer.complete": {
+    "subtitle": "subtitles.bioforge.machine.pharma_mixer.complete",
+    "sounds": [
+      "bioforge:machine/pharma_mixer/complete"
+    ]
+  },
+  "machine.herbal_mortar.work": {
+    "subtitle": "subtitles.bioforge.machine.herbal_mortar.work",
+    "sounds": [
+      "bioforge:machine/herbal_mortar/work"
+    ]
+  },
+  "machine.herbal_mortar.complete": {
+    "subtitle": "subtitles.bioforge.machine.herbal_mortar.complete",
+    "sounds": [
+      "bioforge:machine/herbal_mortar/complete"
+    ]
+  },
+  "machine.incubator.work": {
+    "subtitle": "subtitles.bioforge.machine.incubator.work",
+    "sounds": [
+      "bioforge:machine/incubator/work"
+    ]
+  },
+  "machine.incubator.complete": {
+    "subtitle": "subtitles.bioforge.machine.incubator.complete",
+    "sounds": [
+      "bioforge:machine/incubator/complete"
+    ]
+  },
+  "machine.centrifuge.work": {
+    "subtitle": "subtitles.bioforge.machine.centrifuge.work",
+    "sounds": [
+      "bioforge:machine/centrifuge/work"
+    ]
+  },
+  "machine.centrifuge.complete": {
+    "subtitle": "subtitles.bioforge.machine.centrifuge.complete",
+    "sounds": [
+      "bioforge:machine/centrifuge/complete"
+    ]
+  },
+  "machine.vaccine_maker.work": {
+    "subtitle": "subtitles.bioforge.machine.vaccine_maker.work",
+    "sounds": [
+      "bioforge:machine/vaccine_maker/work"
+    ]
+  },
+  "machine.vaccine_maker.complete": {
+    "subtitle": "subtitles.bioforge.machine.vaccine_maker.complete",
+    "sounds": [
+      "bioforge:machine/vaccine_maker/complete"
+    ]
+  },
+  "machine.field_vaccine_maker.work": {
+    "subtitle": "subtitles.bioforge.machine.field_vaccine_maker.work",
+    "sounds": [
+      "bioforge:machine/field_vaccine_maker/work"
+    ]
+  },
+  "machine.field_vaccine_maker.complete": {
+    "subtitle": "subtitles.bioforge.machine.field_vaccine_maker.complete",
+    "sounds": [
+      "bioforge:machine/field_vaccine_maker/complete"
+    ]
+  },
+  "machine.medical_diffuser.work": {
+    "subtitle": "subtitles.bioforge.machine.medical_diffuser.work",
+    "sounds": [
+      "bioforge:machine/medical_diffuser/work"
+    ]
+  },
+  "machine.medical_diffuser.complete": {
+    "subtitle": "subtitles.bioforge.machine.medical_diffuser.complete",
+    "sounds": [
+      "bioforge:machine/medical_diffuser/complete"
+    ]
+  },
+  "machine.gene_splicer.work": {
+    "subtitle": "subtitles.bioforge.machine.gene_splicer.work",
+    "sounds": [
+      "bioforge:machine/gene_splicer/work"
+    ]
+  },
+  "machine.gene_splicer.complete": {
+    "subtitle": "subtitles.bioforge.machine.gene_splicer.complete",
+    "sounds": [
+      "bioforge:machine/gene_splicer/complete"
+    ]
+  },
+  "machine.microscope.complete": {
+    "subtitle": "subtitles.bioforge.machine.microscope.complete",
+    "sounds": [
+      "bioforge:machine/microscope/complete"
+    ]
+  },
+  "machine.microscope.adjust": {
+    "subtitle": "subtitles.bioforge.machine.microscope.adjust",
+    "sounds": [
+      "bioforge:machine/microscope/adjust"
+    ]
+  },
+  "machine.air_filter.work": {
+    "subtitle": "subtitles.bioforge.machine.air_filter.work",
+    "sounds": [
+      "bioforge:machine/air_filter/work"
+    ]
+  },
+  "machine.viral_scanner.work": {
+    "subtitle": "subtitles.bioforge.machine.viral_scanner.work",
+    "sounds": [
+      "bioforge:machine/viral_scanner/work"
+    ]
+  },
+  "machine.viral_scanner.alert": {
+    "subtitle": "subtitles.bioforge.machine.viral_scanner.alert",
+    "sounds": [
+      "bioforge:machine/viral_scanner/alert"
+    ]
+  },
+  "ui.machine.open": {
+    "subtitle": "subtitles.bioforge.ui.machine.open",
+    "sounds": [
+      "bioforge:ui/machine/open"
+    ]
+  },
+  "ui.machine.close": {
+    "subtitle": "subtitles.bioforge.ui.machine.close",
+    "sounds": [
+      "bioforge:ui/machine/close"
+    ]
+  },
+  "instrument.thermometer.shake": {
+    "subtitle": "subtitles.bioforge.instrument.thermometer.shake",
+    "sounds": [
+      "bioforge:instrument/thermometer/shake"
+    ]
+  },
+  "instrument.thermometer.measure": {
+    "subtitle": "subtitles.bioforge.instrument.thermometer.measure",
+    "sounds": [
+      "bioforge:instrument/thermometer/measure"
+    ]
+  },
+  "instrument.stethoscope.select": {
+    "subtitle": "subtitles.bioforge.instrument.stethoscope.select",
+    "sounds": [
+      "bioforge:instrument/stethoscope/select"
+    ]
+  },
+  "instrument.stethoscope.start": {
+    "subtitle": "subtitles.bioforge.instrument.stethoscope.start",
+    "sounds": [
+      "bioforge:instrument/stethoscope/start"
+    ]
+  },
+  "instrument.stethoscope.stop": {
+    "subtitle": "subtitles.bioforge.instrument.stethoscope.stop",
+    "sounds": [
+      "bioforge:instrument/stethoscope/stop"
+    ]
+  },
+  "instrument.otoscope.start": {
+    "subtitle": "subtitles.bioforge.instrument.otoscope.start",
+    "sounds": [
+      "bioforge:instrument/otoscope/start"
+    ]
+  },
+  "instrument.otoscope.stop": {
+    "subtitle": "subtitles.bioforge.instrument.otoscope.stop",
+    "sounds": [
+      "bioforge:instrument/otoscope/stop"
+    ]
+  },
+  "instrument.otoscope.measure": {
+    "subtitle": "subtitles.bioforge.instrument.otoscope.measure",
+    "sounds": [
+      "bioforge:instrument/otoscope/measure"
+    ]
+  },
+  "instrument.pulse_oximeter.start": {
+    "subtitle": "subtitles.bioforge.instrument.pulse_oximeter.start",
+    "sounds": [
+      "bioforge:instrument/pulse_oximeter/start"
+    ]
+  },
+  "instrument.pulse_oximeter.stop": {
+    "subtitle": "subtitles.bioforge.instrument.pulse_oximeter.stop",
+    "sounds": [
+      "bioforge:instrument/pulse_oximeter/stop"
+    ]
+  },
+  "instrument.pulse_oximeter.measure": {
+    "subtitle": "subtitles.bioforge.instrument.pulse_oximeter.measure",
+    "sounds": [
+      "bioforge:instrument/pulse_oximeter/measure"
+    ]
+  },
+  "instrument.reflex_hammer.tap": {
+    "subtitle": "subtitles.bioforge.instrument.reflex_hammer.tap",
+    "sounds": [
+      "bioforge:instrument/reflex_hammer/tap"
+    ]
+  },
+  "instrument.area_scanner.scan": {
+    "subtitle": "subtitles.bioforge.instrument.area_scanner.scan",
+    "sounds": [
+      "bioforge:instrument/area_scanner/scan"
+    ]
+  },
+  "instrument.bone_saw.collect": {
+    "subtitle": "subtitles.bioforge.instrument.bone_saw.collect",
+    "sounds": [
+      "bioforge:instrument/bone_saw/collect"
+    ]
+  },
+  "instrument.swab.collect": {
+    "subtitle": "subtitles.bioforge.instrument.swab.collect",
+    "sounds": [
+      "bioforge:instrument/swab/collect"
+    ]
+  },
+  "instrument.needle.extract": {
+    "subtitle": "subtitles.bioforge.instrument.needle.extract",
+    "sounds": [
+      "bioforge:instrument/needle/extract"
+    ]
+  },
+  "instrument.needle.inject": {
+    "subtitle": "subtitles.bioforge.instrument.needle.inject",
+    "sounds": [
+      "bioforge:instrument/needle/inject"
+    ]
+  },
+  "instrument.syringe.extract": {
+    "subtitle": "subtitles.bioforge.instrument.syringe.extract",
+    "sounds": [
+      "bioforge:instrument/syringe/extract"
+    ]
+  },
+  "instrument.syringe.inject": {
+    "subtitle": "subtitles.bioforge.instrument.syringe.inject",
+    "sounds": [
+      "bioforge:instrument/syringe/inject"
+    ]
+  },
+  "instrument.vaccine.inject": {
+    "subtitle": "subtitles.bioforge.instrument.vaccine.inject",
+    "sounds": [
+      "bioforge:instrument/vaccine/inject"
+    ]
+  },
+  "instrument.field_vaccine.inject": {
+    "subtitle": "subtitles.bioforge.instrument.field_vaccine.inject",
+    "sounds": [
+      "bioforge:instrument/vaccine/inject"
+    ]
+  },
+  "instrument.vaccine.success": {
+    "subtitle": "subtitles.bioforge.instrument.vaccine.success",
+    "sounds": [
+      "bioforge:instrument/vaccine/success"
+    ]
+  },
+  "instrument.field_vaccine.success": {
+    "subtitle": "subtitles.bioforge.instrument.field_vaccine.success",
+    "sounds": [
+      "bioforge:instrument/vaccine/success"
+    ]
+  },
+  "instrument.vaccine.load": {
+    "subtitle": "subtitles.bioforge.instrument.vaccine.load",
+    "sounds": [
+      "bioforge:instrument/vaccine/load"
+    ]
+  },
+  "instrument.mutation.inject": {
+    "subtitle": "subtitles.bioforge.instrument.mutation.inject",
+    "sounds": [
+      "bioforge:instrument/mutation/inject"
+    ]
+  },
+  "instrument.mutation.upgrade": {
+    "subtitle": "subtitles.bioforge.instrument.mutation.upgrade",
+    "sounds": [
+      "bioforge:instrument/mutation/upgrade"
+    ]
+  },
+  "instrument.tablet.take": {
+    "subtitle": "subtitles.bioforge.instrument.tablet.take",
+    "sounds": [
+      "bioforge:instrument/tablet/take"
+    ]
+  },
+  "instrument.resistance_pill.take": {
+    "subtitle": "subtitles.bioforge.instrument.resistance_pill.take",
+    "sounds": [
+      "bioforge:instrument/resistance_pill/take"
+    ]
+  },
+  "instrument.tube.fill": {
+    "subtitle": "subtitles.bioforge.instrument.tube.fill",
+    "sounds": [
+      "bioforge:instrument/tube/fill"
+    ]
+  },
+  "instrument.tube.empty": {
+    "subtitle": "subtitles.bioforge.instrument.tube.empty",
+    "sounds": [
+      "bioforge:instrument/tube/empty"
+    ]
+  },
+  "instrument.blood_slide.prepare": {
+    "subtitle": "subtitles.bioforge.instrument.blood_slide.prepare",
+    "sounds": [
+      "bioforge:instrument/blood_slide/prepare"
+    ]
+  },
+  "instrument.reagent.apply": {
+    "subtitle": "subtitles.bioforge.instrument.reagent.apply",
+    "sounds": [
+      "bioforge:instrument/reagent/apply"
+    ]
+  },
+  "instrument.wipe.clean": {
+    "subtitle": "subtitles.bioforge.instrument.wipe.clean",
+    "sounds": [
+      "bioforge:instrument/reagent/apply"
+    ]
+  },
+  "instrument.ethanol.clean": {
+    "subtitle": "subtitles.bioforge.instrument.ethanol.clean",
+    "sounds": [
+      "bioforge:instrument/reagent/apply"
+    ]
+  },
+  "instrument.decontamination.spray": {
+    "subtitle": "subtitles.bioforge.instrument.decontamination.spray",
+    "sounds": [
+      "bioforge:instrument/decontamination/spray"
+    ]
+  },
+  "instrument.decalcification.apply": {
+    "subtitle": "subtitles.bioforge.instrument.decalcification.apply",
+    "sounds": [
+      "bioforge:instrument/decalcification/apply"
+    ]
+  },
+  "instrument.petri.feed": {
+    "subtitle": "subtitles.bioforge.instrument.petri.feed",
+    "sounds": [
+      "bioforge:instrument/petri/feed"
+    ]
+  },
+  "instrument.petri.inoculate": {
+    "subtitle": "subtitles.bioforge.instrument.petri.inoculate",
+    "sounds": [
+      "bioforge:instrument/petri/inoculate"
+    ]
+  },
+  "instrument.petri.collect": {
+    "subtitle": "subtitles.bioforge.instrument.petri.collect",
+    "sounds": [
+      "bioforge:instrument/petri/collect"
+    ]
+  },
+  "ui.research_tablet.open": {
+    "subtitle": "subtitles.bioforge.ui.research_tablet.open",
+    "sounds": [
+      "bioforge:ui/research_tablet/open"
+    ]
+  },
+  "ui.clipboard.write": {
+    "subtitle": "subtitles.bioforge.ui.clipboard.write",
+    "sounds": [
+      "bioforge:ui/clipboard/write"
+    ]
+  },
+  "instrument.protection.equip": {
+    "subtitle": "subtitles.bioforge.instrument.protection.equip",
+    "sounds": [
+      "bioforge:instrument/protection/equip"
+    ]
+  },
+  "instrument.protection.unequip": {
+    "subtitle": "subtitles.bioforge.instrument.protection.unequip",
+    "sounds": [
+      "bioforge:instrument/protection/unequip"
+    ]
+  },
+  "music_disc.iron_culture": {
+    "sounds": [
+      {
+        "name": "bioforge:music/iron_culture",
+        "stream": true
+      }
+    ]
+  },
+  "music_disc.twelve_hours": {
+    "sounds": [
+      {
+        "name": "bioforge:music/twelve_hours",
+        "stream": true
+      }
     ]
   }
 }

@@ -30,12 +30,15 @@ public class StrainData {
     private int lifespanTicksOverride = InfectionLifecycleState.NO_LIFESPAN_OVERRIDE;
 
     private static Map<String, SymptomKey<?>> ALL_SYMPTOM_KEYS;
+    private static long symptomKeysGeneration = Long.MIN_VALUE;
 
     private StrainData() {}
 
     private static Map<String, SymptomKey<?>> getAllSymptomKeys() {
-        if (ALL_SYMPTOM_KEYS == null) {
+        long generation = BioForgeDefinitionManager.SYMPTOMS.snapshot().generation();
+        if (ALL_SYMPTOM_KEYS == null || symptomKeysGeneration != generation) {
             ALL_SYMPTOM_KEYS = BioForgeSymptoms.getAllSymptomKeys();
+            symptomKeysGeneration = generation;
         }
         return ALL_SYMPTOM_KEYS;
     }
@@ -81,7 +84,9 @@ public class StrainData {
         String[] parts = payload.split(";");
         if (parts.length == 0) return s;
 
-        String[] header = parts[0].split("\\|");
+        // The transmission column may be empty. Dropping it shifts colony/pathogen
+        // fields and corrupts non-transmissible strains, including vaccine samples.
+        String[] header = parts[0].split("\\|", -1);
         if (header.length >= 3) {
             try { s.colonyId = UUID.fromString(header[0]); } catch (Exception ignored) {}
             s.setPathogenId(parsePathogenId(header[1]));
@@ -364,9 +369,32 @@ public class StrainData {
         return parse(payload).toCanonicalGeneticPayload();
     }
 
+    public StrainData withTransmissions(Collection<ResourceLocation> selected) {
+        Set<ResourceLocation> source = Set.copyOf(getTransmissionIds());
+        StrainData result = copy(this);
+        result.infectionTypes.clear();
+        result.transmissionIds.clear();
+        selected.stream().filter(source::contains).filter(StrainData::isTransmissionEnabled)
+                .forEach(result.transmissionIds::add);
+        return result;
+    }
+
+    private StrainData forHost(LivingEntity target) {
+        List<ResourceLocation> routes = getTransmissionIds().stream()
+                .filter(StrainData::isTransmissionEnabled).sorted(Comparator.comparing(ResourceLocation::toString))
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+        // Already expressed host/item profiles retain their routes during subsequent spread.
+        if (routes.size() <= 2) return this;
+        Random random = new Random(target.getUUID().getMostSignificantBits()
+                ^ target.getUUID().getLeastSignificantBits() ^ toCanonicalGeneticPayload().hashCode());
+        Collections.shuffle(routes, random);
+        return withTransmissions(routes.subList(0, 1 + random.nextInt(2)));
+    }
+
     @SuppressWarnings("unchecked")
     public boolean applyToEntity(InfectionData data, LivingEntity target) {
-        if (data == null || pathogenId == null) return false;
+        if (data == null || pathogenId == null
+                || !InfectionCapability.canHostInfection(target)) return false;
         if (InfectionInvulnerability.isEnabled(target)) {
             if (target instanceof net.minecraft.server.level.ServerPlayer player) {
                 InfectionInvulnerability.ensureCured(player);
@@ -374,6 +402,8 @@ public class StrainData {
             return false;
         }
         if (StrainImmunityManager.blocks(target, data, this)) return false;
+        StrainData hostProfile = forHost(target);
+        if (hostProfile != this) return hostProfile.applyToEntity(data, target);
         if (data.isInfected()) {
             StrainData existing = buildFrom(data);
             if (existing.toCanonicalGeneticPayload().equals(toCanonicalGeneticPayload())) return false;

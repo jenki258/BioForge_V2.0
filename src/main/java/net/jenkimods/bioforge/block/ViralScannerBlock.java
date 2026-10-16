@@ -126,6 +126,7 @@ public final class ViralScannerBlock extends HorizontalDirectionalBlock {
     private void setPowered(ServerLevel level, BlockPos controller, boolean powered) {
         BlockState lower = level.getBlockState(controller);
         if (!lower.is(this) || lower.getValue(POWERED) == powered) return;
+        if (powered) net.jenkimods.bioforge.audio.ActionAudio.play(level,controller,"machine.viral_scanner.alert",net.minecraft.sounds.SoundSource.BLOCKS,.7F);
         level.setBlock(controller, lower.setValue(POWERED, powered), 3);
         level.updateNeighborsAt(controller, this);
         if (variant != Variant.CEILING) {

@@ -19,11 +19,7 @@ public class VirusSampleItem extends Item {
     }
 
     public static StrainData getStrain(ItemStack stack) {
-        String raw = NbtObfuscator.readString(stack.getOrCreateTag());
-        if (raw != null && !raw.isEmpty()) {
-            return StrainData.parse(raw);
-        }
-        return null;
+        return StrainPayload.read(stack.getOrCreateTag());
     }
 
     @Override

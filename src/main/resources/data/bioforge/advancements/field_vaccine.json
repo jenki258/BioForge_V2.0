@@ -1,0 +1,23 @@
+{
+  "parent": "bioforge:field_vaccine_maker",
+  "display": {
+    "icon": {
+      "item": "bioforge:field_vaccine"
+    },
+    "title": {
+      "translate": "advancement.bioforge.field_vaccine.title"
+    },
+    "description": {
+      "translate": "advancement.bioforge.field_vaccine.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "produced": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

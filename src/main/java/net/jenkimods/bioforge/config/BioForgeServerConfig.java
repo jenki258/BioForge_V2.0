@@ -54,6 +54,8 @@ public final class BioForgeServerConfig {
     private static final ForgeConfigSpec.DoubleValue SURFACE_DEPOSIT_CHANCE;
     private static final ForgeConfigSpec.DoubleValue ATTACK_EXPOSURE_CHANCE;
     private static final ForgeConfigSpec.DoubleValue FOOD_EXPOSURE_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue RAW_FOOD_PARASITE_CHANCE;
+    private static final ForgeConfigSpec.DoubleValue ROTTEN_FOOD_PRION_CHANCE;
     private static final ForgeConfigSpec.DoubleValue WATER_EXPOSURE_CHANCE;
     private static final ForgeConfigSpec.DoubleValue BLOOD_EXPOSURE_CHANCE;
     private static final ForgeConfigSpec.IntValue DECONTAMINATION_RADIUS;
@@ -65,6 +67,14 @@ public final class BioForgeServerConfig {
     private static final ForgeConfigSpec.DoubleValue STERILIZATION_CHAMBER_SPEED;
     private static final ForgeConfigSpec.DoubleValue PHARMA_MIXER_SPEED;
 
+    private static final ForgeConfigSpec.DoubleValue PLAYER_TEMPERATURE;
+    private static final ForgeConfigSpec.ConfigValue<String> PLAYER_HEART;
+    private static final ForgeConfigSpec.DoubleValue PLAYER_OXYGEN;
+    private static final ForgeConfigSpec.DoubleValue PLAYER_PERFUSION;
+    private static final ForgeConfigSpec.ConfigValue<java.util.List<? extends String>> PLAYER_PROFILES;
+
+    private static final ForgeConfigSpec.BooleanValue IMMERSIVE_AUDIO;
+    private static final ForgeConfigSpec.DoubleValue EAR_PULSE_CHANCE,EAR_SCRATCHING_CHANCE;
     private static final String[] ORIGINAL_SYMPTOMS = {
             "heart_rate", "lung_sound", "temperature_plus", "temperature_minus",
             "otoscope_redness", "otoscope_lesions", "otoscope_secretion",
@@ -224,6 +234,8 @@ public final class BioForgeServerConfig {
                 "Base infection chance for an ATTACK_BASED hit before strain strength and protection.");
         FOOD_EXPOSURE_CHANCE = probability(builder, "foodExposureChance", 0.70,
                 "Base infection chance from consuming FOOD_BORNE contaminated food.");
+        RAW_FOOD_PARASITE_CHANCE = probability(builder, "rawFoodParasiteChance", 0.05, "Infection chance when consuming food in bioforge:foods/parasite_risk.");
+        ROTTEN_FOOD_PRION_CHANCE = probability(builder, "rottenFoodPrionChance", 0.02, "Infection chance when consuming food in bioforge:foods/prion_risk.");
         WATER_EXPOSURE_CHANCE = probability(builder, "waterExposureChance", 0.65,
                 "Base infection chance from consuming WATER_BORNE contaminated drinks.");
         BLOOD_EXPOSURE_CHANCE = probability(builder, "bloodExposureChance", 0.90,
@@ -256,6 +268,27 @@ public final class BioForgeServerConfig {
                     .define(id, true));
         }
         builder.pop().pop().pop();
+        builder.comment("Healthy physiological baselines for players. Mobs keep their original baselines.")
+                .push("playerPhysiology");
+        PLAYER_TEMPERATURE = builder.comment("Normal body temperature in Celsius; fever adds 1.9 and cold subtracts 1.1.")
+                .defineInRange("defaultTemperatureC", 36.6D, 0.0D, 100.0D);
+        PLAYER_HEART = builder.comment("Normal heartbeat sound: NORMAL, TACHY (fast), BRADY (slow).")
+                .define("defaultHeartRate", "NORMAL", value -> value instanceof String text
+                        && java.util.Arrays.stream(net.jenkimods.bioforge.infection.HeartRate.values())
+                        .anyMatch(rate -> rate.name().equalsIgnoreCase(text)));
+        PLAYER_OXYGEN = probability(builder, "defaultOxygenSaturation", .95D, "Healthy oxygen saturation as a fraction, not percent.");
+        PLAYER_PERFUSION = probability(builder, "defaultPerfusionIndex", .7D, "Healthy perfusion index from 0 to 1.");
+        PLAYER_PROFILES = builder.comment("Individual overrides: playerNameOrUUID|temperatureC|heartRate|oxygenFraction|perfusionIndex",
+                        "Example: Cinder|39.0|TACHY|0.97|0.7",
+                        "UUID overrides name; the last matching entry wins. Names are case-insensitive.")
+                .defineListAllowEmpty("profiles", java.util.List.<String>of(),
+                        net.jenkimods.bioforge.physiology.PhysiologyProfile::validEntry);
+        builder.pop();
+        builder.push("immersiveAudio");
+        IMMERSIVE_AUDIO=builder.comment("Enable private symptom audio bursts. Client preferences can mute them individually.").define("enabled",true);
+        EAR_PULSE_CHANCE=probability(builder,"heartbeatChance",.25D,"Chance of a brief heartbeat-in-ears burst per ten seconds while an active tachycardia symptom is present.");
+        EAR_SCRATCHING_CHANCE=probability(builder,"headParasiteChance",.2D,"Chance per ten seconds for an active parasite infection with neural damage.");
+        builder.pop();
         SPEC = builder.build();
     }
 
@@ -327,6 +360,8 @@ public final class BioForgeServerConfig {
         return AIR_EXPOSURE_CHANCE.get().floatValue() * transmissionChanceMultiplier();
     }
     public static float outdoorAirMultiplier() { return OUTDOOR_AIR_MULTIPLIER.get().floatValue(); }
+    public static float rawFoodParasiteChance() { return RAW_FOOD_PARASITE_CHANCE.get().floatValue(); }
+    public static float rottenFoodPrionChance() { return ROTTEN_FOOD_PRION_CHANCE.get().floatValue(); }
     public static float medicalMaskIncomingAirMultiplier() { return MEDICAL_MASK_INCOMING_AIR_MULTIPLIER.get().floatValue(); }
     public static float hazcureIncomingAirMultiplier() { return HAZCURE_INCOMING_AIR_MULTIPLIER.get().floatValue(); }
     public static float hazcureIncomingContactMultiplier() { return HAZCURE_INCOMING_CONTACT_MULTIPLIER.get().floatValue(); }
@@ -371,9 +406,22 @@ public final class BioForgeServerConfig {
             case CHEMICAL_SYNTHESIZER -> CHEMICAL_SYNTHESIZER_SPEED.get();
             case STERILIZATION_CHAMBER -> STERILIZATION_CHAMBER_SPEED.get();
             case PHARMA_MIXER -> PHARMA_MIXER_SPEED.get();
+            case HERBAL_MORTAR -> 1.0;
         };
         return scaledProcessingTime(baseTicks, speed);
     }
+
+    public static net.jenkimods.bioforge.physiology.PhysiologyProfile defaultPlayerPhysiology() {
+        return new net.jenkimods.bioforge.physiology.PhysiologyProfile(PLAYER_TEMPERATURE.get(),
+                net.jenkimods.bioforge.infection.HeartRate.fromName(PLAYER_HEART.get()),
+                PLAYER_OXYGEN.get().floatValue(), PLAYER_PERFUSION.get().floatValue());
+    }
+
+    public static java.util.List<? extends String> playerPhysiologyProfiles() { return PLAYER_PROFILES.get(); }
+
+    public static boolean immersiveAudioEnabled() { return IMMERSIVE_AUDIO.get(); }
+    public static float earPulseChance() { return EAR_PULSE_CHANCE.get().floatValue(); }
+    public static float earScratchingChance() { return EAR_SCRATCHING_CHANCE.get().floatValue(); }
 
     private static String normalizeId(String id) {
         String normalized = id.trim().toLowerCase(Locale.ROOT);

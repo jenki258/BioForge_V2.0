@@ -339,8 +339,7 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
 
     private void playAnalysisCompleteSound() {
         if (level != null) {
-            level.playSound(null, worldPosition, BioForgeSounds.TESTING_COMPLETE.get(),
-                    SoundSource.BLOCKS, 0.8F, 1.0F);
+            net.jenkimods.bioforge.audio.ActionAudio.machineEvent(this,"machine.microscope.complete",1);
         }
     }
 
@@ -354,6 +353,7 @@ public class MicroscopeBlockEntity extends BlockEntity implements MenuProvider {
                 + normalized * (slider.rangeMax() - slider.rangeMin());
         calibrationPositions.put(
                 slider.nameKey(), calibrationValues[sliderIndex]);
+        net.jenkimods.bioforge.audio.ActionAudio.machineEvent(this,"machine.microscope.adjust",25);
         visualKnobAngle = Mth.lerp(normalized, -35.0F, 35.0F);
         visualLensAngle = Mth.positiveModulo(
                 Math.floorMod(sliderIndex, 3) * 120.0F

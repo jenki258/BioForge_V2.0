@@ -37,7 +37,7 @@ public class BloodCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 
         dispatcher.register(
-                Commands.literal("bioforge")
+                Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                         .then(Commands.literal("get_blood")
                                 .then(Commands.argument("entity", EntityArgument.entity())
                                         .executes(ctx -> executeGet(ctx,

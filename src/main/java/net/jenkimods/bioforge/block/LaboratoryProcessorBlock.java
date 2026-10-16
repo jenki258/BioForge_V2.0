@@ -45,6 +45,8 @@ public final class LaboratoryProcessorBlock extends BaseEntityBlock {
     }
 
     private static BlockBehaviour.Properties properties(LaboratoryStation station) {
+        if (station == LaboratoryStation.HERBAL_MORTAR) return BlockBehaviour.Properties.of()
+                .strength(2.0F).sound(SoundType.STONE).requiresCorrectToolForDrops().noOcclusion();
         BlockBehaviour.Properties properties = BlockBehaviour.Properties.of()
                 .strength(station == LaboratoryStation.BARREL_PRESS
                         ? 2.5F : 4.0F)
@@ -111,6 +113,7 @@ public final class LaboratoryProcessorBlock extends BaseEntityBlock {
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos,
                                CollisionContext context) {
+        if (station == LaboratoryStation.HERBAL_MORTAR) return Block.box(2, 0, 2, 14, 9, 14);
         return station == LaboratoryStation.BARREL_PRESS
                 ? BARREL_PRESS_SHAPE : super.getShape(state, level, pos, context);
     }

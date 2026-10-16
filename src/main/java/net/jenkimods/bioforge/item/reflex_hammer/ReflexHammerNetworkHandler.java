@@ -107,13 +107,12 @@ public class ReflexHammerNetworkHandler {
                 float effectiveStrength = reflexStrength * msg.accuracy * (1.0f - neuralDamage * 0.5f);
                 effectiveStrength = Math.max(0.0f, Math.min(1.0f, effectiveStrength));
 
+                net.jenkimods.bioforge.audio.ActionAudio.tool(player,"instrument.reflex_hammer.tap");
                 if (effectiveStrength > 0.6f) {
                     target.setDeltaMovement(target.getDeltaMovement().add(0, 0.35, 0));
-                    level.playSound(null, target.blockPosition(), SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.PLAYERS, 0.8f, 1.2f);
                     spawnParticles(level, target, 10);
                 } else if (effectiveStrength > 0.1f) {
                     target.setDeltaMovement(target.getDeltaMovement().add(0, 0.1, 0));
-                    level.playSound(null, target.blockPosition(), SoundEvents.PLAYER_ATTACK_WEAK, SoundSource.PLAYERS, 0.4f, 1.5f);
                     spawnParticles(level, target, 3);
                 }
 
@@ -139,9 +138,9 @@ public class ReflexHammerNetworkHandler {
         }
 
         private static void spawnParticles(Level level, LivingEntity target, int count) {
-            if (!level.isClientSide()) return;
-            for (int i = 0; i < count; i++) {
-                level.addParticle(ParticleTypes.CLOUD, target.getX(), target.getY()+0.5, target.getZ(), 0, 0.1, 0);
+            if (level instanceof net.minecraft.server.level.ServerLevel server) {
+                server.sendParticles(ParticleTypes.CLOUD, target.getX(), target.getY() + 0.5,
+                        target.getZ(), count, 0.0, 0.0, 0.0, 0.1);
             }
         }
     }

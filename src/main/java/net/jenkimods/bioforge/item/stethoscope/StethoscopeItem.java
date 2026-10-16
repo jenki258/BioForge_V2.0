@@ -46,6 +46,8 @@ public class StethoscopeItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level,
                                 List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable("item.bioforge.stethoscope.selected",Component.translatable(AuscultationSite.read(stack).translationKey())));
+        tooltip.add(Component.translatable("item.bioforge.stethoscope.tooltip.site").withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.stethoscope.tooltip.hold")
                 .withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
         tooltip.add(Component.translatable("item.bioforge.stethoscope.tooltip.look")
@@ -62,6 +64,15 @@ public class StethoscopeItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        if (player.isShiftKeyDown()) {
+            if (!level.isClientSide()) {
+                var stack = player.getItemInHand(hand);
+                var site = AuscultationSite.read(stack).next(); site.write(stack);
+                net.jenkimods.bioforge.audio.ActionAudio.tool(player,"instrument.stethoscope.select");
+                player.displayClientMessage(Component.translatable("item.bioforge.stethoscope.selected",Component.translatable(site.translationKey())),true);
+            }
+            return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand),level.isClientSide());
+        }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(player.getItemInHand(hand));
     }
@@ -82,8 +93,9 @@ public class StethoscopeItem extends Item {
                 targetId = target.getId();
             }
 
-            if (!StethoscopeClientHandler.isListening() || targetId != StethoscopeClientHandler.getCurrentTargetId()) {
-                StethoscopeClientHandler.beginListening(targetId);
+            if (!StethoscopeClientHandler.isListening() || targetId != StethoscopeClientHandler.getCurrentTargetId()
+                    || StethoscopeClientHandler.getSite()!=AuscultationSite.read(stack)) {
+                StethoscopeClientHandler.beginListening(targetId,AuscultationSite.read(stack));
             }
             StethoscopeNetworkHandler.sendRequest(targetId, player.getUsedItemHand() == InteractionHand.MAIN_HAND);
         } else if (usedTicks >= 100) {
@@ -96,10 +108,11 @@ public class StethoscopeItem extends Item {
             InfectionData data = InfectionCapability.get(subject);
             HeartRate heartRate = data != null
                     ? data.getSymptom(BioForgeSymptoms.HEART_RATE) : HeartRate.NORMAL;
+                heartRate = net.jenkimods.bioforge.physiology.PhysiologyReadings.profile(subject).heart(heartRate);
             LungSound lungSound = data != null
                     ? data.getSymptom(BioForgeSymptoms.LUNG_SOUND) : LungSound.NORMAL;
-            ClipboardHelper.recordHeart(heartRate.name(), false, player, subject.getUUID());
-            ClipboardHelper.recordLungs(lungSound.name(), false, player, subject.getUUID());
+            if (AuscultationSite.read(stack).isHeart()) ClipboardHelper.recordHeart(heartRate.name(), false, player, subject.getUUID());
+            else ClipboardHelper.recordLungs(lungSound.name(), false, player, subject.getUUID());
         }
     }
 

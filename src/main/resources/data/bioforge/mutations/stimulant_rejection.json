@@ -1,0 +1,15 @@
+{
+  "id": "stimulant_rejection",
+  "name": "Stimulant Rejection",
+  "description": "Strength effects fail, including enhancements supplied by an engineered pathogen.",
+  "pathogens": [
+    "UNIVERSAL"
+  ],
+  "rarity": "uncommon",
+  "weight": 12,
+  "tags": [
+    "drawback",
+    "treatment_rejection"
+  ],
+  "effects": []
+}

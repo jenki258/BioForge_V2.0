@@ -13,6 +13,11 @@ public final class BioForgeSounds {
     public static final DeferredRegister<SoundEvent> SOUNDS =
             DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, BioForge.MODID);
 
+    public static final RegistryObject<SoundEvent> MUSIC_DISC_IRON_CULTURE = register("music_disc.iron_culture");
+    public static final RegistryObject<SoundEvent> MUSIC_DISC_TWELVE_HOURS = register("music_disc.twelve_hours");
+
+    public static final RegistryObject<SoundEvent> EAR_PULSE=register("symptom.ear_pulse");
+    public static final RegistryObject<SoundEvent> EAR_SCRATCHING=register("symptom.ear_scratching");
     public static final RegistryObject<SoundEvent> COUGH = register("symptom.cough");
     public static final RegistryObject<SoundEvent> SNEEZE = register("symptom.sneeze");
     public static final RegistryObject<SoundEvent> PARANOIA_VOICE =

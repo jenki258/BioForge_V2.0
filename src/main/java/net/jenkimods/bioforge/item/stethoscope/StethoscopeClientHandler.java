@@ -8,11 +8,21 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 
+@net.minecraftforge.fml.common.Mod.EventBusSubscriber(modid="bioforge",value=net.minecraftforge.api.distmarker.Dist.CLIENT)
 public class StethoscopeClientHandler {
+
+    @net.minecraftforge.eventbus.api.SubscribeEvent
+    public static void tick(net.minecraftforge.event.TickEvent.ClientTickEvent event) {
+        if (event.phase!=net.minecraftforge.event.TickEvent.Phase.END || !listening) return;
+        var player=Minecraft.getInstance().player;
+        if (player==null || !player.isUsingItem() || !(player.getUseItem().getItem() instanceof StethoscopeItem)) stopListening();
+    }
 
     public static HeartRate getHeartState() { return heartRate; }
     public static LungSound getLungState() { return lungSound; }
 
+    private static AuscultationSite site=AuscultationSite.HEART;
+    public static AuscultationSite getSite() { return site; }
     private static boolean listening = false;
     private static int targetEntityId = -1;
     private static HeartRate heartRate = HeartRate.NORMAL;
@@ -22,10 +32,11 @@ public class StethoscopeClientHandler {
     private static SoundInstance heartSoundInstance = null;
     private static SoundInstance lungSoundInstance = null;
 
-    public static void beginListening(int entityId) {
-        if (listening && entityId == targetEntityId) return;
+    public static void beginListening(int entityId,AuscultationSite selected) {
+        if (listening && entityId == targetEntityId && site==selected) return;
         stopSounds();
         listening = true;
+        site=selected;
         targetEntityId = entityId;
         hasReading = false;
         heartRate = HeartRate.NORMAL;
@@ -33,16 +44,19 @@ public class StethoscopeClientHandler {
         targetName = "";
     }
 
-    public static void applyReading(HeartRate hr, LungSound ls, String name) {
+    public static void applyReading(HeartRate hr, LungSound ls, String name,AuscultationSite selected) {
+        if (!listening) return;
+        if (hasReading && heartRate==hr && lungSound==ls && site==selected) { targetName=name;return; }
         stopSounds();
+        site=selected;
         hasReading = true;
         heartRate = hr;
         lungSound = ls;
         if (!name.isEmpty()) {
             targetName = name;
         }
-        playHeartSound();
-        playLungSound();
+        if (site.isHeart()) playHeartSound();
+        else playLungSound();
     }
 
     private static void playHeartSound() {
@@ -52,7 +66,7 @@ public class StethoscopeClientHandler {
             case BRADY -> StethoscopeSounds.HEARTBEAT_SLOW.get();
             default -> StethoscopeSounds.HEARTBEAT_NORMAL.get();
         };
-        heartSoundInstance = new LoopingSoundInstance(event, SoundSource.PLAYERS, 0.8f, 1.0f);
+        heartSoundInstance = new LoopingSoundInstance(event, SoundSource.PLAYERS, 0.8f*site.volume*net.jenkimods.bioforge.config.BioForgeClientConfig.stethoscopeVolume(), site.pitch);
         mc.getSoundManager().play(heartSoundInstance);
     }
 
@@ -61,7 +75,7 @@ public class StethoscopeClientHandler {
         SoundEvent event = lungSound == LungSound.CRACKLE
                 ? StethoscopeSounds.LUNGS_CRACKLE.get()
                 : StethoscopeSounds.LUNGS_NORMAL.get();
-        lungSoundInstance = new LoopingSoundInstance(event, SoundSource.PLAYERS, 0.5f, 1.0f);
+        lungSoundInstance = new LoopingSoundInstance(event, SoundSource.PLAYERS, 0.5f*site.volume*net.jenkimods.bioforge.config.BioForgeClientConfig.stethoscopeVolume(), site.pitch);
         mc.getSoundManager().play(lungSoundInstance);
     }
 

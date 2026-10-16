@@ -35,7 +35,8 @@ public class InfectionCapability {
     @SubscribeEvent
     public static void onAttachCapabilities(AttachCapabilitiesEvent<Entity> event) {
 
-        if (!(event.getObject() instanceof LivingEntity)) return;
+        if (!(event.getObject() instanceof net.minecraft.world.entity.Mob)
+                && !(event.getObject() instanceof net.minecraft.world.entity.player.Player)) return;
 
         if (event.getCapabilities().containsKey(INFECTION_CAP_ID)) return;
 
@@ -45,9 +46,15 @@ public class InfectionCapability {
     @Nullable
     public static InfectionData get(Entity entity) {
 
-        if (!(entity instanceof LivingEntity)) return null;
+        if (!canHostInfection(entity)) return null;
 
         return entity.getCapability(INFECTION_CAP).resolve().orElse(null);
+    }
+
+    public static boolean canHostInfection(Entity entity) {
+        return (entity instanceof net.minecraft.world.entity.Mob
+                || entity instanceof net.minecraft.world.entity.player.Player)
+                && !entity.getType().is(net.jenkimods.bioforge.BioForgeTags.INFECTION_IMMUNE);
     }
 
     private static class Provider implements ICapabilitySerializable<CompoundTag> {

@@ -15,6 +15,10 @@ public class BioForgeTags {
             TagKey.create(Registries.ENTITY_TYPE,
                     ResourceLocation.tryBuild("bioforge", "no_infection_attack_spread"));
 
+    public static final TagKey<EntityType<?>> INFECTION_IMMUNE =
+            TagKey.create(Registries.ENTITY_TYPE,
+                    ResourceLocation.tryBuild("bioforge", "infection_immune"));
+
     public static final TagKey<EntityType<?>> NO_DIAGNOSTICS =
             TagKey.create(Registries.ENTITY_TYPE,
                     ResourceLocation.tryBuild("bioforge", "no_diagnostics"));

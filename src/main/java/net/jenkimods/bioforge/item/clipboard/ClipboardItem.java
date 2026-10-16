@@ -128,9 +128,7 @@ public class ClipboardItem extends Item {
 
         if (tag.contains("TemperatureC")) {
             float temp = tag.getFloat("TemperatureC");
-            String statusKey = temp >= 38.5f ? "clipboard.temperature.fever"
-                    : (temp <= 35.5f ? "clipboard.temperature.hypothermia"
-                    : "clipboard.temperature.normal");
+            String statusKey = net.jenkimods.bioforge.physiology.PhysiologyReadings.temperatureStatus(tag);
             String unstable = tag.getBoolean("TempUnstable") ? " (?)" : "";
             Component reading = Component.literal(String.format("%.1f°C (", temp))
                     .append(Component.translatable(statusKey)).append(")").append(unstable);
@@ -150,7 +148,7 @@ public class ClipboardItem extends Item {
 
         if (tag.contains("OxygenSaturation")) {
             float o2 = tag.getFloat("OxygenSaturation");
-            float pi = tag.contains("PerfusionIndex") ? tag.getFloat("PerfusionIndex") : 0.7f;
+            float pi = tag.contains("PerfusionIndex") ? net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(tag, "PerfusionIndex") : 0.7f;
             String piKey = pi > 0.7f ? "clipboard.pi.strong"
                     : (pi > 0.3f ? "clipboard.pi.moderate" : "clipboard.pi.weak");
             String unstable = tag.getBoolean("O2Unstable") ? " (?)" : "";

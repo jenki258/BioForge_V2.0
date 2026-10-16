@@ -6,7 +6,8 @@ public enum IncubatorOperation {
     CRAFT,
     GENERATE_STRAIN,
     COPY_SAMPLE_STRAIN,
-    COPY_BLOOD_STRAIN;
+    COPY_BLOOD_STRAIN,
+    CONVERT_SAMPLE;
 
     public static IncubatorOperation parse(String value) {
         try {
@@ -14,7 +15,7 @@ public enum IncubatorOperation {
         } catch (IllegalArgumentException exception) {
             throw new IllegalArgumentException(
                     "Unknown incubator operation '" + value
-                            + "'. Expected craft, generate_strain, copy_sample_strain, or copy_blood_strain"
+                            + "'. Expected craft, generate_strain, copy_sample_strain, copy_blood_strain, or convert_sample"
             );
         }
     }

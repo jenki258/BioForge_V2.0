@@ -17,7 +17,7 @@ public final class ResearchJournalCommand {
     private ResearchJournalCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("bioforge")
+        dispatcher.register(Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                 .then(Commands.literal("researchtablet")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("pages")

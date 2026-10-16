@@ -1,0 +1,27 @@
+{
+  "order": 10,
+  "title": {
+    "translate": "research.bioforge.page.splicer_gene_categories.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_gene_categories.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_gene_categories.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_gene_categories.content.3"
+      },
+      "line_breaks": 2
+    }
+  ],
+  "recipes": []
+}

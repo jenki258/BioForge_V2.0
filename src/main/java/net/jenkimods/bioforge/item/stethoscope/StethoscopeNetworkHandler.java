@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 public class StethoscopeNetworkHandler {
 
-    private static final String PROTOCOL = "1";
+    private static final String PROTOCOL = "3";
     private static SimpleChannel CHANNEL;
 
     public static void register() {
@@ -43,9 +43,9 @@ public class StethoscopeNetworkHandler {
     }
 
     public static void sendReading(ServerPlayer player, HeartRate heartRate,
-                                   LungSound lungSound, String targetName, boolean mainHand) {
+                                   LungSound lungSound, String targetName, boolean mainHand, AuscultationSite site, int targetId) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new StethoscopeReadingPacket(heartRate, lungSound, targetName, mainHand));
+                new StethoscopeReadingPacket(heartRate, lungSound, targetName, mainHand, site, targetId));
     }
 
     public static class StethoscopeRequestPacket {
@@ -77,10 +77,19 @@ public class StethoscopeNetworkHandler {
                     if (e instanceof LivingEntity le) target = le;
                 }
                 if (target == null) return;
+                var hand=msg.mainHand?net.minecraft.world.InteractionHand.MAIN_HAND:net.minecraft.world.InteractionHand.OFF_HAND;
+                var held=player.getItemInHand(hand);
+                if (!(held.getItem() instanceof StethoscopeItem) || !player.isUsingItem() || player.getUsedItemHand()!=hand
+                        || player.getTicksUsingItem()<StethoscopeItem.LISTEN_TICKS_REQUIRED
+                        || target.getType().is(StethoscopeItem.NO_STETHOSCOPE_TAG)
+                        || target.getType().is(net.jenkimods.bioforge.BioForgeTags.NO_DIAGNOSTICS)
+                        || (target!=player && (player.distanceToSqr(target)>36D || !player.hasLineOfSight(target)))) return;
+                var site=AuscultationSite.read(held);
 
                 InfectionData data = InfectionCapability.get(target);
                 HeartRate heartRate = data != null
                         ? data.getSymptom(BioForgeSymptoms.HEART_RATE) : HeartRate.NORMAL;
+                heartRate = net.jenkimods.bioforge.physiology.PhysiologyReadings.profile(target).heart(heartRate);
                 LungSound lungSound = data != null
                         ? data.getSymptom(BioForgeSymptoms.LUNG_SOUND) : LungSound.NORMAL;
 
@@ -89,7 +98,7 @@ public class StethoscopeNetworkHandler {
                     targetName = target.getDisplayName().getString();
                 }
 
-                sendReading(player, heartRate, lungSound, targetName, msg.mainHand);
+                sendReading(player, heartRate, lungSound, targetName, msg.mainHand, site, msg.entityId);
             });
             ctx.get().setPacketHandled(true);
         }

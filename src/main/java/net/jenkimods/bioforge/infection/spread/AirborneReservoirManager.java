@@ -39,7 +39,7 @@ public final class AirborneReservoirManager {
         Reservoir current = state.reservoirs.get(key);
         float existing = current == null ? 0.0F : decayedConcentration(current, now);
         float dilution = room.outdoors() ? BioForgeServerConfig.outdoorAirMultiplier() : 1.0F;
-        float next = Math.min(1.0F, existing + Math.max(0.0F, amount) * 0.32F * dilution);
+        float next = Math.min(1.0F, existing + Math.max(0.0F, amount) * 0.12F * dilution);
         if (current == null) state.processingOrder.addLast(key);
         state.reservoirs.put(key, new Reservoir(strain, canonical, room, next, now, now,
                 current == null ? now - 20L : current.lastProcessed(),
@@ -58,6 +58,7 @@ public final class AirborneReservoirManager {
         state.lastProcessedTick = now;
         long lifetime = BioForgeServerConfig.airborneReservoirLifetimeTicks();
         state.roomTargets.clear();
+        state.exposedThisTick.clear();
         int budget = Math.min(state.processingOrder.size(),
                 BioForgeServerConfig.airborneWorkBudget());
         for (int processed = 0; processed < budget; processed++) {
@@ -88,6 +89,7 @@ public final class AirborneReservoirManager {
             state.processingOrder.clear();
             state.exposures.clear();
             state.roomTargets.clear();
+        state.exposedThisTick.clear();
             LEVELS.remove(level);
         }
     }
@@ -149,13 +151,17 @@ public final class AirborneReservoirManager {
                 * reservoir.concentration() * (0.5F + Math.max(0.0F, strength))
                 * elapsedSeconds * InfectionLifecycleRegistry.INSTANCE.infectivity(strain);
         for (LivingEntity target : targetsInRoom(level, levelState, reservoir.room())) {
-            if (AirVentBlock.isProtected(level, target.blockPosition())) continue;
+            if (AirVentBlock.isProtected(level, target.blockPosition())) {
+                levelState.exposures.remove(new ExposureKey(target.getUUID(), reservoir.canonicalStrain()));
+                continue;
+            }
             InfectionData targetData = InfectionCapability.get(target);
             if (targetData == null) continue;
             float incoming = ProtectiveEquipment.incomingAirMultiplier(target);
             if (incoming <= 0.0F) continue;
             ExposureKey exposureKey = new ExposureKey(
                     target.getUUID(), reservoir.canonicalStrain());
+            if (!levelState.exposedThisTick.add(exposureKey)) continue;
             Exposure current = levelState.exposures.get(exposureKey);
             if (current == null || now - current.lastExposure() > 80L) {
                 current = new Exposure(0.0F, now,
@@ -258,6 +264,7 @@ public final class AirborneReservoirManager {
         private final ArrayDeque<ReservoirKey> processingOrder = new ArrayDeque<>();
         private final Map<ExposureKey, Exposure> exposures = new HashMap<>();
         private final Map<Long, List<LivingEntity>> roomTargets = new HashMap<>();
+        private final java.util.Set<ExposureKey> exposedThisTick = new java.util.HashSet<>();
         private long lastProcessedTick = Long.MIN_VALUE;
     }
 

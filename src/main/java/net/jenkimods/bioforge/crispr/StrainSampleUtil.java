@@ -34,9 +34,6 @@ public final class StrainSampleUtil {
 
     @Nullable
     private static StrainData readObfuscated(ItemStack stack) {
-        String payload = NbtObfuscator.readString(stack.getOrCreateTag());
-        if (payload == null || payload.isBlank() || "CLEAN".equals(payload)) return null;
-        StrainData strain = StrainData.parse(payload);
-        return strain.getPathogenId() == null ? null : strain;
+        return net.jenkimods.bioforge.infection.StrainPayload.read(stack.getOrCreateTag());
     }
 }

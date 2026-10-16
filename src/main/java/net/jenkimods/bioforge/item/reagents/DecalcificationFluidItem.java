@@ -93,7 +93,7 @@ public class DecalcificationFluidItem extends Item {
             player.drop(result, false);
         }
 
-        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 1.0f, 1.2f);
+        level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.decalcification.apply").get(), SoundSource.PLAYERS, 1.0f, 1.2f);
 
         return InteractionResultHolder.success(fluidStack);
     }

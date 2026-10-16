@@ -122,6 +122,7 @@ public class InfectionEventHandler {
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        InfectionNetworkHandler.forgetDefinitionSync(player);
         InfectionData data = InfectionCapability.get(player);
         if (data == null) return;
         MutationManager.refreshContinuousEffects(data, player);

@@ -1,0 +1,32 @@
+{
+  "parent": "bioforge:gene_imprint",
+  "display": {
+    "icon": {
+      "item": "bioforge:gene_splicer"
+    },
+    "title": {
+      "translate": "advancement.bioforge.gene_splicer.title"
+    },
+    "description": {
+      "translate": "advancement.bioforge.gene_splicer.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "splicer": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:gene_splicer"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

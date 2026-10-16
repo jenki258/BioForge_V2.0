@@ -76,7 +76,7 @@ public class BloodSlideItem extends Item {
             NeedleItem.clearBlood(tool);
         }
 
-        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+        level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.blood_slide.prepare").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
         if (player instanceof ServerPlayer sp)
             sp.sendSystemMessage(Component.translatable("item.bioforge.blood_slide.transferred"));
         return InteractionResultHolder.success(slide);

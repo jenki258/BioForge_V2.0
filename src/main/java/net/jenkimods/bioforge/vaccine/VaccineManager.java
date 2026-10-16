@@ -84,6 +84,19 @@ public final class VaccineManager {
     public static AttemptResult attemptVaccination(LivingEntity target,
                                                    @Nullable VaccineProfile profile,
                                                    @Nullable VaccineHostProfile hostProfile) {
+        return attemptVaccination(target, profile, hostProfile, 1.0F);
+    }
+
+    public static AttemptResult attemptVaccination(LivingEntity target,
+                                                   @Nullable VaccineProfile profile,
+                                                   @Nullable VaccineHostProfile hostProfile,
+                                                   float effectiveness) {
+        return attemptVaccination(target, profile, hostProfile, effectiveness, true);
+    }
+    public static AttemptResult attemptVaccination(LivingEntity target, @Nullable VaccineProfile profile,
+                                                   @Nullable VaccineHostProfile hostProfile, float effectiveness,
+                                                   boolean allowDefenseMutation) {
+        effectiveness = Mth.clamp(Float.isFinite(effectiveness) ? effectiveness : 0.0F, 0.0F, 1.0F);
         if (profile == null || !profile.isValid()) {
             return emptyResult(Outcome.INVALID_VACCINE);
         }
@@ -94,7 +107,7 @@ public final class VaccineManager {
 
         StrainData vaccineStrain = profile.strain();
         if (!infection.isInfected() || infection.getPathogenId() == null) {
-            StrainImmunityManager.grant(target, infection, vaccineStrain, profile.quality());
+            grantProtection(target, infection, profile, effectiveness);
             persistAndSync(target, infection);
             return emptyResult(Outcome.IMMUNIZED);
         }
@@ -103,6 +116,7 @@ public final class VaccineManager {
         float strength = sanitizeStrength(infection.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH));
         VaccineRules activeRules = getRules();
         float chance = calculateCureChance(profile, infection, match, strength, activeRules);
+        chance *= effectiveness;
         if (!meetsRhRequirements(infection, hostProfile)) {
             chance = 0.0f;
         } else {
@@ -111,20 +125,28 @@ public final class VaccineManager {
                     activeRules.maximumCureChance());
         }
 
+        if (effectiveness < 1.0F) chance = Math.min(chance, effectiveness);
         if (chance > 0.0f && target.getRandom().nextFloat() < chance) {
             cure(target, infection);
-            StrainImmunityManager.grant(target, infection, vaccineStrain, profile.quality());
+            grantProtection(target, infection, profile, effectiveness);
             persistAndSync(target, infection);
             return new AttemptResult(Outcome.CURED, match, chance, strength, false);
         }
 
-        boolean defenseApplied = maybeApplyDefenseMutation(
+        boolean defenseApplied = allowDefenseMutation && maybeApplyDefenseMutation(
                 target, infection, profile.defenseMutationChance(), match, strength, activeRules);
         if (defenseApplied) persistAndSync(target, infection);
         Outcome outcome = !match.pathogenCompatible()
                 || match.totalSimilarity() < activeRules.minimumSimilarity()
                 ? Outcome.MISMATCH : Outcome.RESISTED;
         return new AttemptResult(outcome, match, chance, strength, defenseApplied);
+    }
+
+    private static void grantProtection(LivingEntity target, InfectionData infection,
+                                        VaccineProfile profile, float effectiveness) {
+        if (effectiveness < 1.0F) StrainImmunityManager.grantResistance(target, infection,
+                profile.strain(), effectiveness, 6000);
+        else StrainImmunityManager.grant(target, infection, profile.strain(), profile.quality());
     }
 
     public static float hostCompatibilityMultiplier(LivingEntity target,

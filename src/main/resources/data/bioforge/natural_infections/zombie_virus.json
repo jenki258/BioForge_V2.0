@@ -3,7 +3,10 @@
     {
       "id": "bioforge:zombie_necrotic_virus",
       "pathogen": "bioforge:virus",
-      "transmissions": ["bioforge:attack_based", "bioforge:contact_based"],
+      "transmissions": [
+        "bioforge:attack_based",
+        "bioforge:contact_based"
+      ],
       "symptoms": {
         "infection_strength": "0.68",
         "temperature_minus": "true",
@@ -11,10 +14,20 @@
         "neural_damage": "0.22",
         "microscope_visibility": "MEDIUM"
       },
-      "mutations": ["flesh_cravings", "scanner_evasion"],
+      "mutations": [
+        "flesh_cravings",
+        "scanner_evasion",
+        "zombie_neurotropism"
+      ],
       "rare_mutations": [
-        {"mutation": "climbing", "chance": 0.035},
-        {"mutation": "strong_skin", "chance": 0.025}
+        {
+          "mutation": "climbing",
+          "chance": 0.035
+        },
+        {
+          "mutation": "strong_skin",
+          "chance": 0.025
+        }
       ],
       "lifecycle_profile": "bioforge:natural_fast"
     }
@@ -22,34 +35,54 @@
   "rules": [
     {
       "id": "bioforge:zombie_virus_reservoir",
-      "entities": ["minecraft:zombie"],
+      "entities": [
+        "minecraft:zombie"
+      ],
       "chance": 0.22,
       "strains": [
-        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
+        {
+          "strain": "bioforge:zombie_necrotic_virus",
+          "weight": 100
+        }
       ]
     },
     {
       "id": "bioforge:husk_virus_reservoir",
-      "entities": ["minecraft:husk"],
+      "entities": [
+        "minecraft:husk"
+      ],
       "chance": 0.16,
       "strains": [
-        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
+        {
+          "strain": "bioforge:zombie_necrotic_virus",
+          "weight": 100
+        }
       ]
     },
     {
       "id": "bioforge:drowned_virus_reservoir",
-      "entities": ["minecraft:drowned"],
+      "entities": [
+        "minecraft:drowned"
+      ],
       "chance": 0.14,
       "strains": [
-        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
+        {
+          "strain": "bioforge:zombie_necrotic_virus",
+          "weight": 100
+        }
       ]
     },
     {
       "id": "bioforge:zombie_villager_virus_reservoir",
-      "entities": ["minecraft:zombie_villager"],
-      "chance": 0.10,
+      "entities": [
+        "minecraft:zombie_villager"
+      ],
+      "chance": 0.1,
       "strains": [
-        {"strain": "bioforge:zombie_necrotic_virus", "weight": 100}
+        {
+          "strain": "bioforge:zombie_necrotic_virus",
+          "weight": 100
+        }
       ]
     }
   ]

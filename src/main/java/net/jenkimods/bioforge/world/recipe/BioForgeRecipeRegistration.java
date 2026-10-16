@@ -14,6 +14,8 @@ import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = BioForge.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class BioForgeRecipeRegistration {
+    public static final RecipeSerializer<CultureSampleRecipe> CULTURE_SAMPLE_SERIALIZER =
+            new net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer<>(CultureSampleRecipe::new);
     public static final ResourceLocation CENTRIFUGE_ID = id("centrifuge");
     public static final ResourceLocation DECALCIFICATION_ID = id("decalcification");
     public static final ResourceLocation LABORATORY_ID = id("laboratory_processing");
@@ -48,6 +50,7 @@ public final class BioForgeRecipeRegistration {
             helper.register(VACCINE_MAKER_ID, VACCINE_MAKER_TYPE);
         });
         event.register(Registries.RECIPE_SERIALIZER, helper -> {
+            helper.register(id("culture_sample"), CULTURE_SAMPLE_SERIALIZER);
             helper.register(CENTRIFUGE_ID, CENTRIFUGE_SERIALIZER);
             helper.register(DECALCIFICATION_ID, DECALCIFICATION_SERIALIZER);
             helper.register(LABORATORY_ID, LABORATORY_SERIALIZER);

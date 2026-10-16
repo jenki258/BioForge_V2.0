@@ -37,7 +37,7 @@ public class WipeItem extends Item {
                     player.drop(clean, false);
                 }
                 wipes.shrink(1);
-                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
+                level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.wipe.clean").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.wipe.cleaned"));
             }
             return InteractionResultHolder.success(wipes);
@@ -53,7 +53,7 @@ public class WipeItem extends Item {
             if (!level.isClientSide()) {
                 SyringeItem.clearInfection(other);
                 wipes.shrink(1);
-                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
+                level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.wipe.clean").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.wipe.syringe_cleaned"));
             }
             return InteractionResultHolder.success(wipes);

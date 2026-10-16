@@ -162,13 +162,14 @@ public class CentrifugeBlockEntity extends BlockEntity implements MenuProvider {
             }
 
             be.items.setStackInSlot(slot, output);
+            net.jenkimods.bioforge.audio.ActionAudio.complete(be,"centrifuge");
             changed = true;
         }
 
+        if (processingNow) net.jenkimods.bioforge.audio.ActionAudio.work(be,"centrifuge");
         if (be.processing != processingNow) {
             if (processingNow) {
-                level.playSound(null, pos, BioForgeSounds.CENTRIFUGE.get(),
-                        SoundSource.BLOCKS, 0.75F, 1.0F);
+                net.jenkimods.bioforge.audio.ActionAudio.work(be,"centrifuge");
             }
             be.processing = processingNow;
             changed = true;

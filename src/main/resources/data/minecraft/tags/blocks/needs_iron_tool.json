@@ -19,6 +19,7 @@
     "bioforge:barrel_press",
     "bioforge:chemical_synthesizer",
     "bioforge:sterilization_chamber",
-    "bioforge:pharma_mixer"
+    "bioforge:pharma_mixer",
+    "bioforge:gene_splicer"
   ]
 }

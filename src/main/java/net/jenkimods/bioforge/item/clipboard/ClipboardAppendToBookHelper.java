@@ -26,6 +26,7 @@ public class ClipboardAppendToBookHelper {
             pages.add(StringTag.valueOf(reportPage));
         }
         bookTag.put("pages", pages);
+        net.jenkimods.bioforge.audio.ActionAudio.tool(player,"ui.clipboard.write");
     }
 
     private static List<String> splitIntoPages(String text, int maxChars) {
@@ -72,11 +73,7 @@ public class ClipboardAppendToBookHelper {
 
         if (tag.contains("TemperatureC")) {
             float temp = tag.getFloat("TemperatureC");
-            String statusKey = temp >= 38.5f
-                    ? "clipboard.temperature.fever"
-                    : (temp <= 35.5f
-                       ? "clipboard.temperature.hypothermia"
-                       : "clipboard.temperature.normal");
+            String statusKey = net.jenkimods.bioforge.physiology.PhysiologyReadings.temperatureStatus(tag);
             String status = translate(player, statusKey);
             String unstable = tag.getBoolean("TempUnstable") ? " (?)" : "";
             String tempStr = translate(player, "clipboard.entry.temperature",
@@ -98,7 +95,7 @@ public class ClipboardAppendToBookHelper {
 
         if (tag.contains("OxygenSaturation")) {
             float o2 = tag.getFloat("OxygenSaturation");
-            float pi = tag.contains("PerfusionIndex") ? tag.getFloat("PerfusionIndex") : 0.7f;
+            float pi = tag.contains("PerfusionIndex") ? net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(tag, "PerfusionIndex") : 0.7f;
             String piKey = pi > 0.7f
                     ? "clipboard.pi.strong"
                     : (pi > 0.3f

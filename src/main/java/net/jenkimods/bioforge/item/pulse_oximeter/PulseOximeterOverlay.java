@@ -111,7 +111,8 @@ public class PulseOximeterOverlay {
 
         if (stable >= 0.6f) {
             String spo2Text = String.format("%.0f%%", o2 * 100f);
-            int spo2Color = o2 >= 0.95f ? 0x00FF00 : (o2 >= 0.90f ? 0xFFFF00 : 0xFF0000);
+            float clinicalOxygen = PulseOximeterClientHandler.getClinicalOxygen();
+            int spo2Color = clinicalOxygen >= 0.95f ? 0x00FF00 : (clinicalOxygen >= 0.90f ? 0xFFFF00 : 0xFF0000);
             gfx.drawString(mc.font, spo2Text, spo2X, spo2Y + 10, applyAlpha(spo2Color, (int)(255 * fadeIn)), false);
         } else {
             gfx.drawString(mc.font, "--", spo2X, spo2Y + 10, applyAlpha(0x888888, (int)(255 * fadeIn)), false);

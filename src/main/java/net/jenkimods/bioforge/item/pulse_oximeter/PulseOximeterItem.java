@@ -67,6 +67,9 @@ public class PulseOximeterItem extends Item {
             InfectionData data = InfectionCapability.get(subject);
             float o2 = data != null ? data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION) : 0.95f;
             float perf = data != null ? data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX) : 0.7f;
+                var baseline = net.jenkimods.bioforge.physiology.PhysiologyReadings.profile(subject);
+                o2 = baseline.oxygen(o2);
+                perf = baseline.perfusion(perf);
             ClipboardHelper.recordOxygenSat(o2, perf, false, player, subject.getUUID());
         }
     }

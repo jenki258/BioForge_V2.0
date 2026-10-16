@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "bioforge:block/gene_splicer_top",
+    "side": "bioforge:block/gene_splicer_side",
+    "bottom": "bioforge:block/gene_splicer_bottom"
+  }
+}

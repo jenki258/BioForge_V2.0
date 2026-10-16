@@ -35,7 +35,7 @@ public final class CrisprCommand {
     private CrisprCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("bioforge")
+        dispatcher.register(Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                 .then(Commands.literal("crispr")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("definitions")

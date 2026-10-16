@@ -38,7 +38,7 @@ public final class MutateCommand {
         var removableMutationId = Commands.argument("mutation_id", ResourceLocationArgument.id())
                 .suggests((context, builder) -> suggestMutationIds(builder, true));
 
-        dispatcher.register(Commands.literal("bioforge")
+        dispatcher.register(Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                 .then(Commands.literal("mutate")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("info")

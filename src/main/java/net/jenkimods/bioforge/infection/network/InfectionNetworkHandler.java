@@ -55,6 +55,10 @@ public class InfectionNetworkHandler {
         DEFINITION_GENERATIONS.put(player.getUUID(), generation);
     }
 
+    public static synchronized void forgetDefinitionSync(ServerPlayer player) {
+        DEFINITION_GENERATIONS.remove(player.getUUID());
+    }
+
     public static synchronized void clearDefinitionSyncState() {
         DEFINITION_GENERATIONS.clear();
     }

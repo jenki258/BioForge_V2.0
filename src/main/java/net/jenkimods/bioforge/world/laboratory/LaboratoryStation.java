@@ -6,7 +6,8 @@ public enum LaboratoryStation implements StringRepresentable {
     BARREL_PRESS("barrel_press", 4, 1),
     CHEMICAL_SYNTHESIZER("chemical_synthesizer", 3, 1),
     STERILIZATION_CHAMBER("sterilization_chamber", 8, 0),
-    PHARMA_MIXER("pharma_mixer", 5, 2);
+    PHARMA_MIXER("pharma_mixer", 5, 2),
+    HERBAL_MORTAR("herbal_mortar", 3, 1);
 
     private final String id;
     private final int inputSlots;

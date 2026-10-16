@@ -45,7 +45,7 @@ public class PetriDishItem extends BlockItem {
                             if (player instanceof ServerPlayer sp) {
                                 sp.inventoryMenu.broadcastChanges();
                             }
-                            level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
+                            level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.petri.collect").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
                             player.sendSystemMessage(Component.translatable("item.bioforge.petri_dish.harvested"));
                         }
                     }
@@ -70,7 +70,7 @@ public class PetriDishItem extends BlockItem {
                     sp.inventoryMenu.broadcastChanges();
                 }
 
-                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+                level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.petri.inoculate").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.petri_dish.inoculated"));
             }
             return InteractionResultHolder.success(dishStack);

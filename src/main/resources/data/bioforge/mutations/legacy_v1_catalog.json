@@ -159,10 +159,10 @@
     },
     {
       "id": "hunger", "name": "Hunger", "description": "The infection consumes host energy reserves", "pathogens": ["PARASITE", "VIRUS", "UNIVERSAL"], "rarity": "common", "weight": 46, "tags": ["legacy_v1", "symptom", "metabolic"],
-      "effects": [{"type":"potion_effect","target":"minecraft:hunger","duration":120,"amplifier":0,"interval":100,"trigger":"continuous"}]
+      "effects": [{"type":"potion_effect","target":"minecraft:hunger","duration":120,"amplifier":0,"interval":100,"trigger":"continuous","remove_on_mutation_end":true}]
     },
     {
-      "id": "nausea", "name": "Nausea", "description": "Neurological and gastrointestinal disruption distorts vision", "pathogens": ["PARASITE", "PRION", "VIRUS", "UNIVERSAL"], "rarity": "common", "weight": 44, "tags": ["legacy_v1", "symptom", "neural"],
+      "id": "nausea", "name": "Nausea", "description": "Neurological and gastrointestinal disruption distorts vision", "pathogens": ["PARASITE", "PRION", "VIRUS", "UNIVERSAL"], "rarity": "common", "weight": 44, "tags": ["legacy_v1", "symptom", "neural", "suppressible:neural_damage"],
       "effects": [{"type":"potion_effect","target":"minecraft:nausea","duration":100,"amplifier":0,"chance":0.35,"interval":120,"trigger":"continuous"}]
     },
     {
@@ -182,7 +182,7 @@
       "effects": [{"type":"potion_effect","target":"minecraft:slowness","duration":100,"amplifier":0,"interval":80,"trigger":"continuous"}], "conflicts": ["speed_boost"]
     },
     {
-      "id": "sneezing", "name": "Sneezing", "description": "Intermittent sneezing produces visible respiratory shedding", "pathogens": ["VIRUS", "BACTERIA", "FUNGI", "UNIVERSAL"], "rarity": "common", "weight": 48, "tags": ["legacy_v1", "symptom", "respiratory"],
+      "id": "sneezing", "name": "Sneezing", "description": "Intermittent sneezing produces visible respiratory shedding", "pathogens": ["VIRUS", "BACTERIA", "FUNGI", "UNIVERSAL"], "rarity": "common", "weight": 48, "tags": ["legacy_v1", "symptom", "respiratory", "suppressible:sneezing"],
       "effects": [{"type":"spawn_particle","target":"minecraft:sneeze","count":6,"spread":0.22,"speed":0.05,"offset_y":1.45,"forward_offset":0.65,"forward_speed":0.10,"chance":0.34,"interval":80,"trigger":"continuous"},{"type":"play_sound","target":"bioforge:symptom.sneeze","sound_source":"players","volume":0.68,"pitch":1.0,"chance":0.34,"interval":80,"game_event":"minecraft:entity_shake","trigger":"continuous"}]
     },
     {

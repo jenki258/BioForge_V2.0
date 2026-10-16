@@ -48,6 +48,7 @@ public final class AreaContaminationScannerItem extends Item {
                         "item.bioforge.area_contamination_scanner.coated_result",
                         surface.ethanolCoatedMarkers().size())), true);
         showContamination(serverLevel, serverPlayer, surface, air);
+        net.jenkimods.bioforge.audio.ActionAudio.tool(serverPlayer,"instrument.area_scanner.scan");
         serverPlayer.getCooldowns().addCooldown(this, 30);
         stack.hurtAndBreak(1, serverPlayer, wearer -> wearer.broadcastBreakEvent(hand));
         return InteractionResultHolder.success(stack);

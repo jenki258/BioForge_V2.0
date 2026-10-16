@@ -72,8 +72,11 @@ public class ThermometerItem extends Item {
         stack.getOrCreateTag().putLong(NBT_LAST_USED, System.currentTimeMillis());
     }
 
-    private double saveAllTemps(ItemStack stack, boolean tempPlus, boolean tempMinus) {
-        double celsius = tempPlus ? HIGH_TEMP_CELSIUS : tempMinus ? LOW_TEMP_CELSIUS : NORMAL_TEMP_CELSIUS;
+    private double saveAllTemps(ItemStack stack, LivingEntity subject, boolean tempPlus, boolean tempMinus) {
+        var baseline = net.jenkimods.bioforge.physiology.PhysiologyReadings.profile(subject);
+        double celsius = baseline.temperature(tempPlus, tempMinus);
+        net.jenkimods.bioforge.physiology.PhysiologyReadings.record(stack.getOrCreateTag(), "TemperatureC",
+                (float) (celsius - baseline.temperatureC() + NORMAL_TEMP_CELSIUS));
         stack.getOrCreateTag().putDouble(NBT_LAST_RAW_C, celsius);
         stack.getOrCreateTag().putString(NBT_LAST_C, String.format("%.1f\u00b0C", celsius));
         stack.getOrCreateTag().putString(NBT_LAST_F, String.format("%.1f\u00b0F", celsius * 9.0 / 5.0 + 32.0));
@@ -87,12 +90,16 @@ public class ThermometerItem extends Item {
 
     private boolean isHighTemp(ItemStack stack) {
         if (!stack.hasTag() || !stack.getTag().contains(NBT_LAST_RAW_C)) return false;
-        return stack.getTag().getDouble(NBT_LAST_RAW_C) >= HIGH_TEMP_CELSIUS;
+        return (net.jenkimods.bioforge.util.NbtObfuscator.readCompound(stack.getTag(), "physiology_readings") != null
+                ? net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(stack.getTag(), "TemperatureC")
+                : stack.getTag().getDouble(NBT_LAST_RAW_C)) >= HIGH_TEMP_CELSIUS - .001D;
     }
 
     private boolean isLowTemp(ItemStack stack) {
         if (!stack.hasTag() || !stack.getTag().contains(NBT_LAST_RAW_C)) return false;
-        return stack.getTag().getDouble(NBT_LAST_RAW_C) <= LOW_TEMP_CELSIUS;
+        return (net.jenkimods.bioforge.util.NbtObfuscator.readCompound(stack.getTag(), "physiology_readings") != null
+                ? net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(stack.getTag(), "TemperatureC")
+                : stack.getTag().getDouble(NBT_LAST_RAW_C)) <= LOW_TEMP_CELSIUS + .001D;
     }
 
     @Override
@@ -170,14 +177,16 @@ public class ThermometerItem extends Item {
         boolean tempPlus  = data != null && data.getSymptom(BioForgeSymptoms.TEMPERATURE_PLUS);
         boolean tempMinus = data != null && data.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS);
 
-        double celsius = saveAllTemps(stack, tempPlus, tempMinus);
+        double celsius = saveAllTemps(stack, subject, tempPlus, tempMinus);
         stack.getOrCreateTag().putString(NBT_LAST_TARGET, subject.getDisplayName().getString());
         ClipboardHelper.recordTemperature((float) celsius, false, player, subject.getUUID());
+        net.jenkimods.bioforge.audio.ActionAudio.tool(player,"instrument.thermometer.measure");
     }
 
     public void onShake(Player player, ItemStack stack) {
         if (!isReady(stack)) {
             setReady(stack, true);
+            net.jenkimods.bioforge.audio.ActionAudio.tool(player,"instrument.thermometer.shake");
             InteractionHand hand = player.getMainHandItem() == stack ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
             player.setItemInHand(hand, stack);
             if (player.level().isClientSide()) {

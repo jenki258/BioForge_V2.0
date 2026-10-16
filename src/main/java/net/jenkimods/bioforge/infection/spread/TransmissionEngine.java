@@ -207,37 +207,50 @@ public final class TransmissionEngine {
         SurfaceContaminationData.Contamination contamination = surfaces
                 .contaminationAt(pos, now).orElse(null);
         if (contamination == null) return;
-        Map<UUID, SurfaceExposure> exposures = LAST_SURFACE_EXPOSURES.computeIfAbsent(
-                level, ignored -> new HashMap<>());
-        UUID exposureKey = target.getUUID();
-        SurfaceExposure previous = exposures.get(exposureKey);
-        if (previous != null && previous.position() == pos.asLong()
-                && previous.kind() == kind && now - previous.gameTime() < 30L) return;
-        exposures.put(exposureKey, new SurfaceExposure(pos.asLong(), kind, now));
-
         StrainData strain = surfaces.strainAt(pos, contamination);
+        if (!attemptSurfaceExposure(level, target, pos, strain, contamination.strength(), kind, now)) return;
+        float weatherDecay = level.isRainingAt(pos.above()) ? 0.08F : 0.01F;
+        surfaces.weaken(pos, weatherDecay + (kind == ExposureKind.BREAK ? 0.2F : 0.0F), now);
+    }
+
+    public static void exposeFromInfestedBlock(ServerLevel level, LivingEntity target,
+                                               BlockPos pos, StrainData strain, float strength) {
+        attemptSurfaceExposure(level, target, pos, strain, strength, ExposureKind.STEP, level.getGameTime());
+    }
+
+    private static boolean attemptSurfaceExposure(ServerLevel level, LivingEntity target,
+                                                   BlockPos pos, StrainData strain, float strength,
+                                                   ExposureKind kind, long now) {
+        if (!BioForgeServerConfig.spreadingEnabled() || strain.getPathogenId() == null) return false;
+        InfectionData targetData = InfectionCapability.get(target);
+        if (targetData == null) return false;
         boolean contact = BioForgeDefinitionManager.hasTransmissionBehavior(
                 strain, InfectionType.CONTACT_BASED)
                 && BioForgeServerConfig.isTransmissionEnabled(InfectionType.CONTACT_BASED);
         boolean environmental = BioForgeDefinitionManager.hasTransmissionBehavior(
                 strain, InfectionType.ENVIRONMENTAL)
                 && BioForgeServerConfig.isTransmissionEnabled(InfectionType.ENVIRONMENTAL);
-        if (!contact && !environmental) return;
+        if (!contact && !environmental) return false;
         float incoming = ProtectiveEquipment.incomingContactMultiplier(target);
-        if (incoming <= 0.0F) return;
+        if (incoming <= 0.0F) return false;
+        Map<UUID, SurfaceExposure> exposures = LAST_SURFACE_EXPOSURES.computeIfAbsent(
+                level, ignored -> new HashMap<>());
+        SurfaceExposure previous = exposures.get(target.getUUID());
+        if (previous != null && previous.position() == pos.asLong()
+                && previous.kind() == kind && now - previous.gameTime() < 30L) return false;
+        exposures.put(target.getUUID(), new SurfaceExposure(pos.asLong(), kind, now));
         float strainStrength = strain.getSymptom("infection_strength")
                 .map(TransmissionEngine::parseFloat).orElse(0.5F);
         float kindMultiplier = kind == ExposureKind.STEP ? 0.55F
                 : kind == ExposureKind.BREAK ? 1.25F : 1.0F;
         float chance = BioForgeServerConfig.surfaceExposureChance()
-                * contamination.strength() * (0.5F + Math.max(0.0F, strainStrength))
+                * Math.max(0.0F, Math.min(1.0F, strength)) * (0.5F + Math.max(0.0F, strainStrength))
                 * kindMultiplier * incoming
                 * InfectionLifecycleRegistry.INSTANCE.infectivity(strain);
         if (level.getRandom().nextFloat() < Math.min(1.0F, chance)) {
             strain.applyToEntity(targetData, target);
         }
-        float weatherDecay = level.isRainingAt(pos.above()) ? 0.08F : 0.01F;
-        surfaces.weaken(pos, weatherDecay + (kind == ExposureKind.BREAK ? 0.2F : 0.0F), now);
+        return true;
     }
 
     private static float parseFloat(String raw) {

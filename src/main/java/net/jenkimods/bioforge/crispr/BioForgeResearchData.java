@@ -44,6 +44,18 @@ public final class BioForgeResearchData {
     private static final Map<ResourceLocation, VaccineMakerRecipe> JAVA_RECIPES = new LinkedHashMap<>();
     private static boolean javaRegistrationsFrozen;
 
+    public static void applyRemoteData(String directory, Map<ResourceLocation, JsonElement> entries) {
+        switch (directory) {
+            case "crispr/guide_profiles" -> new GuideProfileReloadListener().apply(entries, null, net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            case "crispr/cas_modules" -> new CasModuleReloadListener().apply(entries, null, net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            case "crispr/assays" -> new AssayReloadListener().apply(entries, null, net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            case "vaccine_actions" -> new ActionReloadListener().apply(entries, null, net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            case "vaccine_correction_profiles" -> new CorrectionProfileReloadListener().apply(entries, null, net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            case "vaccine_maker" -> new RecipeReloadListener().apply(entries, null, net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            default -> throw new IllegalArgumentException("Unknown research directory " + directory);
+        }
+    }
+
     private BioForgeResearchData() {}
 
     @SubscribeEvent

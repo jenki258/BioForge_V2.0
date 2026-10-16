@@ -41,6 +41,7 @@ public class SwabItem extends Item {
             }
 
             NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
+            net.jenkimods.bioforge.audio.ActionAudio.tool(player,"instrument.swab.collect");
             player.setItemInHand(hand, stack);
 
             if ("CLEAN".equals(payload)) {
@@ -74,6 +75,7 @@ public class SwabItem extends Item {
         }
 
         NbtObfuscator.writeString(stack.getOrCreateTag(), payload);
+            net.jenkimods.bioforge.audio.ActionAudio.tool(player,"instrument.swab.collect");
         player.setItemInHand(hand, stack);
 
         if ("CLEAN".equals(payload)) {

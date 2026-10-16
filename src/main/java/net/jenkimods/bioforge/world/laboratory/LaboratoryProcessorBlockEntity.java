@@ -32,7 +32,11 @@ public final class LaboratoryProcessorBlockEntity extends BlockEntity implements
     private final ItemStackHandler items = new ItemStackHandler(MAX_MACHINE_SLOTS) {
         @Override
         public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-            return slot >= 0 && slot < station().inputSlots();
+            if (slot < 0 || slot >= station().inputSlots()) return false;
+            if (station() != LaboratoryStation.BARREL_PRESS) return true;
+            return stack.is(net.minecraft.tags.ItemTags.create(net.minecraft.resources.ResourceLocation
+                    .tryBuild("bioforge", slot == 0 ? "ingredients/minecraft/glass_bottle"
+                            : "ingredients/minecraft/pressable_fruits")));
         }
 
         @Override
@@ -48,8 +52,108 @@ public final class LaboratoryProcessorBlockEntity extends BlockEntity implements
         }
     };
     private LazyOptional<ItemStackHandler> itemCapability = LazyOptional.of(() -> items);
+    private LazyOptional<net.minecraftforge.items.IItemHandler> automationCapability = LazyOptional.of(this::automationHandler);
+
+    private net.minecraftforge.items.IItemHandler automationHandler() {
+        return new net.minecraftforge.items.IItemHandler() {
+            public int getSlots() { return station().machineSlots(); }
+            public ItemStack getStackInSlot(int slot) { return items.getStackInSlot(slot); }
+            public int getSlotLimit(int slot) { return items.getSlotLimit(slot); }
+            public boolean isItemValid(int slot, ItemStack stack) { return items.isItemValid(slot, stack); }
+            public ItemStack extractItem(int slot, int amount, boolean simulate) {
+                if (station() == LaboratoryStation.BARREL_PRESS && slot < station().inputSlots()) return ItemStack.EMPTY;
+                return items.extractItem(slot, amount, simulate);
+            }
+            public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+                if (station() != LaboratoryStation.BARREL_PRESS || slot == 0
+                        || !items.isItemValid(slot, stack)) return items.insertItem(slot, stack, simulate);
+                ItemStack[] projected = new ItemStack[3];
+                for (int i = 0; i < 3; i++) projected[i] = items.getStackInSlot(i + 1).copy();
+                ItemStack remainder = stack.copy();
+                while (!remainder.isEmpty()) {
+                    int best = -1;
+                    for (int i = 0; i < 3; i++) {
+                        ItemStack candidate = projected[i];
+                        if (!candidate.isEmpty() && (!ItemStack.isSameItemSameTags(candidate, stack)
+                                || candidate.getCount() >= Math.min(items.getSlotLimit(i + 1), stack.getMaxStackSize()))) continue;
+                        if (best < 0 || candidate.getCount() < projected[best].getCount()) best = i;
+                    }
+                    if (best < 0) break;
+                    if (projected[best].isEmpty()) projected[best] = stack.copyWithCount(1);
+                    else projected[best].grow(1);
+                    remainder.shrink(1);
+                }
+                if (!simulate) for (int i = 0; i < 3; i++) items.setStackInSlot(i + 1, projected[i]);
+                return remainder;
+            }
+        };
+    }
+
+    private void balanceBarrel() {
+        // Recover old inventories whose bottle occupied one of the former generic slots.
+        if (!items.getStackInSlot(0).isEmpty() && !items.isItemValid(0, items.getStackInSlot(0))) {
+            for (int slot = 1; slot < 4; slot++) {
+                if (items.getStackInSlot(slot).isEmpty() || items.isItemValid(0, items.getStackInSlot(slot))) {
+                    ItemStack old = items.getStackInSlot(0);
+                    items.setStackInSlot(0, items.getStackInSlot(slot));
+                    items.setStackInSlot(slot, old);
+                    break;
+                }
+            }
+        } else if (items.getStackInSlot(0).isEmpty()) {
+            for (int slot = 1; slot < 4; slot++) if (items.isItemValid(0, items.getStackInSlot(slot))) {
+                items.setStackInSlot(0, items.getStackInSlot(slot));
+                items.setStackInSlot(slot, ItemStack.EMPTY);
+                break;
+            }
+        }
+        for (int pass = 0; pass < 192; pass++) {
+            int from = -1, to = -1;
+            for (int a = 1; a < 4; a++) for (int b = 1; b < 4; b++) {
+                ItemStack source = items.getStackInSlot(a), target = items.getStackInSlot(b);
+                if (a != b && items.isItemValid(a, source) && source.getCount() > target.getCount() + 1
+                        && (target.isEmpty() || ItemStack.isSameItemSameTags(source, target))) { from = a; to = b; }
+            }
+            if (from < 0) break;
+            ItemStack one = items.extractItem(from, 1, false);
+            items.insertItem(to, one, false);
+        }
+    }
     private final int[] progress = new int[MAX_MACHINE_SLOTS];
     private final int[] maxProgress = new int[MAX_MACHINE_SLOTS];
+    private boolean working;
+
+    public boolean isWorking() { return working; }
+
+    private void syncWorking() {
+        boolean next = station() == LaboratoryStation.HERBAL_MORTAR && progress[0] > 0;
+        if (working == next) return;
+        working = next;
+        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("Working", working);
+        return tag;
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        working = tag.getBoolean("Working");
+    }
+
+    @Override
+    public net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void onDataPacket(net.minecraft.network.Connection connection,
+                             net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket packet) {
+        if (packet.getTag() != null) handleUpdateTag(packet.getTag());
+    }
     private final ContainerData data = new ContainerData() {
         @Override public int get(int index) {
             int slot = index / 2;
@@ -79,10 +183,12 @@ public final class LaboratoryProcessorBlockEntity extends BlockEntity implements
         if (level.isClientSide()) return;
         if (processor.station().processesInPlace()) processor.tickSterilization();
         else processor.tickCrafting();
+        processor.syncWorking();
     }
 
     private void tickCrafting() {
         LaboratoryStation station = station();
+        if (station == LaboratoryStation.BARREL_PRESS) balanceBarrel();
         var recipe = LaboratoryProcessRecipeManager.INSTANCE.find(level, station, items);
         if (recipe.isEmpty() || !canAccept(station.resultSlot(), recipe.get().result())
                 || !canAccept(station.wasteSlot(), recipe.get().waste())) {
@@ -92,6 +198,7 @@ public final class LaboratoryProcessorBlockEntity extends BlockEntity implements
         LaboratoryProcessRecipe active = recipe.get();
         maxProgress[0] = BioForgeServerConfig
                 .laboratoryProcessingTime(station, active.processingTime());
+        net.jenkimods.bioforge.audio.ActionAudio.work(this,station.getSerializedName());
         progress[0]++;
         if (progress[0] < maxProgress[0]) {
             setChanged();
@@ -124,6 +231,7 @@ public final class LaboratoryProcessorBlockEntity extends BlockEntity implements
                     .orElse(100);
             maxProgress[slot] = BioForgeServerConfig.laboratoryProcessingTime(
                     LaboratoryStation.STERILIZATION_CHAMBER, baseProcessingTime);
+            net.jenkimods.bioforge.audio.ActionAudio.work(this,"sterilization_chamber");
             progress[slot]++;
             changed = true;
             if (progress[slot] < maxProgress[slot]) continue;
@@ -149,13 +257,7 @@ public final class LaboratoryProcessorBlockEntity extends BlockEntity implements
 
     private void playCompletionSound(LaboratoryStation station) {
         if (level == null) return;
-        SoundEvent sound = switch (station) {
-            case BARREL_PRESS -> BioForgeSounds.LIQUID_POUR.get();
-            case CHEMICAL_SYNTHESIZER, PHARMA_MIXER ->
-                    BioForgeSounds.CHEMICALS_COMPLETE.get();
-            case STERILIZATION_CHAMBER -> BioForgeSounds.DISINFECTING.get();
-        };
-        level.playSound(null, worldPosition, sound, SoundSource.BLOCKS, 0.8F, 1.0F);
+        net.jenkimods.bioforge.audio.ActionAudio.complete(this,station.getSerializedName());
     }
 
     private boolean canAccept(int slot, ItemStack result) {
@@ -236,18 +338,21 @@ public final class LaboratoryProcessorBlockEntity extends BlockEntity implements
     public void setRemoved() {
         super.setRemoved();
         itemCapability.invalidate();
+        automationCapability.invalidate();
     }
 
     @Override
     public void reviveCaps() {
         super.reviveCaps();
         itemCapability = LazyOptional.of(() -> items);
+        automationCapability = LazyOptional.of(this::automationHandler);
     }
 
     @Override
     public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> capability,
                                                        @Nullable net.minecraft.core.Direction side) {
-        if (capability == ForgeCapabilities.ITEM_HANDLER) return itemCapability.cast();
+        if (capability == ForgeCapabilities.ITEM_HANDLER) return side == null
+                ? itemCapability.cast() : automationCapability.cast();
         return super.getCapability(capability, side);
     }
 

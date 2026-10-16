@@ -1,0 +1,20 @@
+{
+  "order": 731,
+  "title": {
+    "translate": "research.bioforge.page.animal_infections_farm.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections_farm.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections_farm.content.2"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

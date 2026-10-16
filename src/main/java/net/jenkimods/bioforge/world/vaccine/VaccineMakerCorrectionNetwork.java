@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class VaccineMakerCorrectionNetwork {
-    private static final String PROTOCOL = "4";
+    private static final String PROTOCOL = "5";
     private static final int MAX_TARGETS = 4096;
     private static final int MAX_STATES = 100001;
     private static SimpleChannel channel;
@@ -34,11 +34,38 @@ public final class VaccineMakerCorrectionNetwork {
                 0, SyncPacket.class, SyncPacket::encode, SyncPacket::decode,
                 SyncPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        channel.registerMessage(2, ButtonPacket.class, ButtonPacket::encode, ButtonPacket::decode,
+                ButtonPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         channel.registerMessage(
                 1, SetSelectionPacket.class,
                 SetSelectionPacket::encode, SetSelectionPacket::decode,
                 SetSelectionPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
+    }
+
+    public static void clickButton(int containerId, int buttonId) {
+        if (channel != null) channel.sendToServer(new ButtonPacket(containerId, buttonId));
+    }
+
+    public record ButtonPacket(int containerId, int buttonId) {
+        public static void encode(ButtonPacket packet, FriendlyByteBuf buffer) {
+            buffer.writeVarInt(packet.containerId); buffer.writeVarInt(packet.buttonId);
+        }
+        public static ButtonPacket decode(FriendlyByteBuf buffer) {
+            return new ButtonPacket(buffer.readVarInt(), buffer.readVarInt());
+        }
+        private static void handle(ButtonPacket packet, Supplier<NetworkEvent.Context> supplier) {
+            NetworkEvent.Context context = supplier.get();
+            context.enqueueWork(() -> {
+                ServerPlayer sender = context.getSender();
+                if (sender == null || sender.isSpectator() || packet.buttonId < 0 || packet.buttonId > 65535
+                        || !(sender.containerMenu instanceof VaccineMakerMenu menu)
+                        || menu.containerId != packet.containerId || !menu.stillValid(sender)) return;
+                menu.clickMenuButton(sender, packet.buttonId);
+                menu.broadcastChanges();
+            });
+            context.setPacketHandled(true);
+        }
     }
 
     public static void send(ServerPlayer player, int containerId,
@@ -164,7 +191,8 @@ public final class VaccineMakerCorrectionNetwork {
                 if (sender == null || packet.targetIndex < 0
                         || packet.state < 0 || packet.state >= MAX_STATES
                         || !(sender.containerMenu instanceof VaccineMakerMenu menu)
-                        || menu.containerId != packet.containerId) return;
+                        || menu.containerId != packet.containerId || sender.isSpectator()
+                        || !menu.stillValid(sender)) return;
                 menu.getBlockEntity().setCorrectionSelection(
                         packet.targetIndex, packet.state);
             });

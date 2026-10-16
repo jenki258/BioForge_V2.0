@@ -1,0 +1,26 @@
+{
+  "order": 722,
+  "title": {
+    "translate": "research.bioforge.page.foodborne_risks.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.foodborne_risks.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.foodborne_risks.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.foodborne_risks.content.3"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

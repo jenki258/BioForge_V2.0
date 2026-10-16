@@ -96,7 +96,7 @@ public class PetriDishColorHandler {
                         String data = NbtObfuscator.readString(stack.getOrCreateTag());
                         if (data != null && !data.equals("CLEAN")) {
                             String[] parts = data.split(";");
-                            String[] header = parts[0].split("\\|");
+                            String[] header = parts[0].split("\\|", -1);
 
                             PathogenType pathogen;
                             if (header.length >= 3) {

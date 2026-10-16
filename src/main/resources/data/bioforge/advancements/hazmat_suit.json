@@ -1,0 +1,68 @@
+{
+  "parent": "bioforge:containment",
+  "display": {
+    "icon": {
+      "item": "bioforge:hazcure_chestplate"
+    },
+    "title": {
+      "translate": "advancement.bioforge.hazmat_suit.title"
+    },
+    "description": {
+      "translate": "advancement.bioforge.hazmat_suit.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "helmet": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:hazcure_helmet"
+            ]
+          }
+        ]
+      }
+    },
+    "chestplate": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:hazcure_chestplate"
+            ]
+          }
+        ]
+      }
+    },
+    "leggings": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:hazcure_leggings"
+            ]
+          }
+        ]
+      }
+    },
+    "boots": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:hazcure_boots"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

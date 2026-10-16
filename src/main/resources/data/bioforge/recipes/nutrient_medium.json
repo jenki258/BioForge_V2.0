@@ -3,25 +3,25 @@
   "category": "misc",
   "ingredients": [
     {
-      "tag": "bioforge:ingredients/bioforge/laboratory_glassware"
+      "item": "bioforge:laboratory_glassware"
     },
     {
-      "tag": "bioforge:ingredients/bioforge/laboratory_glassware"
+      "item": "bioforge:laboratory_glassware"
     },
     {
-      "tag": "bioforge:ingredients/bioforge/agar_powder"
+      "item": "bioforge:agar_powder"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/bone_meal"
+      "item": "minecraft:bone_meal"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/sugar"
+      "item": "minecraft:sugar"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/water_bucket"
+      "item": "minecraft:water_bucket"
     },
     {
-      "tag": "bioforge:ingredients/bioforge/sterilizing_solution"
+      "item": "bioforge:sterilizing_solution"
     }
   ],
   "result": {

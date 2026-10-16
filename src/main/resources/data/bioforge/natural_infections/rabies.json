@@ -1,0 +1,35 @@
+{
+  "strains": [
+    {
+      "id": "bioforge:rabies_virus",
+      "pathogen": "bioforge:virus",
+      "transmissions": [
+        "bioforge:attack_based"
+      ],
+      "symptoms": {
+        "infection_strength": "0.50",
+        "neural_damage": "0.30",
+        "microscope_visibility": "MEDIUM"
+      },
+      "mutations": [
+        "rabid_aggression"
+      ],
+      "lifecycle_profile": "bioforge:natural_fast"
+    }
+  ],
+  "rules": [
+    {
+      "id": "bioforge:rabies_reservoir",
+      "entities": [
+        "#bioforge:rabies_reservoirs"
+      ],
+      "chance": 0.0001,
+      "strains": [
+        {
+          "strain": "bioforge:rabies_virus",
+          "weight": 100
+        }
+      ]
+    }
+  ]
+}

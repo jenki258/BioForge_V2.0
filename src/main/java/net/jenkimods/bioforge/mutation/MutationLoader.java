@@ -89,7 +89,7 @@ public final class MutationLoader extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager manager, ProfilerFiller profiler) {
+    public void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager manager, ProfilerFiller profiler) {
         mutations.clear();
         byPathogen.clear();
         byPathogenId.clear();

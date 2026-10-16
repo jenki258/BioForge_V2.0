@@ -18,6 +18,10 @@
     "bioforge:vaccine_maker",
     "bioforge:chemical_synthesizer",
     "bioforge:sterilization_chamber",
-    "bioforge:pharma_mixer"
+    "bioforge:pharma_mixer",
+    "bioforge:gene_splicer",
+    "bioforge:herbal_mortar",
+    "bioforge:field_vaccine_maker",
+    "bioforge:medical_diffuser"
   ]
 }

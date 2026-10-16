@@ -1,0 +1,20 @@
+{
+  "order": 732,
+  "title": {
+    "translate": "research.bioforge.page.animal_infections_wild.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections_wild.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections_wild.content.2"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

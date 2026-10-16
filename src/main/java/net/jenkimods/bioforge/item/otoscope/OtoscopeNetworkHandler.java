@@ -92,6 +92,7 @@ public class OtoscopeNetworkHandler {
                     swelling = data.getSymptom(BioForgeSymptoms.OTOSCOPE_SWELLING);
                 }
 
+                if (sender.isUsingItem() && sender.getUseItem().getItem() instanceof OtoscopeItem) net.jenkimods.bioforge.audio.ActionAudio.tool(sender,"instrument.otoscope.measure",80);
                 sendData(sender, redness, lesions, secretion, swelling, subject == sender, msg.entityId);
             });
             ctx.get().setPacketHandled(true);

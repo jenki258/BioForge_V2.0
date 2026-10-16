@@ -88,7 +88,7 @@ public class DiagnosticReagentItem extends Item {
                     player.getZ(), usedReagent));
         }
 
-        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY,
+        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL,
                 SoundSource.PLAYERS, 1.0f, 1.2f);
         return InteractionResultHolder.success(player.getItemInHand(hand));
     }

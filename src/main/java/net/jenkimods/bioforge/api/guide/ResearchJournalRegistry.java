@@ -138,11 +138,12 @@ public final class ResearchJournalRegistry {
             MutableComponent body = Component.empty();
             if (unlocked) {
                 for (ResearchJournalPageDefinition.Element element : definition.elements()) {
-                    if (element.linkTarget() == null) {
-                        body.append(element.component().copy());
-                        if (element.lineBreaks() > 0) {
-                            body.append("\n".repeat(element.lineBreaks()));
-                        }
+                    MutableComponent part = element.component().copy();
+                    if (element.linkTarget() != null) part.withStyle(style -> style.withClickEvent(
+                            new ClickEvent(ClickEvent.Action.CHANGE_PAGE, element.linkTarget().toString())));
+                    body.append(part);
+                    if (element.lineBreaks() > 0) {
+                        body.append("\n".repeat(element.lineBreaks()));
                     }
                 }
             } else {
@@ -165,10 +166,14 @@ public final class ResearchJournalRegistry {
             }
             if (player != null && unlocked && definition.id().getPath().startsWith("items/")) {
                 body = createItemBody(definition, player, recipeViews, usageIndex);
+                for (ResearchJournalPageDefinition.Element element : definition.elements()) {
+                    if (element.linkTarget() != null) body.append("\n\n").append(element.component().copy()
+                            .withStyle(style -> style.withClickEvent(new ClickEvent(
+                                    ClickEvent.Action.CHANGE_PAGE, element.linkTarget().toString()))));
+                }
             }
             result.add(new ResearchJournalPageView(definition.id(),
-                    unlocked ? definition.title().copy()
-                            : Component.translatable("gui.bioforge.research_journal.locked_title"),
+                    definition.title().copy(),
                     body, unlocked, recipeViews));
         }
         boolean mutationCatalogueUnlocked = result.stream().anyMatch(page ->
@@ -195,6 +200,10 @@ public final class ResearchJournalRegistry {
         Item item = itemId == null ? null : ForgeRegistries.ITEMS.getValue(itemId);
         if (item == null) return Component.empty();
         ItemStack stack = new ItemStack(item);
+        if (itemPath.equals("research_journal")) return Component.empty()
+                .append(Component.translatable("research.bioforge.tablet_navigation.title")
+                        .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD)).append("\n\n")
+                .append(Component.translatable("research.bioforge.tablet_navigation.body"));
         MutableComponent body = Component.translatable(
                 "research.bioforge.item_summary.function").append("\n");
         List<Component> tooltips;

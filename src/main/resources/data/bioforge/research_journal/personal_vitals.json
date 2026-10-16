@@ -1,0 +1,26 @@
+{
+  "order": 5,
+  "title": {
+    "translate": "research.bioforge.page.personal_vitals.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.personal_vitals.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.personal_vitals.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.personal_vitals.content.3"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

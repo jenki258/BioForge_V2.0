@@ -1,0 +1,44 @@
+{
+  "order": 7,
+  "title": {
+    "translate": "research.bioforge.page.symptom_tablets.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.symptom_tablets.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.symptom_tablets.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.symptom_tablets.content.3"
+      },
+      "line_breaks": 2
+    }
+  ],
+  "recipes": [
+    {
+      "type": "laboratory",
+      "id": "bioforge:cough_tablet"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:sneeze_tablet"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:fever_tablet"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:nausea_tablet"
+    }
+  ]
+}

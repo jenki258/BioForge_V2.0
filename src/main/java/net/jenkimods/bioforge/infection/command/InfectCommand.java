@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 public class InfectCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("bioforge")
+        dispatcher.register(Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                 .then(Commands.literal("infect")
                         .requires(src -> src.hasPermission(2))
                         .then(Commands.argument("targets", EntityArgument.entities())

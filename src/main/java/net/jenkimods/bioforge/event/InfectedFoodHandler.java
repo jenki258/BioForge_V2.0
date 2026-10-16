@@ -22,7 +22,10 @@ public class InfectedFoodHandler {
         if (entity.level().isClientSide()) return;
 
         StrainData strain = ItemStrainData.read(item);
-        if (strain == null) return;
+        if (strain == null) {
+            FoodRiskInfections.tryInfect(entity, item, entity.getRandom().nextFloat());
+            return;
+        }
         boolean drink = item.getUseAnimation() == UseAnim.DRINK;
         boolean foodRoute = !drink
                 && BioForgeServerConfig.isTransmissionEnabled(InfectionType.FOOD_BORNE)

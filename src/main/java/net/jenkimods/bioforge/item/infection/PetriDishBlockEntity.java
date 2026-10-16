@@ -83,6 +83,17 @@ public class PetriDishBlockEntity extends BlockEntity {
         return false;
     }
 
+    public boolean feed() {
+        if (!isInoculated() || pathogen == null || growthStage >= 4) return false;
+        growthStage++;
+        setChanged();
+        if (level != null && !level.isClientSide) {
+            level.setBlock(worldPosition, getBlockState().setValue(PetriDishBlock.GROWTH, growthStage), 3);
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+        }
+        return true;
+    }
+
     public boolean consumeGrowth(int amount) {
         if (amount <= 0 || growthStage <= 0) return false;
         growthStage = Math.max(0, growthStage - amount);

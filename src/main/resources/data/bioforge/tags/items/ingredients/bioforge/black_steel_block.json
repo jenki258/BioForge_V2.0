@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:storage_blocks/black_steel"
+    "bioforge:black_steel_block",
+    {
+      "id": "#forge:storage_blocks/black_steel",
+      "required": false
+    }
   ]
 }

@@ -144,8 +144,9 @@ public class StethoscopeOverlay {
         float revealProgress = Math.min(1f, readingElapsed / WAVE_REVEAL_DURATION);
         float stabilizeProgress = Math.max(0f, Math.min(1f, (readingElapsed - WAVE_REVEAL_DURATION) / WAVE_STABILIZE_DURATION));
 
-        renderHeartWaveReveal(graphics, heartWaveX, heartWaveY, heartWaveW, heartWaveH, totalElapsed, revealProgress, stabilizeProgress);
-        renderLungWaveReveal(graphics, lungWaveX, lungWaveY, lungWaveW, lungWaveH, totalElapsed, revealProgress, stabilizeProgress);
+        if (StethoscopeClientHandler.getSite().isHeart())
+            renderHeartWaveReveal(graphics,x+8,heartWaveY,w-16,heartWaveH,totalElapsed,revealProgress,stabilizeProgress);
+        else renderLungWaveReveal(graphics,x+8,lungWaveY,w-16,lungWaveH,totalElapsed,revealProgress,stabilizeProgress);
 
         float labelFadeIn = Math.max(0f, Math.min(1f, (readingElapsed - WAVE_REVEAL_DURATION - 0.2f) / 0.3f));
 
@@ -170,8 +171,8 @@ public class StethoscopeOverlay {
 
         int color = applyAlpha(0x44DDFF, alpha);
 
-        graphics.drawString(mc.font, heartLabel, heartTextX, textY, color, false);
-        graphics.drawString(mc.font, lungLabel, lungTextX, textY, color, false);
+        Component selected=Component.translatable(StethoscopeClientHandler.getSite().translationKey());
+        graphics.drawString(mc.font,selected,x+(w-mc.font.width(selected))/2,textY,color,false);
     }
 
     private static void renderHeartWaveReveal(GuiGraphics graphics, int x, int y, int w, int h, float totalElapsed, float revealProgress, float stabilizeProgress) {
@@ -399,8 +400,9 @@ public class StethoscopeOverlay {
         String lungStr = lungLabel.getString();
         int heartTextX = x + 8 + (68 - mc.font.width(heartStr)) / 2;
         int lungTextX = x + 84 + (68 - mc.font.width(lungStr)) / 2;
-        graphics.drawString(mc.font, heartStr, heartTextX, labelY, heartColor, false);
-        graphics.drawString(mc.font, lungStr, lungTextX, labelY, lungColor, false);
+        boolean heart=StethoscopeClientHandler.getSite().isHeart();
+        String selected=heart?heartStr:lungStr;
+        graphics.drawString(mc.font,selected,x+(w-mc.font.width(selected))/2,labelY,heart?heartColor:lungColor,false);
         String nameStr = StethoscopeClientHandler.getTargetName();
         if (!nameStr.isEmpty()) {
             Component nameComp = Component.translatable("overlay.bioforge.stethoscope.listening_to", nameStr).withStyle(ChatFormatting.GRAY);

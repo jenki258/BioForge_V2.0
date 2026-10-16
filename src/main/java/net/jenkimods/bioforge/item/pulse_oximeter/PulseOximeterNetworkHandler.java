@@ -21,7 +21,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public class PulseOximeterNetworkHandler {
-    private static final String PROTOCOL = "1";
+    private static final String PROTOCOL = "2";
     private static SimpleChannel CHANNEL;
     private static int id = 0;
 
@@ -45,9 +45,9 @@ public class PulseOximeterNetworkHandler {
         CHANNEL.sendToServer(new PulseOximeterRequestPacket(entityId));
     }
 
-    public static void sendData(ServerPlayer player, float o2, float perf, boolean self, int entityId, String name) {
+    public static void sendData(ServerPlayer player, float o2, float perf, boolean self, int entityId, String name, float clinicalOxygen) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new PulseOximeterDataPacket(o2, perf, self, entityId, name));
+                new PulseOximeterDataPacket(o2, perf, self, entityId, name, clinicalOxygen));
     }
 
     public static class PulseOximeterRequestPacket {
@@ -73,21 +73,30 @@ public class PulseOximeterNetworkHandler {
                 InfectionData data = InfectionCapability.get(subject);
                 float o2 = data != null ? data.getSymptom(BioForgeSymptoms.OXYGEN_SATURATION) : 0.95f;
                 float perf = data != null ? data.getSymptom(BioForgeSymptoms.PERFUSION_INDEX) : 0.7f;
+                var baseline = net.jenkimods.bioforge.physiology.PhysiologyReadings.profile(subject);
+                float clinicalOxygen = o2;
+                o2 = baseline.oxygen(o2);
+                perf = baseline.perfusion(perf);
                 String name = (msg.entityId != -1) ? subject.getDisplayName().getString() : "";
-                sendData(sender, o2, perf, msg.entityId == -1, msg.entityId, name);
+                if (sender.isUsingItem() && sender.getUseItem().getItem() instanceof PulseOximeterItem) net.jenkimods.bioforge.audio.ActionAudio.tool(sender,"instrument.pulse_oximeter.measure",80);
+                sendData(sender, o2, perf, msg.entityId == -1, msg.entityId, name, clinicalOxygen);
             });
             ctx.get().setPacketHandled(true);
         }
     }
 
     public static class PulseOximeterDataPacket {
-        float oxygen, perfusion;
+        float oxygen, perfusion, clinicalOxygen;
         boolean self;
         int entityId;
         String targetName;
 
         public PulseOximeterDataPacket(float o2, float perf, boolean self, int entityId, String targetName) {
+            this(o2, perf, self, entityId, targetName, o2);
+        }
+        public PulseOximeterDataPacket(float o2, float perf, boolean self, int entityId, String targetName, float clinicalOxygen) {
             oxygen = o2; perfusion = perf; this.self = self; this.entityId = entityId; this.targetName = targetName;
+            this.clinicalOxygen = clinicalOxygen;
         }
         public static void encode(PulseOximeterDataPacket msg, FriendlyByteBuf buf) {
             buf.writeFloat(msg.oxygen);
@@ -95,13 +104,14 @@ public class PulseOximeterNetworkHandler {
             buf.writeBoolean(msg.self);
             buf.writeInt(msg.entityId);
             buf.writeUtf(msg.targetName);
+            buf.writeFloat(msg.clinicalOxygen);
         }
         public static PulseOximeterDataPacket decode(FriendlyByteBuf buf) {
-            return new PulseOximeterDataPacket(buf.readFloat(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readUtf());
+            return new PulseOximeterDataPacket(buf.readFloat(), buf.readFloat(), buf.readBoolean(), buf.readInt(), buf.readUtf(), buf.readFloat());
         }
         public static void handle(PulseOximeterDataPacket msg, Supplier<NetworkEvent.Context> ctx) {
             ctx.get().enqueueWork(() -> {
-                PulseOximeterClientHandler.startInspection(msg.oxygen, msg.perfusion, msg.self, msg.entityId, msg.targetName);
+                PulseOximeterClientHandler.startInspection(msg.oxygen, msg.perfusion, msg.self, msg.entityId, msg.targetName, msg.clinicalOxygen);
             });
             ctx.get().setPacketHandled(true);
         }

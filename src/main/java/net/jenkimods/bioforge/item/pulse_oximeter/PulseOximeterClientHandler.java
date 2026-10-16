@@ -11,6 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = BioForge.MODID, value = net.minecraftforge.api.distmarker.Dist.CLIENT)
 public class PulseOximeterClientHandler {
     private static boolean inspecting = false;
+    private static float clinicalOxygen = .95F;
     private static float oxygenSaturation = 0.95f;
     private static float perfusionIndex = 0.7f;
     private static float quality = 1.0f;
@@ -24,7 +25,7 @@ public class PulseOximeterClientHandler {
     private static long lastMoveCheck = 0;
 
 
-    public static void startInspection(float o2, float perf, boolean self, int entityId, String name) {
+    public static void startInspection(float o2, float perf, boolean self, int entityId, String name, float clinical) {
         if (!inspecting) {
             inspecting = true;
             startTime = System.currentTimeMillis();
@@ -47,6 +48,7 @@ public class PulseOximeterClientHandler {
             lastMoveCheck = System.currentTimeMillis();
         }
 
+        clinicalOxygen = clinical;
         oxygenSaturation = o2;
         perfusionIndex = perf;
         selfMode = self;
@@ -59,6 +61,7 @@ public class PulseOximeterClientHandler {
         PulseOximeterOverlay.resetWaveform();
     }
     public static boolean isInspecting() { return inspecting; }
+    public static float getClinicalOxygen() { return clinicalOxygen; }
     public static float getOxygenSaturation() { return oxygenSaturation; }
     public static float getPerfusionIndex() { return perfusionIndex; }
     public static float getQuality() { return quality; }

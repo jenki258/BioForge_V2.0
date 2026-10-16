@@ -90,7 +90,7 @@ public class NeedleItem extends Item {
             applyStoredInfection(stack, player);
             clearBlood(stack);
 
-            level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
+            level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.needle.inject").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
             return InteractionResultHolder.success(stack);
         }
 
@@ -113,6 +113,7 @@ public class NeedleItem extends Item {
                     storeBlood(stack, selfData.getBlood(), selfData.getBloodType(),
                             sp.getName().getString(), sp.getUUID());
                     captureInfection(stack, sp);
+                    net.jenkimods.bioforge.audio.ActionAudio.tool(sp,"instrument.needle.extract");
                 }
             }
         }
@@ -134,7 +135,7 @@ public class NeedleItem extends Item {
         applyStoredInfection(stack, target);
         clearBlood(stack);
         player.setItemInHand(hand, stack);
-        level.playSound(null, target.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 0.8f, 1.2f);
+        level.playSound(null, target.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.needle.inject").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
         return InteractionResult.SUCCESS;
     }
 
@@ -159,6 +160,7 @@ public class NeedleItem extends Item {
                     storeBlood(stack, targetData.getBlood(), targetData.getBloodType(),
                             target.getName().getString(), target.getUUID());
                     captureInfection(stack, target);
+                    net.jenkimods.bioforge.audio.ActionAudio.tool(attacker,"instrument.needle.extract");
                     return true;
                 }
             }
@@ -173,9 +175,7 @@ public class NeedleItem extends Item {
     private static void captureInfection(ItemStack stack, LivingEntity entity) {
         InfectionData inf = InfectionCapability.get(entity);
         if (inf == null || !inf.isInfected()) return;
-        if (!BioForgeServerConfig.isTransmissionEnabled(InfectionType.BLOOD)) return;
-        if (!net.jenkimods.bioforge.definition.BioForgeDefinitionManager
-                .hasTransmissionBehavior(inf, InfectionType.BLOOD)) return;
+        // Diagnostic information is independent of whether blood can transmit the strain.
         String strain = buildStrainPayload(inf);
         NbtObfuscator.writeInfection(stack.getOrCreateTag(), strain);
     }

@@ -1,0 +1,47 @@
+{
+  "order": 730,
+  "title": {
+    "translate": "research.bioforge.page.animal_infections.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections_farm.title",
+        "underlined": true,
+        "color": "dark_aqua"
+      },
+      "link": "bioforge:animal_infections_farm",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections_wild.title",
+        "underlined": true,
+        "color": "dark_aqua"
+      },
+      "link": "bioforge:animal_infections_wild",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections_water.title",
+        "underlined": true,
+        "color": "dark_aqua"
+      },
+      "link": "bioforge:animal_infections_water",
+      "line_breaks": 1
+    }
+  ]
+}

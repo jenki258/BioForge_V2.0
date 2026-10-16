@@ -17,11 +17,17 @@ public final class CrisprDisplayNames {
                     .map(definition -> Component.translatable(definition.nameKey()))
                     .orElseGet(() -> Component.translatable(
                             mutationTranslationKey(target)));
-            case TRANSMISSION -> Component.translatable(
-                    "infection_type.bioforge." + target.toLowerCase(Locale.ROOT));
+            case TRANSMISSION -> transmission(target);
             case SYMPTOM -> Component.translatable(
                     "microscope.symptom." + target.toLowerCase(Locale.ROOT));
         };
+    }
+    private static Component transmission(String target) {
+        var id = net.jenkimods.bioforge.api.definition.BioForgeIds.parse(target);
+        var legacy = net.jenkimods.bioforge.api.definition.BioForgeIds.legacyTransmission(id);
+        if (legacy != null) return Component.translatable("infection_type.bioforge." + legacy.name().toLowerCase(Locale.ROOT));
+        return net.jenkimods.bioforge.definition.BioForgeDefinitionManager.TRANSMISSIONS.get(id)
+                .map(d -> Component.translatable(d.translationKey())).orElseGet(() -> Component.literal(humanize(target)));
     }
 
     public static String humanize(String value) {

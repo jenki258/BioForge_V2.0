@@ -17,7 +17,7 @@ public final class DecontaminationCommand {
     private DecontaminationCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("bioforge")
+        dispatcher.register(Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                 .then(Commands.literal("decontaminate")
                         .requires(source -> source.hasPermission(2))
                         .then(route("airborne", InfectionType.AIR_BORNE))

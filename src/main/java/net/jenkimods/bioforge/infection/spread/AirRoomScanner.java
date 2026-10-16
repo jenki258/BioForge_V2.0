@@ -24,14 +24,20 @@ public final class AirRoomScanner {
     private AirRoomScanner() {}
 
     public static Room scan(ServerLevel level, BlockPos requestedStart) {
+        return scan(level, requestedStart, BioForgeServerConfig.airRoomMaxRadius(),
+                BioForgeServerConfig.airRoomMaxVolume(), true);
+    }
+
+    public static Room scanLimited(ServerLevel level, BlockPos start, int radius) {
+        return scan(level, start, radius, BioForgeServerConfig.airRoomMaxVolume(), false);
+    }
+
+    private static Room scan(ServerLevel level, BlockPos requestedStart, int radius, int maxVolume, boolean cache) {
         BlockPos start = findAirCell(level, requestedStart);
         long now = level.getGameTime();
         LevelCache levelCache = CACHE.computeIfAbsent(level, ignored -> new LevelCache());
         CachedRoom cached = levelCache.roomsByCell.get(start.asLong());
-        if (cached != null && cached.expiresAt() >= now) return cached.room();
-
-        int radius = BioForgeServerConfig.airRoomMaxRadius();
-        int maxVolume = BioForgeServerConfig.airRoomMaxVolume();
+        if (cache && cached != null && cached.expiresAt() >= now) return cached.room();
         LongOpenHashSet cells = new LongOpenHashSet(Math.min(maxVolume, 4096));
         LongOpenHashSet visited = new LongOpenHashSet(Math.min(maxVolume * 2, 8192));
         LongArrayFIFOQueue pending = new LongArrayFIFOQueue(Math.min(maxVolume, 4096));
@@ -80,7 +86,7 @@ public final class AirRoomScanner {
                 outdoors);
         long expiry = now + BioForgeServerConfig.airRoomCacheTicks();
         CachedRoom cacheEntry = new CachedRoom(room, expiry);
-        for (long cell : room.cellArray) levelCache.roomsByCell.put(cell, cacheEntry);
+        if (cache) for (long cell : room.cellArray) levelCache.roomsByCell.put(cell, cacheEntry);
         if (levelCache.roomsByCell.size() > maxVolume * 16) {
             maintain(level, now);
         }

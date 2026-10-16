@@ -93,7 +93,7 @@ public final class VaccineBloodAssay {
     public static float feedback(ItemStack stack, String strainPayload) {
         Data data = read(stack);
         return matchesScannedSample(stack, strainPayload) && data != null
-                ? data.result() : 0.0F;
+                ? 1.0F : 0.0F;
     }
 
     public static boolean markScanned(ItemStack stack) {

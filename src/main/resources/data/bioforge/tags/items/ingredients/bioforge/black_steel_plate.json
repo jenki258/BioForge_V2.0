@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:plates/black_steel"
+    "bioforge:black_steel_plate",
+    {
+      "id": "#forge:plates/black_steel",
+      "required": false
+    }
   ]
 }

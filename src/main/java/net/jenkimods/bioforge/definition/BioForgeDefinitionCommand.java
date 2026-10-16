@@ -35,7 +35,7 @@ public final class BioForgeDefinitionCommand {
     private BioForgeDefinitionCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("bioforge")
+        dispatcher.register(Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                 .then(Commands.literal("definition")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("infect")

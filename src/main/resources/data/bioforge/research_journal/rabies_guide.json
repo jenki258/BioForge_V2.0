@@ -1,0 +1,26 @@
+{
+  "order": 723,
+  "title": {
+    "translate": "research.bioforge.page.rabies_guide.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.rabies_guide.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.rabies_guide.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.rabies_guide.content.3"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

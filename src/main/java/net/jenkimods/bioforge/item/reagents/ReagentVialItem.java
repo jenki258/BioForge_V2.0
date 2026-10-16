@@ -141,7 +141,7 @@ public class ReagentVialItem extends Item {
             }
         }
 
-        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 1.0f, 1.2f);
+        level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS, 1.0f, 1.2f);
         return InteractionResultHolder.success(player.getItemInHand(hand));
     }
 

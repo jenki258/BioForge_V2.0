@@ -47,11 +47,15 @@ public class CentrifugeJeiPlugin implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
+        for (var kind : EarlyMedicineRecipeCategory.Kind.values()) registration.addRecipeCategories(
+                new EarlyMedicineRecipeCategory(registration.getJeiHelpers().getGuiHelper(), kind));
         registration.addRecipeCategories(
                 new CentrifugeRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new DecalcificationRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new IncubatorRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
                 new VaccineMakerRecipeCategory(registration.getJeiHelpers().getGuiHelper()),
+                new LaboratoryProcessRecipeCategory(registration.getJeiHelpers().getGuiHelper(),
+                        LaboratoryStation.HERBAL_MORTAR, new net.minecraft.world.item.ItemStack(BioForge.HERBAL_MORTAR_ITEM.get())),
                 new LaboratoryProcessRecipeCategory(
                         registration.getJeiHelpers().getGuiHelper(),
                         LaboratoryStation.BARREL_PRESS,
@@ -77,6 +81,11 @@ public class CentrifugeJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
+        registration.addRecipes(mezz.jei.api.constants.RecipeTypes.CRAFTING, java.util.List.of(
+                new net.jenkimods.bioforge.world.recipe.CultureSampleRecipe(
+                        ResourceLocation.tryBuild(BioForge.MODID, "culture_sample"),
+                        net.minecraft.world.item.crafting.CraftingBookCategory.MISC)));
+        for (var kind : EarlyMedicineRecipeCategory.Kind.values()) registration.addRecipes(kind.type(), EarlyMedicineRecipeCategory.operations(kind));
         registeredCentrifugeRecipes = centrifugeRecipes();
         registration.addRecipes(CentrifugeRecipeCategory.RECIPE_TYPE,
                 registeredCentrifugeRecipes);
@@ -102,6 +111,9 @@ public class CentrifugeJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        for (var kind : EarlyMedicineRecipeCategory.Kind.values()) registration.addRecipeCatalyst(kind.block(), kind.type());
+        registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(BioForge.HERBAL_MORTAR_ITEM.get()),
+                LaboratoryProcessRecipeCategory.MORTAR_TYPE);
         registration.addRecipeCatalyst(new net.minecraft.world.item.ItemStack(
                         BioForge.VACCINE_MAKER_ITEM.get()),
                 VaccineMakerRecipeCategory.RECIPE_TYPE);

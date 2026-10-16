@@ -27,6 +27,7 @@ public final class ResearchJournalItem extends Item {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             ResearchJournalProgress.activate(serverPlayer, false);
             ResearchJournalNetwork.open(serverPlayer);
+            net.jenkimods.bioforge.audio.ActionAudio.tool(serverPlayer,"ui.research_tablet.open");
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);

@@ -64,7 +64,7 @@ public class EthanolItem extends Item {
                 if (player == null || !player.getAbilities().instabuild) {
                     context.getItemInHand().shrink(1);
                 }
-                level.playSound(null, context.getClickedPos(), SoundEvents.BOTTLE_EMPTY,
+                level.playSound(null, context.getClickedPos(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.ethanol.clean").get(),
                         SoundSource.BLOCKS, 0.8F, 1.15F);
                 serverLevel.sendParticles(ParticleTypes.CLOUD,
                         context.getClickLocation().x,
@@ -97,7 +97,7 @@ public class EthanolItem extends Item {
                     player.drop(clean, false);
                 }
                 ethanol.shrink(1);
-                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
+                level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.ethanol.clean").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.ethanol.cleaned"));
             }
             return InteractionResultHolder.success(ethanol);
@@ -113,7 +113,7 @@ public class EthanolItem extends Item {
             if (!level.isClientSide()) {
                 SyringeItem.clearInfection(other);
                 ethanol.shrink(1);
-                level.playSound(null, player.blockPosition(), SoundEvents.BOTTLE_EMPTY, SoundSource.PLAYERS, 0.8f, 1.2f);
+                level.playSound(null, player.blockPosition(), net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.ethanol.clean").get(), SoundSource.PLAYERS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.ethanol.syringe_cleaned"));
             }
             return InteractionResultHolder.success(ethanol);

@@ -71,6 +71,7 @@ public class VaccineItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (player.getCooldowns().isOnCooldown(this)) return InteractionResultHolder.fail(stack);
         if (!isConfigured(stack)) return InteractionResultHolder.pass(stack);
         InteractionHand otherHand = hand == InteractionHand.MAIN_HAND
                 ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
@@ -89,7 +90,7 @@ public class VaccineItem extends Item {
             if (!level.isClientSide()) {
                 VaccineBloodAssay.createAndConsume(player, otherStack, stack);
                 player.level().playSound(null, player.blockPosition(),
-                        SoundEvents.BOTTLE_FILL, SoundSource.PLAYERS,
+                        net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.vaccine.load").get(), SoundSource.PLAYERS,
                         0.8F, 1.15F);
                 player.displayClientMessage(Component.translatable(
                         "message.bioforge.vaccine.assay_created")
@@ -106,6 +107,7 @@ public class VaccineItem extends Item {
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player,
                                                    LivingEntity target, InteractionHand hand) {
+        if (player.getCooldowns().isOnCooldown(this)) return InteractionResult.FAIL;
         if (!isConfigured(stack)) return InteractionResult.PASS;
         if (!player.level().isClientSide()) {
             applyDose(player, target, stack);
@@ -114,6 +116,12 @@ public class VaccineItem extends Item {
     }
 
     private void applyDose(Player practitioner, LivingEntity target, ItemStack stack) {
+        if (practitioner.getCooldowns().isOnCooldown(this)) return;
+        if (!FieldVaccineItem.canTreat(target, stack)) {
+            practitioner.displayClientMessage(Component.translatable("message.bioforge.field_vaccine.cooldown")
+                    .withStyle(ChatFormatting.GOLD), true);
+            return;
+        }
         if (kind == Kind.RANDOM_MUTATION) {
             applyRandomMutationDose(practitioner, target, stack);
             return;
@@ -130,7 +138,7 @@ public class VaccineItem extends Item {
         VaccineProfile profile = VaccineProfile.read(stack);
         VaccineManager.AttemptResult result =
                 VaccineManager.attemptVaccination(
-                        target, profile, VaccineHostProfile.read(stack));
+                        target, profile, VaccineHostProfile.read(stack), FieldVaccineItem.effectiveness(stack));
 
         Component feedback = switch (result.outcome()) {
             case CURED -> Component.translatable("message.bioforge.vaccine.cured_hidden",
@@ -155,11 +163,14 @@ public class VaccineItem extends Item {
         }
 
         if (!result.consumesDose()) return;
-        practitioner.getCooldowns().addCooldown(this, 20);
+        if (this instanceof FieldVaccineItem) {
+            FieldVaccineItem.markTreatment(target);
+            FieldVaccineItem.coolDown(practitioner);
+        } else practitioner.getCooldowns().addCooldown(this, 20);
         practitioner.level().playSound(null, target.blockPosition(),
                 result.outcome() == VaccineManager.Outcome.CURED
                         || result.outcome() == VaccineManager.Outcome.IMMUNIZED
-                        ? SoundEvents.EXPERIENCE_ORB_PICKUP : SoundEvents.BOTTLE_EMPTY,
+                        ? net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get(this instanceof FieldVaccineItem?"instrument.field_vaccine.success":"instrument.vaccine.success").get() : net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get(this instanceof FieldVaccineItem?"instrument.field_vaccine.inject":"instrument.vaccine.inject").get(),
                 SoundSource.PLAYERS, 0.8f,
                 result.outcome() == VaccineManager.Outcome.CURED
                         || result.outcome() == VaccineManager.Outcome.IMMUNIZED ? 1.25f : 0.8f);
@@ -206,7 +217,7 @@ public class VaccineItem extends Item {
                 target.getDisplayName()).withStyle(ChatFormatting.DARK_PURPLE), true);
         practitioner.getCooldowns().addCooldown(this, 20);
         practitioner.level().playSound(null, target.blockPosition(),
-                SoundEvents.BREWING_STAND_BREW, SoundSource.PLAYERS,
+                net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.mutation.inject").get(), SoundSource.PLAYERS,
                 0.8f, 0.75f);
         if (!practitioner.getAbilities().instabuild) VaccineProfile.consumeDose(stack);
     }
@@ -274,7 +285,7 @@ public class VaccineItem extends Item {
                 .withStyle(ChatFormatting.LIGHT_PURPLE), true);
         practitioner.getCooldowns().addCooldown(this, 20);
         practitioner.level().playSound(null, target.blockPosition(),
-                SoundEvents.BREWING_STAND_BREW, SoundSource.PLAYERS,
+                net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.mutation.upgrade").get(), SoundSource.PLAYERS,
                 0.9F, 1.2F);
         if (!practitioner.getAbilities().instabuild) VaccineProfile.consumeDose(stack);
     }
@@ -315,7 +326,7 @@ public class VaccineItem extends Item {
         practitioner.getCooldowns().addCooldown(this, 20);
         practitioner.level().playSound(null, target.blockPosition(),
                 result.outcome() == DirectedVaccineManager.Outcome.APPLIED
-                        ? SoundEvents.EXPERIENCE_ORB_PICKUP : SoundEvents.BOTTLE_EMPTY,
+                        ? net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get(this instanceof FieldVaccineItem?"instrument.field_vaccine.success":"instrument.vaccine.success").get() : net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get(this instanceof FieldVaccineItem?"instrument.field_vaccine.inject":"instrument.vaccine.inject").get(),
                 SoundSource.PLAYERS, 0.8f,
                 result.outcome() == DirectedVaccineManager.Outcome.APPLIED ? 1.2f : 0.75f);
         if (!practitioner.getAbilities().instabuild) {

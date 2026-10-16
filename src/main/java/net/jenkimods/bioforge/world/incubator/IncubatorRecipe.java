@@ -56,7 +56,7 @@ public record IncubatorRecipe(
                     stack.getItem() instanceof CatalystVialItem
                             && CatalystVialItem.isSet(stack)
                             && CatalystVialItem.getCharges(stack) >= catalystChargeCost;
-            case COPY_SAMPLE_STRAIN -> isValidStrainPayload(readSampleStrain(stack));
+            case COPY_SAMPLE_STRAIN, CONVERT_SAMPLE -> isValidStrainPayload(readSampleStrain(stack));
             case COPY_BLOOD_STRAIN ->
                     BloodSampleUtil.hasBlood(stack) && isValidStrainPayload(readBloodStrain(stack));
         };
@@ -78,24 +78,20 @@ public record IncubatorRecipe(
     public String getSourceStrain(ItemStack stack) {
         return switch (operation) {
             case CRAFT, GENERATE_STRAIN -> null;
-            case COPY_SAMPLE_STRAIN -> readSampleStrain(stack);
+            case COPY_SAMPLE_STRAIN, CONVERT_SAMPLE -> readSampleStrain(stack);
             case COPY_BLOOD_STRAIN -> readBloodStrain(stack);
         };
     }
 
     @Nullable
     private static String readSampleStrain(ItemStack stack) {
-        String raw = NbtObfuscator.readString(stack.getOrCreateTag());
-        return raw == null || raw.isEmpty() ? null : raw;
+        var strain = net.jenkimods.bioforge.infection.StrainPayload.read(stack.getOrCreateTag());
+        return strain == null ? null : strain.toPayload();
     }
 
     @Nullable
     private static String readBloodStrain(ItemStack stack) {
-        String raw = NbtObfuscator.readInfection(stack.getOrCreateTag());
-        if (raw == null || raw.isEmpty()) {
-            raw = NbtObfuscator.readString(stack.getOrCreateTag());
-        }
-        return raw == null || raw.isEmpty() ? null : raw;
+        return readSampleStrain(stack);
     }
 
     private static boolean isValidStrainPayload(@Nullable String raw) {

@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:rods/wooden"
+    "minecraft:stick",
+    {
+      "id": "#forge:rods/wooden",
+      "required": false
+    }
   ]
 }

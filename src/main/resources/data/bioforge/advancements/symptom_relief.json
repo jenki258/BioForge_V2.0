@@ -1,0 +1,35 @@
+{
+  "parent": "bioforge:early_medicine",
+  "display": {
+    "icon": {
+      "item": "bioforge:cough_tablet"
+    },
+    "title": {
+      "translate": "advancement.bioforge.symptom_relief.title"
+    },
+    "description": {
+      "translate": "advancement.bioforge.symptom_relief.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "tablet": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:cough_tablet",
+              "bioforge:sneeze_tablet",
+              "bioforge:fever_tablet",
+              "bioforge:nausea_tablet"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

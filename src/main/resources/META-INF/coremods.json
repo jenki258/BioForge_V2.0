@@ -1,0 +1,4 @@
+{
+  "bioforge_treatment_rejection": "coremods/treatment_rejection.js",
+  "bioforge_contamination_tooltip_privacy": "coremods/contamination_tooltip_privacy.js"
+}

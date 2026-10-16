@@ -67,7 +67,7 @@ public class DecontaminationFlaskItem extends ThrowablePotionItem {
             level.sendParticles(ParticleTypes.CLOUD,
                     center.getX() + 0.5D, center.getY() + 0.5D, center.getZ() + 0.5D,
                     32, radius * 0.45D, radius * 0.35D, radius * 0.45D, 0.03D);
-            level.playSound(null, center, SoundEvents.SPLASH_POTION_BREAK,
+            level.playSound(null, center, net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.decontamination.spray").get(),
                     SoundSource.BLOCKS, 1.0F, 1.15F);
         }
     }

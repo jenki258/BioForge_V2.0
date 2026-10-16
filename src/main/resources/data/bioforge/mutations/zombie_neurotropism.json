@@ -1,0 +1,16 @@
+{
+  "id": "zombie_neurotropism",
+  "name": "Zombie Neurotropism",
+  "description": "After incubation, passive hosts hunt healthy creatures. Curing the infection restores normal behavior.",
+  "pathogens": [
+    "VIRUS"
+  ],
+  "rarity": "rare",
+  "weight": 0,
+  "tags": [
+    "zombie",
+    "neural",
+    "behavior"
+  ],
+  "effects": []
+}

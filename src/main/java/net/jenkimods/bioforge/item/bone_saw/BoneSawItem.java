@@ -74,6 +74,7 @@ public class BoneSawItem extends Item {
             attacker.drop(splitBone, false);
         }
 
+        net.jenkimods.bioforge.audio.ActionAudio.tool(attacker,"instrument.bone_saw.collect");
         attacker.displayClientMessage(Component.translatable("item.bioforge.bone_saw.sampled"), true);
         return true;
     }

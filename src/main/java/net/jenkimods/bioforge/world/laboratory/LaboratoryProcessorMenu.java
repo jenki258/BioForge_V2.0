@@ -110,7 +110,7 @@ public final class LaboratoryProcessorMenu extends AbstractContainerMenu {
             case BARREL_PRESS -> slot < 4
                     ? new int[]{26 + slot * 18, 35}
                     : new int[]{125, 35};
-            case CHEMICAL_SYNTHESIZER -> slot < 3
+            case CHEMICAL_SYNTHESIZER, HERBAL_MORTAR -> slot < 3
                     ? new int[]{35 + slot * 18, 35}
                     : new int[]{125, 35};
             case PHARMA_MIXER -> {

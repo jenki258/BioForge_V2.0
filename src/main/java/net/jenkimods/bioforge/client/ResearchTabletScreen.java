@@ -2,6 +2,10 @@ package net.jenkimods.bioforge.client;
 
 import net.jenkimods.bioforge.BioForge;
 import net.jenkimods.bioforge.api.guide.ResearchJournalPageView;
+import net.jenkimods.bioforge.api.guide.ResearchNavigation;
+import net.minecraft.client.gui.components.EditBox;
+import java.util.HashSet;
+import java.util.Set;
 import net.jenkimods.bioforge.api.guide.ResearchJournalRecipeView;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -21,7 +25,7 @@ public final class ResearchTabletScreen extends Screen {
             BioForge.MODID, "textures/gui/vaccine_maker/slot.png");
     private static final int TABLET_WIDTH = 360;
     private static final int TABLET_HEIGHT = 230;
-    private static final int SIDEBAR_WIDTH = 116;
+    private static final int SIDEBAR_WIDTH = 136;
     private static final int HEADER_HEIGHT = 30;
     private static final int ENTRY_HEIGHT = 20;
     private static final int TAB_HEIGHT = 14;
@@ -38,7 +42,13 @@ public final class ResearchTabletScreen extends Screen {
     private static final int DISABLED_CYAN = 0xFF39727A;
     private final List<ResearchJournalPageView> pages;
     private int selectedPage;
-    private ResearchTab selectedResearchTab = ResearchTab.GENERAL;
+    private ResearchNavigation.Section section = ResearchNavigation.Section.ALL;
+    private static final Set<ResourceLocation> favorites = new HashSet<>();
+    private final List<Integer> history = new ArrayList<>();
+    private int historyPosition;
+    private String query = "";
+    private EditBox search;
+    private Component navigationTooltip;
     private int navigationScroll;
     private int contentScroll;
     private int navigationMaxScroll;
@@ -62,17 +72,53 @@ public final class ResearchTabletScreen extends Screen {
     }
 
     @Override
+    protected void init() {
+        int left = (width - TABLET_WIDTH) / 2;
+        int top = (height - TABLET_HEIGHT) / 2;
+        search = addRenderableWidget(new EditBox(font, left + 16, top + 54,
+                SIDEBAR_WIDTH - 34, 18, Component.translatable("gui.bioforge.research_journal.search")));
+        search.setMaxLength(96);
+        search.setHint(Component.translatable("gui.bioforge.research_journal.search"));
+        search.setTextColor(TEXT_CYAN);
+        search.setValue(query);
+        search.setResponder(value -> { query = value; navigationScroll = 0; });
+        if (history.isEmpty()) history.add(selectedPage);
+    }
+
+    private void selectPage(int index) {
+        if (index == selectedPage) return;
+        selectedPage = index;
+        contentScroll = recipeScroll = 0;
+        while (history.size() > historyPosition + 1) history.remove(history.size() - 1);
+        history.add(index);
+        historyPosition = history.size() - 1;
+    }
+
+    private void browseHistory(int direction) {
+        int next = historyPosition + direction;
+        if (next < 0 || next >= history.size()) return;
+        historyPosition = next;
+        selectedPage = history.get(next);
+        section = ResearchNavigation.Section.ALL;
+        search.setValue("");
+        contentScroll = recipeScroll = 0;
+        navigationScroll = Math.max(0, selectedPage - navigationVisibleRows / 2);
+    }
+
+    @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+        navigationTooltip = null;
         int left = (width - TABLET_WIDTH) / 2;
         int top = (height - TABLET_HEIGHT) / 2;
         renderTablet(graphics, left, top);
         renderResearchTabs(graphics, left, top, mouseX, mouseY);
         renderNavigation(graphics, left, top, mouseX, mouseY);
-        renderPage(graphics, left, top);
+        renderPage(graphics, left, top, mouseX, mouseY);
         renderRecipes(graphics, left, top, mouseX, mouseY);
         renderCloseButton(graphics, left, top, mouseX, mouseY);
         super.render(graphics, mouseX, mouseY, partialTick);
+        if (navigationTooltip != null && !search.isHovered())
+            graphics.renderTooltip(font, font.split(navigationTooltip, 230), mouseX, mouseY);
     }
 
     private void renderTablet(GuiGraphics graphics, int left, int top) {
@@ -99,20 +145,14 @@ public final class ResearchTabletScreen extends Screen {
                 left + SIDEBAR_WIDTH, top + TABLET_HEIGHT - 10);
         drawPanel(graphics, left + SIDEBAR_WIDTH + 5, top + HEADER_HEIGHT + 4,
                 left + TABLET_WIDTH - 10, top + TABLET_HEIGHT - 10);
-        graphics.drawString(font, title, left + 18, top + 17, CYAN, false);
-        int unlocked = (int) pages.stream().filter(ResearchJournalPageView::unlocked).count();
-        Component progress = Component.translatable(
-                "gui.bioforge.research_journal.progress", unlocked, pages.size());
-        graphics.drawString(font, progress,
-                left + TABLET_WIDTH - 20 - font.width(progress), top + 17,
-                MUTED_CYAN, false);
+        graphics.drawString(font, trim(title, TABLET_WIDTH - 124), left + 18, top + 17, CYAN, false);
     }
 
     private void renderNavigation(GuiGraphics graphics, int left, int top,
                                   int mouseX, int mouseY) {
         List<ResearchJournalPageView> visiblePages = visiblePages();
         int listTop = navigationListTop(top);
-        int listBottom = top + TABLET_HEIGHT - 14;
+        int listBottom = top + TABLET_HEIGHT - 26;
         int visible = Math.max(1, (listBottom - listTop) / ENTRY_HEIGHT);
         navigationVisibleRows = visible;
         navigationMaxScroll = Math.max(0, visiblePages.size() - visible);
@@ -131,11 +171,20 @@ public final class ResearchTabletScreen extends Screen {
                     y + ENTRY_HEIGHT - 2, BORDER);
             graphics.fill(left + 15, y + 1, left + SIDEBAR_WIDTH - 6,
                     y + ENTRY_HEIGHT - 3, background);
-            Component label = page.unlocked() ? page.title()
-                    : Component.translatable("gui.bioforge.research_journal.locked_short");
-            graphics.drawString(font, trim(label, SIDEBAR_WIDTH - 32),
+            Component label = page.title();
+            if (hovered) navigationTooltip = page.title().copy().append(page.unlocked() ? Component.empty()
+                    : Component.literal(" — ").append(Component.translatable("gui.bioforge.research_journal.locked_short")));
+            graphics.drawString(font, trim(label, SIDEBAR_WIDTH - 40),
                     left + 19, y + 5, page.unlocked() ? CYAN : DISABLED_CYAN, false);
         }
+        if (visiblePages.isEmpty()) graphics.drawWordWrap(font,
+                Component.translatable("gui.bioforge.research_journal.no_results"), left + 19, listTop + 6,
+                SIDEBAR_WIDTH - 37, MUTED_CYAN);
+        graphics.drawString(font, Component.translatable("gui.bioforge.research_journal.results", visiblePages.size()),
+                left + 18, top + TABLET_HEIGHT - 23, MUTED_CYAN, false);
+        if (mouseX >= left + 14 && mouseX < left + SIDEBAR_WIDTH && mouseY >= top + TABLET_HEIGHT - 25
+                && mouseY < top + TABLET_HEIGHT - 12) navigationTooltip = Component.translatable(
+                "gui.bioforge.research_journal.progress", pages.stream().filter(ResearchJournalPageView::unlocked).count(), pages.size());
         renderScrollBar(graphics, navigationScrollX(left), listTop,
                 listBottom - listTop, navigationScroll, navigationMaxScroll,
                 navigationVisibleRows);
@@ -144,24 +193,32 @@ public final class ResearchTabletScreen extends Screen {
     private void renderResearchTabs(GuiGraphics graphics, int left, int top,
                                     int mouseX, int mouseY) {
         int y = top + HEADER_HEIGHT + 6;
-        int x = left + 14;
-        int width = (SIDEBAR_WIDTH - 21) / 2;
-        for (ResearchTab tab : ResearchTab.values()) {
-            int tabX = x + tab.ordinal() * width;
-            boolean hovered = mouseX >= tabX && mouseX < tabX + width - 2
-                    && mouseY >= y && mouseY < y + TAB_HEIGHT;
-            graphics.fill(tabX, y, tabX + width - 2, y + TAB_HEIGHT, BORDER);
-            graphics.fill(tabX + 1, y + 1, tabX + width - 3, y + TAB_HEIGHT - 1,
-                    tab == selectedResearchTab ? PANEL_SELECTED
-                            : hovered ? PANEL_HOVER : PANEL_INNER);
-            Component label = Component.translatable(tab.translationKey);
-            graphics.drawCenteredString(font, trim(label, width - 8),
-                    tabX + (width - 2) / 2, y + 3,
-                    tab == selectedResearchTab ? CYAN : MUTED_CYAN);
+        int x = left + 14, tabWidth = SIDEBAR_WIDTH - 28;
+        boolean hovered = mouseX >= x && mouseX < x + tabWidth && mouseY >= y && mouseY < y + TAB_HEIGHT;
+        graphics.fill(x, y, x + tabWidth, y + TAB_HEIGHT, BORDER);
+        graphics.fill(x + 1, y + 1, x + tabWidth - 1, y + TAB_HEIGHT - 1, hovered ? PANEL_SELECTED : PANEL);
+        graphics.drawCenteredString(font, trim(Component.translatable(section.key()), tabWidth - 22), x + tabWidth / 2, y + 3, CYAN);
+        graphics.drawString(font, "<", x + 3, y + 3, MUTED_CYAN, false);
+        graphics.drawString(font, ">", x + tabWidth - 9, y + 3, MUTED_CYAN, false);
+        if (hovered) navigationTooltip = Component.translatable("gui.bioforge.research_journal.category_hint");
+        String[] labels = {"<", ">", "H", "*"};
+        String[] hints = {"back", "forward", "home", "favorite"};
+        for (int i = 0; i < labels.length; i++) {
+            int bx = navigationControlsLeft(left) + i * 18;
+            boolean enabled = i == 0 ? historyPosition > 0 : i == 1 ? historyPosition + 1 < history.size() : !pages.isEmpty();
+            boolean bookmarked = i == 3 && !pages.isEmpty() && favorites.contains(pages.get(selectedPage).id());
+            if (bookmarked) {
+                graphics.fill(bx - 1, top + 13, bx + 15, top + 28, 0x55FFD577);
+                graphics.fill(bx, top + 14, bx + 14, top + 27, 0xFFFFD577);
+                graphics.fill(bx + 1, top + 15, bx + 13, top + 26, 0xFF526549);
+                graphics.drawString(font, "*", bx + (14 - font.width("*")) / 2 + 1, top + 16, 0xFFFFE49C, false);
+            } else renderRecipeNavigationButton(graphics, bx, top + 14, labels[i], enabled, mouseX, mouseY);
+            if (mouseX >= bx && mouseX < bx + 14 && mouseY >= top + 14 && mouseY < top + 27)
+                navigationTooltip = Component.translatable("gui.bioforge.research_journal." + hints[i]);
         }
     }
 
-    private void renderPage(GuiGraphics graphics, int left, int top) {
+    private void renderPage(GuiGraphics graphics, int left, int top, int mouseX, int mouseY) {
         if (pages.isEmpty()) {
             graphics.drawString(font,
                     Component.translatable("gui.bioforge.research_journal.empty"),
@@ -199,6 +256,12 @@ public final class ResearchTabletScreen extends Screen {
                     "gui.bioforge.research_journal.scroll_hint");
             graphics.drawString(font, scroll, contentLeft,
                     top + TABLET_HEIGHT - 20 - recipeArea, MUTED_CYAN, false);
+        }
+        var style = pageStyleAt(mouseX, mouseY);
+        if (style != null && style.getClickEvent() != null) {
+            var id = ResourceLocation.tryParse(style.getClickEvent().getValue());
+            pages.stream().filter(target -> target.id().equals(id)).findFirst()
+                    .ifPresent(target -> navigationTooltip = target.title());
         }
         renderScrollBar(graphics, contentScrollX(left), contentTop + 18,
                 visibleLines * 11, contentScroll, contentMaxScroll, contentVisibleLines);
@@ -246,7 +309,7 @@ public final class ResearchTabletScreen extends Screen {
             int slotY = resultY + resultIndex * 18;
             renderRecipeSlot(graphics, result, resultX, slotY, mouseX, mouseY);
             if (!result.isEmpty()) {
-                graphics.drawString(font, trim(result.getHoverName(), 72), resultX + 22,
+                graphics.drawString(font, trim(result.getHoverName(), TABLET_WIDTH - SIDEBAR_WIDTH - 167), resultX + 22,
                         slotY + 5, TEXT_CYAN, false);
             }
         }
@@ -355,6 +418,17 @@ public final class ResearchTabletScreen extends Screen {
             onClose();
             return true;
         }
+        var style = pageStyleAt(mouseX, mouseY);
+        if (style != null && style.getClickEvent() != null
+                && style.getClickEvent().getAction() == net.minecraft.network.chat.ClickEvent.Action.CHANGE_PAGE) {
+            var id = ResourceLocation.tryParse(style.getClickEvent().getValue());
+            for (int index = 0; index < pages.size(); index++) if (pages.get(index).id().equals(id)) {
+                selectPage(index);
+                section = ResearchNavigation.Section.ALL; search.setValue("");
+                navigationScroll = Math.max(0, index - navigationVisibleRows / 2);
+                return true;
+            }
+        }
         int recipeY = recipeNavigationY(top);
         int previousX = recipePreviousX(left);
         int nextX = recipeNextX(left);
@@ -369,19 +443,31 @@ public final class ResearchTabletScreen extends Screen {
                 return true;
             }
         }
+        if (mouseY >= top + 14 && mouseY < top + 27) {
+            int start = navigationControlsLeft(left);
+            for (int i = 0; i < 4; i++) if (mouseX >= start + i * 18 && mouseX < start + i * 18 + 14) {
+                if (i < 2) browseHistory(i == 0 ? -1 : 1);
+                else if (i == 2) {
+                    section = ResearchNavigation.Section.ALL; search.setValue(""); navigationScroll = 0;
+                    for (int j = 0; j < pages.size(); j++) if (pages.get(j).id().getPath().equals("contents")) { selectPage(j); break; }
+                } else if (!pages.isEmpty()) {
+                    ResourceLocation id = pages.get(selectedPage).id();
+                    if (!favorites.remove(id)) favorites.add(id);
+                }
+                return true;
+            }
+        }
         int tabY = top + HEADER_HEIGHT + 6;
-        int tabX = left + 14;
-        int tabWidth = (SIDEBAR_WIDTH - 21) / 2;
-        if (mouseY >= tabY && mouseY < tabY + TAB_HEIGHT
-                && mouseX >= tabX && mouseX < tabX + tabWidth * 2) {
-            int index = Mth.clamp(((int) mouseX - tabX) / tabWidth,
-                    0, ResearchTab.values().length - 1);
-            selectResearchTab(ResearchTab.values()[index]);
+        int tabX = left + 14, tabWidth = SIDEBAR_WIDTH - 28;
+        if (mouseY >= tabY && mouseY < tabY + TAB_HEIGHT && mouseX >= tabX && mouseX < tabX + tabWidth) {
+            var sections = ResearchNavigation.Section.values();
+            section = sections[Math.floorMod(section.ordinal() + (mouseX < tabX + 16 || hasShiftDown() ? -1 : 1), sections.length)];
+            navigationScroll = 0;
             return true;
         }
         List<ResearchJournalPageView> visiblePages = visiblePages();
         int listTop = navigationListTop(top);
-        int listBottom = top + TABLET_HEIGHT - 14;
+        int listBottom = top + TABLET_HEIGHT - 26;
         if (isInsideScrollBar(mouseX, mouseY, navigationScrollX(left), listTop,
                 listBottom - listTop)) {
             draggedScroll = ScrollTarget.NAVIGATION;
@@ -402,10 +488,9 @@ public final class ResearchTabletScreen extends Screen {
                 && mouseY >= listTop && mouseY < listBottom) {
             int row = ((int) mouseY - listTop) / ENTRY_HEIGHT;
             int index = navigationScroll + row;
-            if (index >= 0 && index < visiblePages.size()) {
-                selectedPage = pages.indexOf(visiblePages.get(index));
-                contentScroll = 0;
-                recipeScroll = 0;
+            if (row < navigationVisibleRows && index >= 0 && index < visiblePages.size()) {
+                selectPage(pages.indexOf(visiblePages.get(index)));
+                search.setFocused(false);
                 return true;
             }
         }
@@ -418,7 +503,8 @@ public final class ResearchTabletScreen extends Screen {
         int top = (height - TABLET_HEIGHT) / 2;
         int direction = delta > 0.0D ? -1 : delta < 0.0D ? 1 : 0;
         if (mouseX < left + SIDEBAR_WIDTH) navigationScroll += direction;
-        else if (mouseY >= top + TABLET_HEIGHT - RECIPE_AREA_HEIGHT - 5) {
+        else if (!pages.isEmpty() && !pages.get(selectedPage).recipes().isEmpty()
+                && mouseY >= top + TABLET_HEIGHT - RECIPE_AREA_HEIGHT - 5) {
             recipeScroll += direction;
         }
         else contentScroll += direction;
@@ -433,7 +519,7 @@ public final class ResearchTabletScreen extends Screen {
             int top = (height - TABLET_HEIGHT) / 2;
             if (draggedScroll == ScrollTarget.NAVIGATION) {
                 int trackTop = navigationListTop(top);
-                int trackHeight = top + TABLET_HEIGHT - 14 - trackTop;
+                int trackHeight = top + TABLET_HEIGHT - 26 - trackTop;
                 navigationScroll = scrollFromPointer(mouseY, trackTop, trackHeight,
                         navigationMaxScroll, navigationVisibleRows);
             } else {
@@ -499,32 +585,12 @@ public final class ResearchTabletScreen extends Screen {
     }
 
     private int navigationListTop(int top) {
-        return top + HEADER_HEIGHT + TAB_HEIGHT + 10;
+        return top + 78;
     }
+    private int navigationControlsLeft(int left) { return left + TABLET_WIDTH - 95; }
 
     private List<ResearchJournalPageView> visiblePages() {
-        return pages.stream().filter(page -> selectedResearchTab == ResearchTab.MUTATIONS
-                ? isMutationPage(page) : !isMutationPage(page)).toList();
-    }
-
-    private boolean isMutationPage(ResearchJournalPageView page) {
-        String path = page.id().getPath();
-        return path.startsWith("mutation/") || path.equals("mutations")
-                || path.equals("mutation_interactions");
-    }
-
-    private void selectResearchTab(ResearchTab tab) {
-        if (tab == selectedResearchTab) return;
-        selectedResearchTab = tab;
-        navigationScroll = 0;
-        contentScroll = 0;
-        recipeScroll = 0;
-        List<ResearchJournalPageView> visible = visiblePages();
-        if (!visible.isEmpty()) {
-            selectedPage = pages.indexOf(visible.stream()
-                    .filter(ResearchJournalPageView::unlocked)
-                    .findFirst().orElse(visible.get(0)));
-        }
+        return ResearchNavigation.filter(pages, section, query, favorites);
     }
 
     private int contentScrollX(int left) {
@@ -544,20 +610,24 @@ public final class ResearchTabletScreen extends Screen {
     }
 
     private List<FormattedCharSequence> formattedLines(Component component, int maxWidth) {
-        String body = normalizeText(component.getString());
-        List<FormattedCharSequence> lines = new ArrayList<>();
-        for (String paragraph : body.split("\n", -1)) {
-            String display = paragraph.startsWith("- ") ? "• " + paragraph.substring(2)
-                    : paragraph;
-            if (display.isEmpty()) {
-                lines.add(Component.empty().getVisualOrderText());
-            } else {
-                lines.addAll(font.split(Component.literal(display), maxWidth));
-            }
-        }
-        return lines;
+        var normalized = Component.empty();
+        component.visit((style, text) -> {
+            normalized.append(Component.literal(normalizeText(text)).withStyle(
+                    net.jenkimods.bioforge.api.guide.TabletTextPalette.readable(style)));
+            return java.util.Optional.empty();
+        }, net.minecraft.network.chat.Style.EMPTY);
+        return font.split(normalized, maxWidth);
     }
-
+    private net.minecraft.network.chat.Style pageStyleAt(double mouseX, double mouseY) {
+        if (pages.isEmpty()) return null;
+        int left = (width - TABLET_WIDTH) / 2, top = (height - TABLET_HEIGHT) / 2;
+        int contentLeft = left + SIDEBAR_WIDTH + 14, bodyTop = top + HEADER_HEIGHT + 27;
+        if (mouseX < contentLeft || mouseX >= contentScrollX(left) - 2
+                || mouseY < bodyTop || mouseY >= bodyTop + contentVisibleLines * 11) return null;
+        var lines = formattedLines(pages.get(selectedPage).body(), TABLET_WIDTH - SIDEBAR_WIDTH - 34);
+        int row = (int)(mouseY - bodyTop) / 11 + contentScroll;
+        return row < lines.size() ? font.getSplitter().componentStyleAtWidth(lines.get(row), (int)(mouseX - contentLeft)) : null;
+    }
     private String normalizeText(String value) {
         return value.replace("\r\n", "\n")
                 .replace('\r', '\n')
@@ -589,14 +659,4 @@ public final class ResearchTabletScreen extends Screen {
         CONTENT
     }
 
-    private enum ResearchTab {
-        GENERAL("gui.bioforge.research_journal.tab.general"),
-        MUTATIONS("gui.bioforge.research_journal.tab.mutations");
-
-        private final String translationKey;
-
-        ResearchTab(String translationKey) {
-            this.translationKey = translationKey;
-        }
-    }
 }

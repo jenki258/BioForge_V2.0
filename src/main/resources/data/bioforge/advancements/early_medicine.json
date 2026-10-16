@@ -1,0 +1,32 @@
+{
+  "parent": "bioforge:root",
+  "display": {
+    "icon": {
+      "item": "bioforge:herbal_mortar"
+    },
+    "title": {
+      "translate": "advancement.bioforge.early_medicine.title"
+    },
+    "description": {
+      "translate": "advancement.bioforge.early_medicine.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "mortar": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:herbal_mortar"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

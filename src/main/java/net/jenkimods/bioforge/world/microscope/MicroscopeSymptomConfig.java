@@ -43,7 +43,7 @@ public class MicroscopeSymptomConfig extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager manager, ProfilerFiller profiler) {
+    public void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager manager, ProfilerFiller profiler) {
         Map<Item, List<MicroscopeSymptomEntry>> entriesMap = new HashMap<>();
         Map<Item, List<CalibrationSlider>> calibMap = new HashMap<>();
 

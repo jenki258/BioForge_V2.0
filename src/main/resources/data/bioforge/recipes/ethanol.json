@@ -3,21 +3,23 @@
   "category": "misc",
   "ingredients": [
     {
-      "tag": "bioforge:ingredients/minecraft/water_bucket"
+      "item": "minecraft:water_bucket"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/glass_bottle"
+      "item": "minecraft:glass_bottle"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/glass_bottle"
+      "item": "minecraft:glass_bottle"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/sugar"
+      "item": "minecraft:sugar"
     },
     {
-      "tag": "bioforge:ingredients/minecraft/sugar"
+      "item": "minecraft:sugar"
     },
-    { "tag": "bioforge:ingredients/bioforge/wine_must" }
+    {
+      "item": "bioforge:wine_must"
+    }
   ],
   "result": {
     "item": "bioforge:ethanol",

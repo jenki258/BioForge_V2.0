@@ -1,0 +1,32 @@
+{
+  "order": 5,
+  "title": {
+    "translate": "research.bioforge.page.auscultation.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.auscultation.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.auscultation.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.auscultation.content.3"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.auscultation.content.4"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

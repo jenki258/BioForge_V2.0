@@ -1,0 +1,32 @@
+{
+  "order": 9,
+  "title": {
+    "translate": "research.bioforge.page.splicer_workflow.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_workflow.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_workflow.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_workflow.content.3"
+      },
+      "line_breaks": 2
+    }
+  ],
+  "recipes": [
+    {
+      "type": "crafting",
+      "id": "bioforge:gene_splicer"
+    }
+  ]
+}

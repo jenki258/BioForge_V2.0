@@ -1,0 +1,32 @@
+{
+  "parent": "bioforge:early_medicine",
+  "display": {
+    "icon": {
+      "item": "bioforge:field_vaccine_maker"
+    },
+    "title": {
+      "translate": "advancement.bioforge.field_vaccine_maker.title"
+    },
+    "description": {
+      "translate": "advancement.bioforge.field_vaccine_maker.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "maker": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:field_vaccine_maker"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

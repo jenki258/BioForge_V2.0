@@ -47,6 +47,9 @@ public final class NaturalInfectionManager extends SimpleJsonResourceReloadListe
 
     private NaturalInfectionManager() { super(new Gson(), "natural_infections"); }
 
+    public Map<ResourceLocation, NaturalStrainDefinition> strains() { return strains; }
+    public List<NaturalInfectionRule> rules() { return rules; }
+
     public synchronized void registerJava(NaturalStrainDefinition strain) {
         ensureOpen();
         if (javaStrains.putIfAbsent(strain.id(), strain) != null) {

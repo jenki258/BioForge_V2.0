@@ -93,6 +93,7 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         }
         be.maxProgress = BioForgeServerConfig
                 .incubatorProcessingTime(recipe.processingTime());
+        net.jenkimods.bioforge.audio.ActionAudio.work(be,"incubator");
         be.progress++;
         if (be.progress >= be.maxProgress) {
             be.progress = 0;
@@ -184,7 +185,9 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
             }
             int outputCount = Math.min(recipe.outputCount(), outputItem.getMaxStackSize());
             ItemStack output = new ItemStack(outputItem, outputCount);
-            if (recipe.operation() == IncubatorOperation.GENERATE_STRAIN) {
+            if (recipe.operation() == IncubatorOperation.CONVERT_SAMPLE) {
+                if (primary.hasTag()) output.setTag(primary.getTag().copy());
+            } else if (recipe.operation() == IncubatorOperation.GENERATE_STRAIN) {
                 StrainData strain = generateRandomStrain(generatedPathogen, random);
                 NbtObfuscator.writeString(output.getOrCreateTag(), strain.toPayload());
             } else if (sourceStrain != null) {
@@ -201,6 +204,7 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
         if (!produced) {
             return;
         }
+        net.jenkimods.bioforge.audio.ActionAudio.complete(this,"incubator");
 
         if (recipe.catalystChargeCost() > 0) {
             for (int charge = 0; charge < recipe.catalystChargeCost() && !primary.isEmpty(); charge++) {
@@ -233,13 +237,7 @@ public class IncubatorBlockEntity extends BlockEntity implements MenuProvider {
                     return legacy == null || BioForgeServerConfig.isTransmissionEnabled(legacy);
                 })
                 .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
-        if (!allowed.isEmpty()) {
-            for (int index = allowed.size() - 1; index > 0; index--) {
-                Collections.swap(allowed, index, random.nextInt(index + 1));
-            }
-            int count = 1 + random.nextInt(allowed.size());
-            for (int i = 0; i < count; i++) strain.getTransmissionIds().add(allowed.get(i));
-        }
+        strain.getTransmissionIds().addAll(allowed);
         if (pathogen == null && pathogenDefinition != null) {
             pathogenDefinition.defaultSymptoms().forEach((symptomId, configured) -> {
                 String storageId = BioForgeDefinitionManager.storageId(symptomId);

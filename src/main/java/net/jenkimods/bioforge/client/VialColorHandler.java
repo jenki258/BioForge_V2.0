@@ -45,13 +45,16 @@ public class VialColorHandler {
                 BioForge.VISIBILITY_REAGENT.get());
         event.register(VialColorHandler::getVaccineColor,
                 BioForge.VACCINE.get(),
+                BioForge.FIELD_VACCINE.get(),
+                BioForge.STABILIZED_FIELD_VACCINE.get(),
                 BioForge.MUTATION_VACCINE.get(),
                 BioForge.TRANSMISSION_VACCINE.get(),
                 BioForge.SYMPTOM_VACCINE.get(),
                 BioForge.RANDOM_MUTATION_VACCINE.get(),
                 BioForge.MUTATION_UPGRADE_VACCINE.get());
         event.register(VialColorHandler::getSymptomTabletColor,
-                BioForge.SYMPTOM_TABLET.get());
+                BioForge.SYMPTOM_TABLET.get(), BioForge.COUGH_TABLET.get(), BioForge.SNEEZE_TABLET.get(),
+                BioForge.FEVER_TABLET.get(), BioForge.NAUSEA_TABLET.get());
         event.register((stack, tintIndex) -> tintIndex == 1 ? 0x7A193D : 0xFFFFFF,
                 BioForge.WINE_MUST.get());
     }
@@ -98,7 +101,7 @@ public class VialColorHandler {
 
     private static int getSymptomTabletColor(ItemStack stack, int tintIndex) {
         if (tintIndex != 0) return 0xFFFFFF;
-        SymptomTabletProfile profile = SymptomTabletProfile.read(stack);
+        SymptomTabletProfile profile = net.jenkimods.bioforge.vaccine.SymptomTreatment.profile(stack);
         if (profile == null) return 0xD8D2C4;
         String symptom = profile.symptomId();
         if (symptom.contains("temperature_plus") || symptom.contains("fever")

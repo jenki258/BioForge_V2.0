@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:gems/amethyst"
+    "minecraft:amethyst_shard",
+    {
+      "id": "#forge:gems/amethyst",
+      "required": false
+    }
   ]
 }

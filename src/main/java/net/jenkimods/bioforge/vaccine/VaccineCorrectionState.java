@@ -162,23 +162,22 @@ public final class VaccineCorrectionState {
         String id = target.key().target();
         return switch (id) {
             case "temperature_plus" -> report.contains("TemperatureC")
-                    ? booleanState(report.getFloat("TemperatureC") >= 38.0F,
+                    ? booleanState(net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(report, "TemperatureC") >= 38.0F,
                     target.states()) : null;
             case "temperature_minus" -> report.contains("TemperatureC")
-                    ? booleanState(report.getFloat("TemperatureC") <= 35.5F,
+                    ? booleanState(net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(report, "TemperatureC") <= 35.501F,
                     target.states()) : null;
             case "heart_rate" -> report.contains("HeartRate")
-                    ? quantizeOrdinal(HeartRate.fromName(
-                    report.getString("HeartRate")).ordinal(),
+                    ? quantizeOrdinal(net.jenkimods.bioforge.physiology.PhysiologyReadings.clinicalHeart(report).ordinal(),
                     HeartRate.values().length, target.states()) : null;
             case "lung_sound" -> report.contains("LungSound")
                     ? quantizeOrdinal(LungSound.fromName(
                     report.getString("LungSound")).ordinal(),
                     LungSound.values().length, target.states()) : null;
             case "oxygen_saturation" -> report.contains("OxygenSaturation")
-                    ? valueState(report.getFloat("OxygenSaturation"), target) : null;
+                    ? valueState(net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(report, "OxygenSaturation"), target) : null;
             case "perfusion_index" -> report.contains("PerfusionIndex")
-                    ? valueState(report.getFloat("PerfusionIndex"), target) : null;
+                    ? valueState(net.jenkimods.bioforge.physiology.PhysiologyReadings.clinical(report, "PerfusionIndex"), target) : null;
             case "otoscope_redness" -> report.contains("Redness")
                     ? valueState(report.getFloat("Redness"), target) : null;
             case "otoscope_lesions" -> report.contains("Lesions")

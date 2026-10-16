@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PFP",
+    "CBS",
+    "PFP"
+  ],
+  "key": {
+    "P": {
+      "tag": "bioforge:ingredients/bioforge/black_steel_plate"
+    },
+    "F": {
+      "tag": "bioforge:ingredients/bioforge/sterile_filter"
+    },
+    "C": {
+      "tag": "bioforge:ingredients/bioforge/electronic_control_unit"
+    },
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "S": {
+      "tag": "bioforge:ingredients/bioforge/airtight_seal"
+    }
+  },
+  "result": {
+    "item": "bioforge:medical_diffuser"
+  }
+}

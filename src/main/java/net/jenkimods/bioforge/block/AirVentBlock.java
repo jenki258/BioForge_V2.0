@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+@net.minecraftforge.fml.common.Mod.EventBusSubscriber(modid = net.jenkimods.bioforge.BioForge.MODID)
 public final class AirVentBlock extends Block {
     public static final int CLEAN_RADIUS = 10;
     private static final Map<ServerLevel, Set<Long>> ACTIVE_VENTS = new WeakHashMap<>();
@@ -51,9 +52,33 @@ public final class AirVentBlock extends Block {
             return;
         }
         register(level, pos);
+        if (level.getGameTime()%60<20) net.jenkimods.bioforge.audio.ActionAudio.play(level,pos,"machine.air_filter.work",net.minecraft.sounds.SoundSource.BLOCKS,.25F);
         SurfaceContaminationData.get(level).cleanTransmission(pos, CLEAN_RADIUS,
                 InfectionType.AIR_BORNE, level.getGameTime());
         level.scheduleTick(pos, this, 20);
+    }
+
+    @net.minecraftforge.eventbus.api.SubscribeEvent
+    public static void onChunkLoad(net.minecraftforge.event.level.ChunkEvent.Load event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
+        var chunk = event.getChunk();
+        level.getServer().execute(() -> {
+            if (!level.hasChunk(chunk.getPos().x, chunk.getPos().z)) return;
+            for (int sectionIndex = 0; sectionIndex < chunk.getSections().length; sectionIndex++) {
+                var section = chunk.getSections()[sectionIndex];
+                if (section.hasOnlyAir() || !section.getStates().maybeHas(
+                        state -> state.getBlock() instanceof AirVentBlock)) continue;
+                int yBase = chunk.getSectionYFromSectionIndex(sectionIndex) << 4;
+                for (int x = 0; x < 16; x++) for (int y = 0; y < 16; y++) for (int z = 0; z < 16; z++) {
+                    if (section.getBlockState(x, y, z).getBlock() instanceof AirVentBlock vent) {
+                        BlockPos pos = new BlockPos(chunk.getPos().getMinBlockX() + x,
+                                yBase + y, chunk.getPos().getMinBlockZ() + z);
+                        register(level, pos);
+                        level.scheduleTick(pos, vent, 1);
+                    }
+                }
+            }
+        });
     }
 
     public static boolean isProtected(ServerLevel level, BlockPos pos) {

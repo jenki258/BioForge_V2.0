@@ -182,10 +182,6 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                 researchButton.setMessage(Component.translatable(
                         "gui.bioforge.vaccine_maker.write"));
                 researchButton.active = completeProgram && !sample.isEmpty();
-            } else if (GeneImprintItem.isBlank(reagent)) {
-                researchButton.setMessage(Component.translatable(
-                        "gui.bioforge.vaccine_maker.extract"));
-                researchButton.active = !sample.isEmpty();
             } else {
                 researchButton.setMessage(Component.translatable(
                         "gui.bioforge.vaccine_maker.write"));
@@ -254,7 +250,7 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
 
     private void sendMachineButton(int buttonId) {
         if (minecraft != null && minecraft.gameMode != null) {
-            minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttonId);
+            VaccineMakerCorrectionNetwork.clickButton(menu.containerId, buttonId);
         }
     }
 
@@ -395,7 +391,6 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
         addPageTooltip(left + 183, top + 64, 54, font.lineHeight + 4,
                 Component.translatable("gui.bioforge.vaccine_maker.slot.report"));
 
-        renderGeneCategorySelector(graphics, left, top, mouseX, mouseY);
 
         drawInfoBadge(graphics, left + 226, top + 18, mouseX, mouseY,
                 Component.translatable("gui.bioforge.vaccine_maker.crispr.hint"));
@@ -409,28 +404,6 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                             "gui.bioforge.vaccine_maker.crispr.base_tooltip",
                             guide, fragment, hoveredBase.base() + 1,
                             String.valueOf(hoveredBase.value())));
-        }
-    }
-
-    private void renderGeneCategorySelector(GuiGraphics graphics, int left, int top,
-                                            int mouseX, int mouseY) {
-        int selected = menu.getSelectedGeneCategory();
-        for (int index = 0; index < VaccineMakerBlockEntity.GENE_CATEGORY_BUTTON_COUNT; index++) {
-            int x = left + 138 + index * 24;
-            int y = top + 76;
-            boolean hovered = mouseX >= x && mouseX < x + 22
-                    && mouseY >= y && mouseY < y + 10;
-            graphics.fill(x, y, x + 22, y + 10,
-                    index == selected ? 0xFF67F5D0 : hovered ? 0xFF75BFCB : 0xFF31505A);
-            graphics.fill(x + 1, y + 1, x + 21, y + 9,
-                    index == selected ? 0xFF123C43 : 0xFF071E27);
-            Component label = Component.translatable(
-                    "gui.bioforge.vaccine_maker.gene_filter.short." + index);
-            graphics.drawString(font, label,
-                    x + (22 - font.width(label)) / 2, y + 1,
-                    index == selected ? 0xFFFFFFFF : 0xFF78C7D3, false);
-            addPageTooltip(x, y, 22, 10, Component.translatable(
-                    "gui.bioforge.vaccine_maker.gene_filter." + index));
         }
     }
 
@@ -1109,9 +1082,7 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                 return Component.translatable(
                         "gui.bioforge.vaccine_maker.status.write");
             }
-            return GeneImprintItem.isBlank(reagent)
-                    ? Component.translatable("gui.bioforge.vaccine_maker.status.extract")
-                    : Component.translatable("gui.bioforge.vaccine_maker.status.crispr");
+            return Component.translatable("gui.bioforge.vaccine_maker.status.crispr");
         }
         if (VaccineMakerPageRegistry.JOURNAL.equals(page)) {
             return VaccineResearchNotes.canRecord(report)
@@ -1142,9 +1113,7 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
                 return Component.translatable(
                         "gui.bioforge.vaccine_maker.status.short.write");
             }
-            return Component.translatable(GeneImprintItem.isBlank(reagent)
-                    ? "gui.bioforge.vaccine_maker.status.short.extract"
-                    : "gui.bioforge.vaccine_maker.status.short.crispr");
+            return Component.translatable("gui.bioforge.vaccine_maker.status.short.crispr");
         }
         if (VaccineMakerPageRegistry.JOURNAL.equals(page)) {
             return Component.translatable(VaccineResearchNotes.canRecord(report)
@@ -1164,14 +1133,6 @@ public class VaccineMakerScreen extends AbstractContainerScreen<VaccineMakerMenu
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && VaccineMakerPageRegistry.CRISPR.equals(menu.getActivePageId())
-                && mouseY >= topPos + 76 && mouseY < topPos + 86
-                && mouseX >= leftPos + 138 && mouseX < leftPos + 234) {
-            int index = Math.min(VaccineMakerBlockEntity.GENE_CATEGORY_BUTTON_COUNT - 1,
-                    Math.max(0, ((int) mouseX - leftPos - 138) / 24));
-            sendMachineButton(VaccineMakerBlockEntity.GENE_CATEGORY_BUTTON_BASE + index);
-            return true;
-        }
         if (VaccineMakerPageRegistry.CORRECTION.equals(
                 menu.getActivePageId())
                 && handleCorrectionClick(mouseX, mouseY)) {

@@ -47,6 +47,7 @@ public class ClipboardHelper {
         setSubjectName(clipboardStack, subject.getDisplayName().getString());
         setSubjectUUID(clipboardStack, subject.getUUID());
         MedicalReportStrainBinding.capture(clipboardStack, subject);
+        net.jenkimods.bioforge.audio.ActionAudio.tool(player,"ui.clipboard.write");
 
         startSession(player, clipboardStack);
     }
@@ -250,12 +251,21 @@ public class ClipboardHelper {
         return count;
     }
 
+    private static LivingEntity subjectEntity(Player observer, UUID uuid) {
+        if (observer.level() instanceof net.minecraft.server.level.ServerLevel level
+                && level.getEntity(uuid) instanceof LivingEntity subject) return subject;
+        return null;
+    }
+
     public static void recordTemperature(float celsius, boolean unstable, Player player, UUID subjectUUID) {
         ItemStack clipboard = findAppropriateClipboard(player, subjectUUID);
         if (clipboard.isEmpty()) return;
 
         CompoundTag tag = clipboard.getOrCreateTag();
         tag.putFloat("TemperatureC", celsius);
+        LivingEntity subject = subjectEntity(player, subjectUUID);
+        if (subject != null) net.jenkimods.bioforge.physiology.PhysiologyReadings.record(tag, "TemperatureC",
+                (float) (celsius - net.jenkimods.bioforge.physiology.PhysiologyReadings.profile(subject).temperatureC() + 36.6D));
         tag.putBoolean("TempUnstable", unstable);
     }
 
@@ -265,6 +275,13 @@ public class ClipboardHelper {
 
         CompoundTag tag = clipboard.getOrCreateTag();
         tag.putString("HeartRate", rate);
+        LivingEntity subject = subjectEntity(player, subjectUUID);
+        if (subject != null) {
+            var data = net.jenkimods.bioforge.infection.InfectionCapability.get(subject);
+            net.jenkimods.bioforge.physiology.PhysiologyReadings.recordHeart(tag, data == null
+                    ? net.jenkimods.bioforge.infection.HeartRate.NORMAL
+                    : data.getSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.HEART_RATE));
+        }
         tag.putBoolean("HeartUnstable", unstable);
     }
 
@@ -284,6 +301,14 @@ public class ClipboardHelper {
         CompoundTag tag = clipboard.getOrCreateTag();
         tag.putFloat("OxygenSaturation", o2);
         tag.putFloat("PerfusionIndex", perf);
+        LivingEntity subject = subjectEntity(player, subjectUUID);
+        if (subject != null) {
+            var data = net.jenkimods.bioforge.infection.InfectionCapability.get(subject);
+            net.jenkimods.bioforge.physiology.PhysiologyReadings.record(tag, "OxygenSaturation", data == null ? .95F
+                    : data.getSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.OXYGEN_SATURATION));
+            net.jenkimods.bioforge.physiology.PhysiologyReadings.record(tag, "PerfusionIndex", data == null ? .7F
+                    : data.getSymptom(net.jenkimods.bioforge.infection.symptoms.BioForgeSymptoms.PERFUSION_INDEX));
+        }
         tag.putBoolean("O2Unstable", unstable);
     }
 

@@ -1,0 +1,16 @@
+{
+  "id": "rabid_aggression",
+  "name": "Rabid Aggression",
+  "description": "After incubation, biological mob hosts attack healthy and infected creatures alike. Curing the infection restores normal behavior.",
+  "pathogens": [
+    "VIRUS"
+  ],
+  "rarity": "rare",
+  "weight": 0,
+  "tags": [
+    "rabies",
+    "neural",
+    "behavior"
+  ],
+  "effects": []
+}

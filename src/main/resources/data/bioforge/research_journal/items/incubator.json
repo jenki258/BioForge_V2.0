@@ -49,6 +49,13 @@
     },
     {
       "component": {
+        "color": "white",
+        "translate": "research.bioforge.incubator.conversion"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
         "color": "gray",
         "translate": "research.bioforge.item_guide.recipe_hint"
       },

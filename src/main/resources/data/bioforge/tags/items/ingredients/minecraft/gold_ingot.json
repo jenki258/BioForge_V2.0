@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:ingots/gold"
+    "minecraft:gold_ingot",
+    {
+      "id": "#forge:ingots/gold",
+      "required": false
+    }
   ]
 }

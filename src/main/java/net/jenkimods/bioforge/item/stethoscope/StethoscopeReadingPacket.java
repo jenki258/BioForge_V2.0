@@ -17,13 +17,16 @@ public class StethoscopeReadingPacket {
     private final LungSound lungSound;
     private final String targetName;
     private final boolean mainHand;
+    private final AuscultationSite site;
+    private final int targetId;
 
     public StethoscopeReadingPacket(HeartRate heartRate, LungSound lungSound,
-                                    String targetName, boolean mainHand) {
+                                    String targetName, boolean mainHand, AuscultationSite site, int targetId) {
         this.heartRate = heartRate;
         this.lungSound = lungSound;
         this.targetName = targetName;
         this.mainHand = mainHand;
+        this.site=site;this.targetId=targetId;
     }
 
     public static void encode(StethoscopeReadingPacket msg, FriendlyByteBuf buf) {
@@ -31,6 +34,7 @@ public class StethoscopeReadingPacket {
         buf.writeUtf(msg.lungSound.name());
         buf.writeUtf(msg.targetName);
         buf.writeBoolean(msg.mainHand);
+        buf.writeEnum(msg.site);buf.writeInt(msg.targetId);
     }
 
     public static StethoscopeReadingPacket decode(FriendlyByteBuf buf) {
@@ -38,7 +42,7 @@ public class StethoscopeReadingPacket {
         LungSound lungSound = LungSound.fromName(buf.readUtf());
         String targetName = buf.readUtf();
         boolean mainHand = buf.readBoolean();
-        return new StethoscopeReadingPacket(heartRate, lungSound, targetName, mainHand);
+        return new StethoscopeReadingPacket(heartRate, lungSound, targetName, mainHand, buf.readEnum(AuscultationSite.class),buf.readInt());
     }
 
     public static void handle(StethoscopeReadingPacket msg, Supplier<NetworkEvent.Context> ctx) {
@@ -56,12 +60,15 @@ public class StethoscopeReadingPacket {
 
         public static void handle(StethoscopeReadingPacket msg) {
             Player player = Minecraft.getInstance().player;
-            if (player == null) return;
+            if (player == null || !player.isUsingItem() || !(player.getUseItem().getItem() instanceof StethoscopeItem)
+                    || player.getUsedItemHand()!=(msg.mainHand?net.minecraft.world.InteractionHand.MAIN_HAND:net.minecraft.world.InteractionHand.OFF_HAND)
+                    || !StethoscopeClientHandler.isListening()
+                    || msg.targetId!=StethoscopeClientHandler.getCurrentTargetId()) return;
 
             StethoscopeClientHandler.applyReading(
                     msg.heartRate,
                     msg.lungSound,
-                    msg.targetName
+                    msg.targetName,msg.site
             );
         }
     }

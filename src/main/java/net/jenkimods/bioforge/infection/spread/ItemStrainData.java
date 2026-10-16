@@ -3,6 +3,11 @@ package net.jenkimods.bioforge.infection.spread;
 import net.jenkimods.bioforge.infection.StrainData;
 import net.jenkimods.bioforge.util.NbtObfuscator;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PotionItem;
+import net.minecraft.world.item.UseAnim;
+import net.jenkimods.bioforge.infection.InfectionType;
+import net.jenkimods.bioforge.api.definition.BioForgeIds;
+import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 
 public final class ItemStrainData {
@@ -15,16 +20,26 @@ public final class ItemStrainData {
         if (stack == null || stack.isEmpty() || !stack.hasTag()) return null;
         var tag = stack.getOrCreateTag();
         StrainData named = parse(NbtObfuscator.readString(tag, CONTAMINATION_CHANNEL));
-        if (named != null) return named;
+        if (named != null) return forItem(stack, named);
         StrainData infection = parse(NbtObfuscator.readInfection(tag));
-        if (infection != null) return infection;
-        return parse(NbtObfuscator.readString(tag));
+        if (infection != null) return forItem(stack, infection);
+        return forItem(stack, parse(NbtObfuscator.readString(tag)));
     }
 
     public static void write(ItemStack stack, StrainData strain) {
         if (stack == null || stack.isEmpty() || strain == null || strain.getPathogenId() == null) return;
         NbtObfuscator.writeStringDeterministic(stack.getOrCreateTag(),
-                CONTAMINATION_CHANNEL, strain.toPayload());
+                CONTAMINATION_CHANNEL, forItem(stack, strain).toPayload());
+    }
+
+    @Nullable
+    private static StrainData forItem(ItemStack stack, @Nullable StrainData strain) {
+        if (strain == null) return null;
+        if (stack.getItem() instanceof PotionItem || stack.getUseAnimation() == UseAnim.DRINK)
+            return strain.withTransmissions(Set.of(BioForgeIds.transmission(InfectionType.WATER_BORNE)));
+        if (stack.isEdible())
+            return strain.withTransmissions(Set.of(BioForgeIds.transmission(InfectionType.FOOD_BORNE)));
+        return strain;
     }
 
     public static boolean clear(ItemStack stack) {

@@ -25,7 +25,7 @@ public final class StrainCommand {
     private StrainCommand() {}
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("bioforge")
+        dispatcher.register(Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                 .then(Commands.literal("strain")
                         .then(Commands.literal("current")
                                 .executes(StrainCommand::current))

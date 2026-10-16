@@ -107,40 +107,13 @@ public class InfestedBlock extends BaseEntityBlock {
 
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
-        if (level.isClientSide() || !(entity instanceof LivingEntity living)) return;
-        BlockEntity be = level.getBlockEntity(pos);
-        if (!(be instanceof InfestedBlockEntity mat)) return;
-
-        if (mat.pathogen == null || mat.pathogen != PathogenType.FUNGI) return;
-
-        InfectionData data = InfectionCapability.get(living);
-        if (data == null) return;
-
-        String strainRaw = mat.getStrainData();
-        if (strainRaw == null || strainRaw.equals("CLEAN")) return;
-
-        StrainData strain = StrainData.parse(strainRaw);
-        float newStrength = mat.infectionStrength;
-
-        if (!data.isInfected()) {
-            strain.applyToEntity(data, living);
-        } else {
-            float oldStrength = data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH);
-            float r1 = 0.8f + level.random.nextFloat() * 0.4f;
-            float r2 = 0.8f + level.random.nextFloat() * 0.4f;
-            float ns = newStrength * r1;
-            float os = oldStrength * r2;
-
-            if (ns > os * 1.5f) {
-                strain.applyToEntity(data, living);
-            } else if (ns > os * 1.0f) {
-                float avgStr = (oldStrength + newStrength) / 2f;
-                data.setSymptom(BioForgeSymptoms.INFECTION_STRENGTH, avgStr);
-            } else if (ns > os * 0.7f) {
-                data.setSymptom(BioForgeSymptoms.INFECTION_STRENGTH,
-                        Math.min(1.0f, oldStrength + 0.05f));
-            }
-        }
+        if (!(level instanceof ServerLevel server) || !(entity instanceof LivingEntity living)) return;
+        if (!(level.getBlockEntity(pos) instanceof InfestedBlockEntity mat)
+                || mat.pathogen != PathogenType.FUNGI) return;
+        String payload = mat.getStrainData();
+        if (payload == null || payload.isBlank() || payload.equals("CLEAN")) return;
+        net.jenkimods.bioforge.infection.spread.TransmissionEngine.exposeFromInfestedBlock(
+                server, living, pos, StrainData.parse(payload), mat.infectionStrength);
     }
 
     @Override

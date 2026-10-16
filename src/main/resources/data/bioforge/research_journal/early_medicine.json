@@ -1,0 +1,58 @@
+{
+  "order": 5,
+  "unlock_items": [
+    "bioforge:herbal_mortar",
+    "bioforge:swab",
+    "bioforge:field_vaccine_maker",
+    "bioforge:medical_diffuser"
+  ],
+  "recipes": [
+    {
+      "type": "crafting",
+      "id": "bioforge:herbal_mortar"
+    },
+    {
+      "type": "crafting",
+      "id": "bioforge:field_vaccine_maker"
+    },
+    {
+      "type": "crafting",
+      "id": "bioforge:medical_diffuser"
+    },
+    {
+      "type": "crafting",
+      "id": "bioforge:swab"
+    },
+    {
+      "type": "crafting",
+      "id": "bioforge:field_vaccine"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:cough_tablet"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:sneeze_tablet"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:fever_tablet"
+    },
+    {
+      "type": "laboratory",
+      "id": "bioforge:nausea_tablet"
+    }
+  ],
+  "title": {
+    "translate": "research.bioforge.field.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.field.instructions"
+      },
+      "line_breaks": 2
+    }
+  ]
+}

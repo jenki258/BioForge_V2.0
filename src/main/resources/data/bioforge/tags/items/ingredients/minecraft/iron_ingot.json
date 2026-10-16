@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:ingots/iron"
+    "minecraft:iron_ingot",
+    {
+      "id": "#forge:ingots/iron",
+      "required": false
+    }
   ]
 }

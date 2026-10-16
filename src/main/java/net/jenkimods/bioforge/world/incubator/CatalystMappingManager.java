@@ -65,7 +65,7 @@ public class CatalystMappingManager extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager manager, ProfilerFiller profiler) {
+    public void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager manager, ProfilerFiller profiler) {
         Map<Item, PathogenType> map = new HashMap<>();
         Map<Item, ResourceLocation> idMap = new HashMap<>();
         double[] universalChance = { DEFAULT_UNIVERSAL_CHANCE };

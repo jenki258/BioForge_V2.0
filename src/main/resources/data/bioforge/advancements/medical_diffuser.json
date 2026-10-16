@@ -1,0 +1,32 @@
+{
+  "parent": "bioforge:field_vaccine_maker",
+  "display": {
+    "icon": {
+      "item": "bioforge:medical_diffuser"
+    },
+    "title": {
+      "translate": "advancement.bioforge.medical_diffuser.title"
+    },
+    "description": {
+      "translate": "advancement.bioforge.medical_diffuser.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "diffuser": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "bioforge:medical_diffuser"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

@@ -80,7 +80,7 @@ public class PetriDishBlock extends BaseEntityBlock {
         ItemStack stack = ctx.getItemInHand();
         int growth = 0;
         if (stack.hasTag() && stack.getTag().contains("Growth")) {
-            growth = stack.getTag().getInt("Growth");
+            growth = net.minecraft.util.Mth.clamp(stack.getTag().getInt("Growth"), 0, 4);
         }
         BlockPos pos = ctx.getClickedPos();
         return canSurvive(defaultBlockState(), ctx.getLevel(), pos)
@@ -119,7 +119,7 @@ public class PetriDishBlock extends BaseEntityBlock {
             String data = NbtObfuscator.readString(stack.getOrCreateTag());
             if (data != null) {
                 dish.setStrainData(data);
-                int growth = stack.getOrCreateTag().getInt("Growth");
+                int growth = net.minecraft.util.Mth.clamp(stack.getOrCreateTag().getInt("Growth"), 0, 4);
                 dish.growthStage = growth;
                 level.setBlock(pos, state.setValue(GROWTH, growth), 3);
             }
@@ -144,17 +144,24 @@ public class PetriDishBlock extends BaseEntityBlock {
                 dish.setStrainData(data);
                 level.setBlock(pos, state.setValue(GROWTH, 0), 3);
 
-                level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 0.8f, 1.2f);
+                level.playSound(null, pos, net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.petri.inoculate").get(), SoundSource.BLOCKS, 0.8f, 1.2f);
                 player.sendSystemMessage(Component.translatable("item.bioforge.petri_dish.inoculated"));
                 return InteractionResult.CONSUME;
             }
             return InteractionResult.PASS;
         }
 
+        if (held.is(BioForge.NUTRIENT_MEDIUM.get()) && dish.feed()) {
+            if (!player.getAbilities().instabuild) held.shrink(1);
+            level.playSound(null, pos, net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.petri.feed").get(), SoundSource.BLOCKS, 0.8F, 1.1F);
+            player.sendSystemMessage(Component.translatable("item.bioforge.petri_dish.fed"));
+            return InteractionResult.CONSUME;
+        }
+
         if (dish.growthStage >= 3) {
             if (held.getItem() instanceof SwabItem && !SwabItem.isContaminated(held)) {
                 if (dish.harvest(held, player)) {
-                    level.playSound(null, pos, SoundEvents.BOTTLE_EMPTY, SoundSource.BLOCKS, 0.8f, 1.2f);
+                    level.playSound(null, pos, net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.petri.collect").get(), SoundSource.BLOCKS, 0.8f, 1.2f);
                     return InteractionResult.CONSUME;
                 }
             }

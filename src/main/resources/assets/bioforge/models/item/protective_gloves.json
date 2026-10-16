@@ -1,1 +1,6 @@
-{"parent":"minecraft:item/generated","textures":{"layer0":"bioforge:item/protective_gloves"}}
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "bioforge:item/protective_gloves"
+  }
+}

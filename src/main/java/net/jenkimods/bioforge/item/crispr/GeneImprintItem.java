@@ -93,12 +93,20 @@ public class GeneImprintItem extends Item {
         }
         List<Candidate> candidates = preferredCategory == null
                 ? allCandidates(strain)
-                : candidates(strain, preferredCategory).stream()
+                : availableGenes(strain, preferredCategory).stream()
                 .map(target -> new Candidate(preferredCategory, target)).toList();
         if (candidates.isEmpty()) return false;
         Candidate selected = candidates.get(random.nextInt(candidates.size()));
         write(stack, new Data(strain.toPayload(), selected.category(), selected.target(), false,
                 fingerprint(strain.toPayload(), selected.category(), selected.target())));
+        return true;
+    }
+
+    public static boolean captureIdentified(ItemStack stack, StrainData strain,
+                                            VaccineTargetCategory category, String target) {
+        if (!isBlank(stack) || !availableGenes(strain, category).contains(target)) return false;
+        write(stack, new Data(strain.toPayload(), category, target, true,
+                fingerprint(strain.toPayload(), category, target)));
         return true;
     }
 
@@ -171,7 +179,7 @@ public class GeneImprintItem extends Item {
     private static List<Candidate> allCandidates(StrainData strain) {
         List<Candidate> values = new ArrayList<>();
         for (VaccineTargetCategory category : VaccineTargetCategory.values()) {
-            for (String target : candidates(strain, category)) {
+            for (String target : availableGenes(strain, category)) {
                 values.add(new Candidate(category, target));
             }
         }
@@ -181,21 +189,30 @@ public class GeneImprintItem extends Item {
         return values;
     }
 
-    private static List<String> candidates(StrainData strain, VaccineTargetCategory category) {
+    public static List<String> availableGenes(StrainData strain, VaccineTargetCategory category) {
+        if (strain == null || category == null) return List.of();
         List<String> values = new ArrayList<>();
         switch (category) {
-            case MUTATION -> values.addAll(strain.getMutationIds());
-            case TRANSMISSION -> strain.getTransmissionIds()
-                    .forEach(type -> values.add(BioForgeIds.legacyCompatible(type)));
-            case SYMPTOM -> strain.getSymptoms().forEach((id, value) -> {
-                var key = BioForgeSymptoms.getAllSymptomKeys().get(id);
-                if (key == null || !value.equals(serialize(key.getDefaultValue()))) {
-                    values.add(id);
-                }
-            });
+            case MUTATION -> strain.getMutationIds().stream()
+                    .filter(net.jenkimods.bioforge.config.BioForgeServerConfig::isMutationEnabled)
+                    .forEach(values::add);
+            case TRANSMISSION -> strain.getTransmissionIds().stream()
+                    .map(net.jenkimods.bioforge.definition.BioForgeDefinitionManager.TRANSMISSIONS::canonicalId)
+                    .filter(id -> net.jenkimods.bioforge.definition.BioForgeDefinitionManager.TRANSMISSIONS.get(id).isPresent())
+                    .filter(id -> {
+                        var legacy = BioForgeIds.legacyTransmission(id);
+                        return legacy == null || net.jenkimods.bioforge.config.BioForgeServerConfig.isTransmissionEnabled(legacy);
+                    })
+                    .map(BioForgeIds::legacyCompatible).forEach(values::add);
+            case SYMPTOM -> {
+                var keys = BioForgeSymptoms.getAllSymptomKeys();
+                strain.getSymptoms().forEach((id, value) -> {
+                    if (value != null && keys.containsKey(id)
+                            && net.jenkimods.bioforge.config.BioForgeServerConfig.isSymptomEnabled(id)) values.add(id);
+                });
+            }
         }
-        values.sort(Comparator.naturalOrder());
-        return values;
+        return values.stream().distinct().sorted().toList();
     }
 
     private static String fingerprint(String payload, VaccineTargetCategory category,

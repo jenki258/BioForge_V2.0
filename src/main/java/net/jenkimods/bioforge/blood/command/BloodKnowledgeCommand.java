@@ -35,7 +35,7 @@ public class BloodKnowledgeCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-                Commands.literal("bioforge")
+                Commands.literal("bioforge").requires(source -> source.hasPermission(2))
                         .then(Commands.literal("bloodknowledge_list")
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(ctx -> executeList(ctx, EntityArgument.getPlayer(ctx, "player")))))

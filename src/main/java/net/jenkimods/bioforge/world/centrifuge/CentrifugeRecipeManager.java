@@ -37,7 +37,7 @@ public class CentrifugeRecipeManager extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager resourceManager, ProfilerFiller profiler) {
+    public void apply(Map<ResourceLocation, JsonElement> elements, ResourceManager resourceManager, ProfilerFiller profiler) {
         recipes.clear();
         var loadedIds = new LinkedHashSet<ResourceLocation>();
         for (var entry : elements.entrySet()) {

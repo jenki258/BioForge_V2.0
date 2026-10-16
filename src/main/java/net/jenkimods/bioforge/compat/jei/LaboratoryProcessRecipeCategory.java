@@ -33,6 +33,8 @@ public final class LaboratoryProcessRecipeCategory
                     LaboratoryProcessRecipe.class);
 
     private final LaboratoryStation station;
+    public static final RecipeType<LaboratoryProcessRecipe> MORTAR_TYPE =
+            RecipeType.create(BioForge.MODID, "herbal_mortar", LaboratoryProcessRecipe.class);
     private final IDrawable background;
     private final IDrawable icon;
 
@@ -41,7 +43,8 @@ public final class LaboratoryProcessRecipeCategory
                                            ItemStack icon) {
         this.station = station;
         ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(BioForge.MODID,
-                "textures/gui/laboratory/" + station.getSerializedName() + ".png");
+                "textures/gui/laboratory/" + (station == LaboratoryStation.HERBAL_MORTAR
+                        ? "chemical_synthesizer" : station.getSerializedName()) + ".png");
         this.background = guiHelper.createDrawable(texture, 0, 0, 176, 72);
         this.icon = guiHelper.createDrawableItemStack(icon);
     }
@@ -79,7 +82,7 @@ public final class LaboratoryProcessRecipeCategory
                 builder.addSlot(RecipeIngredientRole.OUTPUT, 125, 35)
                         .addItemStack(recipe.result());
             }
-            case CHEMICAL_SYNTHESIZER -> {
+            case CHEMICAL_SYNTHESIZER, HERBAL_MORTAR -> {
                 for (int index = 0; index < recipe.ingredients().size(); index++) {
                     builder.addSlot(RecipeIngredientRole.INPUT, 35 + index * 18, 35)
                             .addIngredients(recipe.ingredients().get(index));
@@ -129,6 +132,7 @@ public final class LaboratoryProcessRecipeCategory
             case CHEMICAL_SYNTHESIZER -> CHEMICAL_TYPE;
             case PHARMA_MIXER -> PHARMA_TYPE;
             case STERILIZATION_CHAMBER -> STERILIZATION_TYPE;
+            case HERBAL_MORTAR -> MORTAR_TYPE;
         };
     }
 }

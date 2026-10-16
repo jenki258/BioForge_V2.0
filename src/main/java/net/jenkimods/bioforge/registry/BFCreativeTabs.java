@@ -80,6 +80,8 @@ public class BFCreativeTabs {
                         output.accept(BioForge.SYRINGE.get());
                         output.accept(BioForge.BLOOD_SLIDE.get());
                         output.accept(BioForge.TUBE.get());
+                        output.accept(BioForge.MUSIC_DISC_IRON_CULTURE.get());
+                        output.accept(BioForge.MUSIC_DISC_TWELVE_HOURS.get());
                     })
                     .build());
 
@@ -94,6 +96,11 @@ public class BFCreativeTabs {
                         output.accept(BioForge.PATHOGEN_REAGENT.get());
                         output.accept(BioForge.VISIBILITY_REAGENT.get());
                         output.accept(BioForge.VACCINE.get());
+                        output.accept(BioForge.FIELD_VACCINE.get());
+                        output.accept(BioForge.COUGH_TABLET.get());
+                        output.accept(BioForge.SNEEZE_TABLET.get());
+                        output.accept(BioForge.FEVER_TABLET.get());
+                        output.accept(BioForge.NAUSEA_TABLET.get());
                         output.accept(BioForge.MUTATION_VACCINE.get());
                         output.accept(BioForge.TRANSMISSION_VACCINE.get());
                         output.accept(BioForge.SYMPTOM_VACCINE.get());
@@ -136,6 +143,10 @@ public class BFCreativeTabs {
                         output.accept(BioForge.MICROSCOPE_ITEM.get());
                         output.accept(BioForge.INCUBATOR_ITEM.get());
                         output.accept(BioForge.VACCINE_MAKER_ITEM.get());
+                        output.accept(BioForge.GENE_SPLICER_ITEM.get());
+                        output.accept(BioForge.HERBAL_MORTAR_ITEM.get());
+                        output.accept(BioForge.FIELD_VACCINE_MAKER_ITEM.get());
+                        output.accept(BioForge.MEDICAL_DIFFUSER_ITEM.get());
                         output.accept(BioForge.VIRAL_SCANNER_ITEM.get());
                         output.accept(BioForge.CEILING_VIRAL_SCANNER_ITEM.get());
                         output.accept(BioForge.OPEN_LEFT_VIRAL_SCANNER_ITEM.get());

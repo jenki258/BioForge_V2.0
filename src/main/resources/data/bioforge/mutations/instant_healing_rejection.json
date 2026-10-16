@@ -1,0 +1,15 @@
+{
+  "id": "instant_healing_rejection",
+  "name": "Instant Healing Rejection",
+  "description": "Instant healing potions cannot restore health. Natural healing and damaging effects are unaffected.",
+  "pathogens": [
+    "UNIVERSAL"
+  ],
+  "rarity": "uncommon",
+  "weight": 12,
+  "tags": [
+    "drawback",
+    "treatment_rejection"
+  ],
+  "effects": []
+}

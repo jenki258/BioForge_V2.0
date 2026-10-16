@@ -3,18 +3,14 @@
   "category": "misc",
   "pattern": [
     " W ",
-    " S ",
-    " C "
+    " S "
   ],
   "key": {
     "W": {
-      "tag": "bioforge:ingredients/minecraft/white_wool"
+      "tag": "minecraft:wool"
     },
     "S": {
       "tag": "bioforge:ingredients/minecraft/stick"
-    },
-    "C": {
-      "tag": "bioforge:ingredients/bioforge/sterilizing_solution"
     }
   },
   "result": {

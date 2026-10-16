@@ -37,16 +37,12 @@ public class LiveCultureVialItem extends Item {
     }
 
     public static boolean hasStrain(ItemStack stack) {
-        return NbtObfuscator.readString(stack.getOrCreateTag()) != null;
+        return getStrain(stack) != null;
     }
 
     @Nullable
     public static StrainData getStrain(ItemStack stack) {
-        String raw = NbtObfuscator.readString(stack.getOrCreateTag());
-        if (raw != null && !raw.isEmpty()) {
-            return StrainData.parse(raw);
-        }
-        return null;
+        return StrainPayload.read(stack.getOrCreateTag());
     }
 
     @Override
@@ -108,6 +104,7 @@ public class LiveCultureVialItem extends Item {
     }
 
     private InteractionResultHolder<ItemStack> transferToSyringe(Player player, ItemStack vial, ItemStack syringe, InteractionHand hand) {
+        if (player.level().isClientSide()) return InteractionResultHolder.success(vial);
         String existingRaw = NbtObfuscator.readInfection(syringe.getOrCreateTag());
         StrainData existingStrain = existingRaw != null && !existingRaw.isEmpty()
                 ? StrainData.parse(existingRaw) : null;
@@ -128,9 +125,10 @@ public class LiveCultureVialItem extends Item {
     }
 
     private InteractionResultHolder<ItemStack> infectItem(Player player, ItemStack vial, ItemStack target, InteractionHand hand) {
-        String strainRaw = NbtObfuscator.readString(vial.getOrCreateTag());
-        if (strainRaw == null || strainRaw.isEmpty()) return InteractionResultHolder.fail(vial);
-        NbtObfuscator.writeString(target.getOrCreateTag(), strainRaw);
+        StrainData strain = getStrain(vial);
+        if (strain == null) return InteractionResultHolder.fail(vial);
+        if (player.level().isClientSide()) return InteractionResultHolder.success(vial);
+        net.jenkimods.bioforge.infection.spread.ItemStrainData.write(target, strain);
         vial.shrink(1);
         ItemStack dirty = new ItemStack(BioForge.DIRTY_CULTURE_VIAL.get());
         if (!player.getInventory().add(dirty)) {

@@ -64,7 +64,7 @@ public class ResistancePillItem extends Item {
                                 Math.round(profile.resistance() * 100.0F))
                         .withStyle(ChatFormatting.GOLD), true);
                 level.playSound(null, player.blockPosition(),
-                        SoundEvents.GENERIC_EAT, SoundSource.PLAYERS,
+                        net.jenkimods.bioforge.audio.BioForgeActionSounds.EVENTS.get("instrument.resistance_pill.take").get(), SoundSource.PLAYERS,
                         0.7F, 1.2F);
                 player.getCooldowns().addCooldown(this, 20);
                 if (!player.getAbilities().instabuild) stack.shrink(1);

@@ -1,0 +1,429 @@
+{
+  "strains": [
+    {
+      "id": "bioforge:grazing_gut_parasite",
+      "pathogen": "bioforge:parasite",
+      "transmissions": [
+        "bioforge:food_borne",
+        "bioforge:water_borne"
+      ],
+      "symptoms": {
+        "infection_strength": "0.30",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "perfusion_index": "0.60",
+        "reflex_delay": "0.12"
+      },
+      "mutations": [
+        "nausea"
+      ],
+      "lifecycle_profile": "bioforge:animal_persistent"
+    },
+    {
+      "id": "bioforge:ruminant_skin_fungus",
+      "pathogen": "bioforge:fungi",
+      "transmissions": [
+        "bioforge:contact_based",
+        "bioforge:environmental"
+      ],
+      "symptoms": {
+        "infection_strength": "0.24",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "otoscope_lesions": "0.30",
+        "otoscope_redness": "0.20"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_persistent"
+    },
+    {
+      "id": "bioforge:herbivore_respiratory_virus",
+      "pathogen": "bioforge:virus",
+      "transmissions": [
+        "bioforge:air_borne"
+      ],
+      "symptoms": {
+        "infection_strength": "0.23",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "lung_sound": "CRACKLE",
+        "oxygen_saturation": "0.91",
+        "temperature_plus": "true"
+      },
+      "mutations": [
+        "coughing"
+      ],
+      "lifecycle_profile": "bioforge:animal_mild"
+    },
+    {
+      "id": "bioforge:rabbit_enteric_bacteria",
+      "pathogen": "bioforge:bacteria",
+      "transmissions": [
+        "bioforge:food_borne",
+        "bioforge:water_borne"
+      ],
+      "symptoms": {
+        "infection_strength": "0.28",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "temperature_plus": "true",
+        "perfusion_index": "0.62"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_mild"
+    },
+    {
+      "id": "bioforge:avian_enteric_bacteria",
+      "pathogen": "bioforge:bacteria",
+      "transmissions": [
+        "bioforge:food_borne",
+        "bioforge:contact_based"
+      ],
+      "symptoms": {
+        "infection_strength": "0.27",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "temperature_plus": "true",
+        "reflex_delay": "0.10"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_mild"
+    },
+    {
+      "id": "bioforge:pet_contact_bacteria",
+      "pathogen": "bioforge:bacteria",
+      "transmissions": [
+        "bioforge:contact_based"
+      ],
+      "symptoms": {
+        "infection_strength": "0.22",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "otoscope_redness": "0.32",
+        "otoscope_secretion": "0.20"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_mild"
+    },
+    {
+      "id": "bioforge:bat_respiratory_virus",
+      "pathogen": "bioforge:virus",
+      "transmissions": [
+        "bioforge:air_borne"
+      ],
+      "symptoms": {
+        "infection_strength": "0.23",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "lung_sound": "CRACKLE",
+        "oxygen_saturation": "0.92"
+      },
+      "mutations": [
+        "sneezing"
+      ],
+      "lifecycle_profile": "bioforge:animal_mild"
+    },
+    {
+      "id": "bioforge:fish_water_bacteria",
+      "pathogen": "bioforge:bacteria",
+      "transmissions": [
+        "bioforge:water_borne",
+        "bioforge:food_borne"
+      ],
+      "symptoms": {
+        "infection_strength": "0.26",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "perfusion_index": "0.60",
+        "reflex_strength": "0.42"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_mild"
+    },
+    {
+      "id": "bioforge:aquatic_parasite",
+      "pathogen": "bioforge:parasite",
+      "transmissions": [
+        "bioforge:water_borne",
+        "bioforge:food_borne"
+      ],
+      "symptoms": {
+        "infection_strength": "0.29",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "perfusion_index": "0.58",
+        "reflex_delay": "0.16"
+      },
+      "mutations": [
+        "nausea"
+      ],
+      "lifecycle_profile": "bioforge:animal_persistent"
+    },
+    {
+      "id": "bioforge:amphibian_skin_fungus",
+      "pathogen": "bioforge:fungi",
+      "transmissions": [
+        "bioforge:contact_based",
+        "bioforge:environmental"
+      ],
+      "symptoms": {
+        "infection_strength": "0.24",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "otoscope_lesions": "0.35",
+        "otoscope_swelling": "0.15"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_persistent"
+    },
+    {
+      "id": "bioforge:bee_surface_fungus",
+      "pathogen": "bioforge:fungi",
+      "transmissions": [
+        "bioforge:contact_based",
+        "bioforge:environmental"
+      ],
+      "symptoms": {
+        "infection_strength": "0.20",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "reflex_delay": "0.12",
+        "reflex_strength": "0.44"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_persistent"
+    },
+    {
+      "id": "bioforge:wildlife_contact_bacteria",
+      "pathogen": "bioforge:bacteria",
+      "transmissions": [
+        "bioforge:contact_based",
+        "bioforge:food_borne"
+      ],
+      "symptoms": {
+        "infection_strength": "0.25",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "temperature_plus": "true",
+        "otoscope_redness": "0.20"
+      },
+      "mutations": [],
+      "lifecycle_profile": "bioforge:animal_mild"
+    }
+  ],
+  "rules": [
+    {
+      "id": "bioforge:small_ruminants_reservoir",
+      "entities": [
+        "minecraft:sheep",
+        "minecraft:goat"
+      ],
+      "chance": 0.035,
+      "strains": [
+        {
+          "strain": "bioforge:grazing_gut_parasite",
+          "weight": 60
+        },
+        {
+          "strain": "bioforge:ruminant_skin_fungus",
+          "weight": 40
+        }
+      ]
+    },
+    {
+      "id": "bioforge:herbivores_reservoir",
+      "entities": [
+        "minecraft:horse",
+        "minecraft:donkey",
+        "minecraft:mule",
+        "minecraft:llama",
+        "minecraft:trader_llama",
+        "minecraft:camel"
+      ],
+      "chance": 0.025,
+      "strains": [
+        {
+          "strain": "bioforge:grazing_gut_parasite",
+          "weight": 50
+        },
+        {
+          "strain": "bioforge:herbivore_respiratory_virus",
+          "weight": 50
+        }
+      ]
+    },
+    {
+      "id": "bioforge:rabbits_reservoir",
+      "entities": [
+        "minecraft:rabbit"
+      ],
+      "chance": 0.03,
+      "strains": [
+        {
+          "strain": "bioforge:rabbit_enteric_bacteria",
+          "weight": 60
+        },
+        {
+          "strain": "bioforge:grazing_gut_parasite",
+          "weight": 40
+        }
+      ]
+    },
+    {
+      "id": "bioforge:pets_reservoir",
+      "entities": [
+        "minecraft:wolf",
+        "minecraft:cat"
+      ],
+      "chance": 0.015,
+      "strains": [
+        {
+          "strain": "bioforge:pet_contact_bacteria",
+          "weight": 65
+        },
+        {
+          "strain": "bioforge:grazing_gut_parasite",
+          "weight": 35
+        }
+      ]
+    },
+    {
+      "id": "bioforge:wild_mammals_reservoir",
+      "entities": [
+        "minecraft:fox",
+        "minecraft:ocelot",
+        "minecraft:polar_bear",
+        "minecraft:panda"
+      ],
+      "chance": 0.02,
+      "strains": [
+        {
+          "strain": "bioforge:wildlife_contact_bacteria",
+          "weight": 50
+        },
+        {
+          "strain": "bioforge:pet_contact_bacteria",
+          "weight": 20
+        },
+        {
+          "strain": "bioforge:grazing_gut_parasite",
+          "weight": 30
+        }
+      ]
+    },
+    {
+      "id": "bioforge:bats_reservoir",
+      "entities": [
+        "minecraft:bat"
+      ],
+      "chance": 0.02,
+      "strains": [
+        {
+          "strain": "bioforge:bat_respiratory_virus",
+          "weight": 65
+        },
+        {
+          "strain": "bioforge:grazing_gut_parasite",
+          "weight": 35
+        }
+      ]
+    },
+    {
+      "id": "bioforge:fish_reservoir",
+      "entities": [
+        "minecraft:cod",
+        "minecraft:salmon",
+        "minecraft:pufferfish",
+        "minecraft:tropical_fish"
+      ],
+      "chance": 0.03,
+      "strains": [
+        {
+          "strain": "bioforge:fish_water_bacteria",
+          "weight": 60
+        },
+        {
+          "strain": "bioforge:aquatic_parasite",
+          "weight": 40
+        }
+      ]
+    },
+    {
+      "id": "bioforge:large_aquatic_reservoir",
+      "entities": [
+        "minecraft:dolphin",
+        "minecraft:turtle"
+      ],
+      "chance": 0.02,
+      "strains": [
+        {
+          "strain": "bioforge:fish_water_bacteria",
+          "weight": 40
+        },
+        {
+          "strain": "bioforge:aquatic_parasite",
+          "weight": 60
+        }
+      ]
+    },
+    {
+      "id": "bioforge:amphibians_reservoir",
+      "entities": [
+        "minecraft:frog",
+        "minecraft:axolotl"
+      ],
+      "chance": 0.03,
+      "strains": [
+        {
+          "strain": "bioforge:amphibian_skin_fungus",
+          "weight": 55
+        },
+        {
+          "strain": "bioforge:aquatic_parasite",
+          "weight": 45
+        }
+      ]
+    },
+    {
+      "id": "bioforge:bees_reservoir",
+      "entities": [
+        "minecraft:bee"
+      ],
+      "chance": 0.02,
+      "strains": [
+        {
+          "strain": "bioforge:bee_surface_fungus",
+          "weight": 70
+        },
+        {
+          "strain": "bioforge:pet_contact_bacteria",
+          "weight": 30
+        }
+      ]
+    }
+  ]
+}

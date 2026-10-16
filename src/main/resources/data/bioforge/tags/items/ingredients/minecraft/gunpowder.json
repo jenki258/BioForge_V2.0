@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:gunpowder"
+    "minecraft:gunpowder",
+    {
+      "id": "#forge:gunpowder",
+      "required": false
+    }
   ]
 }

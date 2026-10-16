@@ -78,6 +78,89 @@
       },
       "link": "bioforge:containment",
       "line_breaks": 0
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.field_medicine_quickstart.title",
+        "underlined": true
+      },
+      "link": "bioforge:field_medicine_quickstart",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.symptom_tablets.title",
+        "underlined": true
+      },
+      "link": "bioforge:symptom_tablets",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.medical_diffuser_guide.title",
+        "underlined": true
+      },
+      "link": "bioforge:medical_diffuser_guide",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_workflow.title",
+        "underlined": true
+      },
+      "link": "bioforge:splicer_workflow",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.splicer_gene_categories.title",
+        "underlined": true
+      },
+      "link": "bioforge:splicer_gene_categories",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.foodborne_risks.title",
+        "underlined": true
+      },
+      "link": "bioforge:foodborne_risks",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.rabies_guide.title",
+        "underlined": true
+      },
+      "link": "bioforge:rabies_guide",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.personal_vitals.title",
+        "color": "dark_aqua",
+        "underlined": true
+      },
+      "link": "bioforge:personal_vitals",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.auscultation.title",
+        "color": "dark_aqua",
+        "underlined": true
+      },
+      "link": "bioforge:auscultation",
+      "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.animal_infections.title",
+        "color": "dark_aqua",
+        "underlined": true
+      },
+      "link": "bioforge:animal_infections",
+      "line_breaks": 1
     }
   ]
 }

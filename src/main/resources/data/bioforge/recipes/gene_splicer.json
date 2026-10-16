@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FGF",
+    "CBC",
+    "PEP"
+  ],
+  "key": {
+    "F": {
+      "item": "bioforge:laboratory_frame"
+    },
+    "G": {
+      "item": "bioforge:microscope"
+    },
+    "C": {
+      "item": "bioforge:cas_module"
+    },
+    "B": {
+      "item": "bioforge:biomedical_processor"
+    },
+    "P": {
+      "item": "bioforge:black_steel_plate"
+    },
+    "E": {
+      "item": "bioforge:electronic_control_unit"
+    }
+  },
+  "result": {
+    "item": "bioforge:gene_splicer"
+  }
+}

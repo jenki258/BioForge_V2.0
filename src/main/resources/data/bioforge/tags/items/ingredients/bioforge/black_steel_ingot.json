@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:ingots/black_steel"
+    "bioforge:black_steel_ingot",
+    {
+      "id": "#forge:ingots/black_steel",
+      "required": false
+    }
   ]
 }

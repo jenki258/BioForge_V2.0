@@ -1,6 +1,10 @@
 {
   "replace": false,
   "values": [
-    "#forge:nuggets/black_steel"
+    "bioforge:black_steel_nugget",
+    {
+      "id": "#forge:nuggets/black_steel",
+      "required": false
+    }
   ]
 }

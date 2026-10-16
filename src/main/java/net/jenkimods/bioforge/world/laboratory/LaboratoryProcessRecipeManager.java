@@ -38,7 +38,7 @@ public final class LaboratoryProcessRecipeManager extends SimpleJsonResourceRelo
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager resourceManager,
+    public void apply(Map<ResourceLocation, JsonElement> objects, ResourceManager resourceManager,
                          ProfilerFiller profiler) {
         Map<ResourceLocation, LaboratoryProcessRecipe> loaded = new LinkedHashMap<>(javaRecipes);
         objects.forEach((id, json) -> {

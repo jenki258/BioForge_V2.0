@@ -52,7 +52,7 @@ public final class IncubatorRecipeWrapper {
                                 PathogenType.VIRUS));
                 stack.getOrCreateTag().putInt("Charges", Math.max(1, recipe.catalystChargeCost()));
             });
-            case COPY_SAMPLE_STRAIN ->
+            case COPY_SAMPLE_STRAIN, CONVERT_SAMPLE ->
                     primaryInputs.forEach(stack ->
                             NbtObfuscator.writeString(stack.getOrCreateTag(), strain));
             case COPY_BLOOD_STRAIN -> primaryInputs.forEach(stack -> {
