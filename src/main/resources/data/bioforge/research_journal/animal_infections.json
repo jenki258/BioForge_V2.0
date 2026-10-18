@@ -42,6 +42,15 @@
       },
       "link": "bioforge:animal_infections_water",
       "line_breaks": 1
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.minecraft_infections.title",
+        "underlined": true,
+        "color": "dark_aqua"
+      },
+      "link": "bioforge:minecraft_infections",
+      "line_breaks": 1
     }
   ]
 }

@@ -48,7 +48,7 @@ public final class ResearchJournalRegistry {
             "sealed_biofabric", "sterile_filter", "sterile_polymer_sheet",
             "sterile_rubber", "sterilizing_solution", "sulfuric_acid",
             "surfactant_concentrate", "thermal_gel", "wine_must",
-            "ceiling_viral_scanner", "open_left_viral_scanner", "open_right_viral_scanner");
+            "ceiling_viral_scanner", "open_left_viral_scanner");
     private static volatile List<ResearchJournalPageDefinition> pages = List.of();
     private static volatile int contentHash;
     private static boolean frozen;

@@ -150,7 +150,6 @@ public class BFCreativeTabs {
                         output.accept(BioForge.VIRAL_SCANNER_ITEM.get());
                         output.accept(BioForge.CEILING_VIRAL_SCANNER_ITEM.get());
                         output.accept(BioForge.OPEN_LEFT_VIRAL_SCANNER_ITEM.get());
-                        output.accept(BioForge.OPEN_RIGHT_VIRAL_SCANNER_ITEM.get());
                         output.accept(BioForge.AIR_VENT_ITEM.get());
                         output.accept(BioForge.CHEMICAL_SYNTHESIZER_ITEM.get());
                         output.accept(BioForge.STERILIZATION_CHAMBER_ITEM.get());

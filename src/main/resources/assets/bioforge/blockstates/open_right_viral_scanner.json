@@ -1,1 +1,176 @@
-{"multipart":[{"when":{"half":"lower","facing":"north"},"apply":{"model":"bioforge:block/open_right_viral_scanner_lower"}},{"when":{"half":"lower","facing":"east"},"apply":{"model":"bioforge:block/open_right_viral_scanner_lower","y":90}},{"when":{"half":"lower","facing":"south"},"apply":{"model":"bioforge:block/open_right_viral_scanner_lower","y":180}},{"when":{"half":"lower","facing":"west"},"apply":{"model":"bioforge:block/open_right_viral_scanner_lower","y":270}},{"when":{"half":"upper","facing":"north"},"apply":{"model":"bioforge:block/open_right_viral_scanner_upper"}},{"when":{"half":"upper","facing":"east"},"apply":{"model":"bioforge:block/open_right_viral_scanner_upper","y":90}},{"when":{"half":"upper","facing":"south"},"apply":{"model":"bioforge:block/open_right_viral_scanner_upper","y":180}},{"when":{"half":"upper","facing":"west"},"apply":{"model":"bioforge:block/open_right_viral_scanner_upper","y":270}}]}
+{
+  "multipart": [
+    {
+      "when": {
+        "half": "lower",
+        "facing": "north",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_lower"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "facing": "east",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_lower",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "facing": "south",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_lower",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "facing": "west",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_lower",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "north",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_upper"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "east",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_upper",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "south",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_upper",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "west",
+        "hinge": "left"
+      },
+      "apply": {
+        "model": "bioforge:block/open_right_viral_scanner_upper",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "facing": "north",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_lower"
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "facing": "east",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_lower",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "facing": "south",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_lower",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "half": "lower",
+        "facing": "west",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_lower",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "north",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_upper"
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "east",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_upper",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "south",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_upper",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "half": "upper",
+        "facing": "west",
+        "hinge": "right"
+      },
+      "apply": {
+        "model": "bioforge:block/open_left_viral_scanner_upper",
+        "y": 270
+      }
+    }
+  ]
+}

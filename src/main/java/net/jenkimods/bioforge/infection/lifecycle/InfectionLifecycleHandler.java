@@ -26,9 +26,9 @@ public final class InfectionLifecycleHandler {
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity.level() instanceof ServerLevel level)) return;
+        if (Math.floorMod(entity.tickCount + entity.getId(), 20) != 0) return;
         InfectionData data = InfectionCapability.get(entity);
-        if (data == null || !data.isInfected()
-                || Math.floorMod(entity.tickCount + entity.getId(), 20) != 0) return;
+        if (data == null || !data.isInfected()) return;
 
         InfectionLifecycleState state = data.getLifecycle();
         InfectionLifecycleDefinition profile = InfectionLifecycleRegistry.INSTANCE.resolve(state.profileId());

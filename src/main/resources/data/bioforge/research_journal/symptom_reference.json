@@ -33,6 +33,13 @@
         "color": "black",
         "translate": "research.bioforge.page.symptom_reference.content.3"
       },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "color": "black",
+        "translate": "research.bioforge.page.symptom_reference.content.4"
+      },
       "line_breaks": 0
     }
   ]

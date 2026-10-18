@@ -44,6 +44,8 @@ public class InfectionSyncPacket {
             }
         }
 
+        symptomMap.put("_bioforge_active", data.isInfectionActive());
+
         return new InfectionSyncPacket(
                 data.isInfected(),
                 data.getPathogenId() != null ? data.getPathogenId().toString() : "",

@@ -52,6 +52,12 @@ public final class InfectionClientCache {
     }
 
     public static boolean isInfected() { return infected.get(); }
+    public static void clear() {
+        set(false, (PathogenType) null, List.of(), Map.of(), List.of(), List.of());
+    }
+    public static boolean isInfectionActive() {
+        return infected.get() && !Boolean.FALSE.equals(symptomMap.get().get("_bioforge_active"));
+    }
     public static PathogenType getPathogenType() { return pathogenType.get(); }
     public static ResourceLocation getPathogenId() { return pathogenId.get(); }
     public static List<InfectionType> getInfectionTypes() { return infectionTypes.get(); }
@@ -60,11 +66,16 @@ public final class InfectionClientCache {
     public static boolean hasMutation(String mutationId) { return mutations.get().contains(mutationId); }
     public static List<StrainImmunity> getStrainImmunities() { return immunities.get(); }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> T getSymptom(SymptomKey<T> key) {
         Object value = symptomMap.get().get(key.getId());
         if (value != null && key.getType().isInstance(value)) {
             return (T) value;
+        }
+        if (value instanceof String name && key.getType().isEnum()) {
+            try {
+                return (T) Enum.valueOf(key.getType().asSubclass(Enum.class), name);
+            } catch (IllegalArgumentException ignored) {}
         }
         return key.getDefaultValue();
     }

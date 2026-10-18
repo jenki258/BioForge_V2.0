@@ -35,11 +35,12 @@ public final class SymptomRuntime {
     @SubscribeEvent
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!(entity.level() instanceof ServerLevel level)
+        int tick = entity.tickCount + entity.getId();
+        if (Math.floorMod(tick, 20) != 0
+                || !(entity.level() instanceof ServerLevel level)
                 || !BioForgeServerConfig.symptomsEnabled()) return;
         InfectionData data = InfectionCapability.get(entity);
         if (data == null || !data.isInfectionActive()) return;
-        int tick = entity.tickCount + entity.getId();
         float infectionStrength = Math.max(0.0F,
                 data.getSymptom(BioForgeSymptoms.INFECTION_STRENGTH));
 
@@ -170,14 +171,14 @@ public final class SymptomRuntime {
                 && !MutationManager.hasMutationTag(data, "heat_immunity")
                 && !ProtectiveEquipment.blocksHeatSymptoms(entity)
                 && level.getRandom().nextFloat() < chance) {
-            entity.hurt(level.damageSources().onFire(), 1.0F + strength);
+            TemperatureRelief.hurt(level, entity, true, 1.0F + strength);
         }
         if (active(entity, "temperature_minus")
                 && data.getSymptom(BioForgeSymptoms.TEMPERATURE_MINUS)
                 && !MutationManager.hasMutationTag(data, "cold_immunity")
                 && !ProtectiveEquipment.blocksChillSymptoms(entity)
                 && level.getRandom().nextFloat() < chance) {
-            entity.hurt(level.damageSources().freeze(), 1.0F + strength);
+            TemperatureRelief.hurt(level, entity, false, 1.0F + strength);
         }
     }
 

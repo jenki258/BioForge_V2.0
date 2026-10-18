@@ -1,0 +1,325 @@
+{
+  "vertex": "bioforge:sculk_echo",
+  "fragment": "bioforge:sculk_echo",
+  "attributes": [
+    "Position",
+    "UV0"
+  ],
+  "samplers": [
+    {
+      "name": "DepthSampler"
+    }
+  ],
+  "uniforms": [
+    {
+      "name": "InverseProjection",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "InverseView",
+      "type": "matrix4x4",
+      "count": 16,
+      "values": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "Echo0",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo1",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo2",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo3",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo4",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo5",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo6",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo7",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo8",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo9",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo10",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo11",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo12",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo13",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo14",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo15",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo16",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo17",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo18",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo19",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo20",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo21",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo22",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    },
+    {
+      "name": "Echo23",
+      "type": "float",
+      "count": 4,
+      "values": [
+        0,
+        0,
+        0,
+        -1000
+      ]
+    }
+  ]
+}

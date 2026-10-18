@@ -1,0 +1,140 @@
+{
+  "strains": [
+    {
+      "id": "bioforge:sculk_infection",
+      "pathogen": "bioforge:fungi",
+      "transmissions": [
+        "bioforge:contact_based",
+        "bioforge:environmental"
+      ],
+      "symptoms": {
+        "infection_strength": "0.34",
+        "neural_damage": "0.20",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "reflex_delay": "0.22",
+        "heart_rate": "BRADY",
+        "temperature_minus": "true"
+      },
+      "mutations": [
+        "sculk_resonance",
+        "sculk_echo"
+      ],
+      "lifecycle_profile": "bioforge:sculk_infection"
+    },
+    {
+      "id": "bioforge:end_flu",
+      "pathogen": "bioforge:virus",
+      "transmissions": [
+        "bioforge:air_borne",
+        "bioforge:contact_based"
+      ],
+      "symptoms": {
+        "infection_strength": "0.26",
+        "neural_damage": "0.12",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "temperature_plus": "true",
+        "lung_sound": "CRACKLE",
+        "oxygen_saturation": "0.91"
+      },
+      "mutations": [
+        "coughing",
+        "ender_disorientation",
+        "ender_displacement"
+      ],
+      "lifecycle_profile": "bioforge:end_flu"
+    },
+    {
+      "id": "bioforge:wither_blight",
+      "pathogen": "bioforge:bacteria",
+      "transmissions": [
+        "bioforge:attack_based",
+        "bioforge:contact_based"
+      ],
+      "symptoms": {
+        "infection_strength": "0.36",
+        "neural_damage": "0.0",
+        "colony_radius": "0.0",
+        "max_infested_blocks": "0.0",
+        "microscope_visibility": "MEDIUM",
+        "temperature_plus": "true",
+        "otoscope_lesions": "0.45",
+        "perfusion_index": "0.52"
+      },
+      "mutations": [
+        "wither_necrosis"
+      ],
+      "lifecycle_profile": "bioforge:wither_blight"
+    }
+  ],
+  "rules": [
+    {
+      "id": "bioforge:sculk_warden_reservoir",
+      "entities": [
+        "minecraft:warden"
+      ],
+      "chance": 0.25,
+      "strains": [
+        {
+          "strain": "bioforge:sculk_infection",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "id": "bioforge:enderman_flu_reservoir",
+      "entities": [
+        "minecraft:enderman"
+      ],
+      "chance": 0.04,
+      "strains": [
+        {
+          "strain": "bioforge:end_flu",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "id": "bioforge:shulker_flu_reservoir",
+      "entities": [
+        "minecraft:shulker"
+      ],
+      "chance": 0.08,
+      "strains": [
+        {
+          "strain": "bioforge:end_flu",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "id": "bioforge:endermite_flu_reservoir",
+      "entities": [
+        "minecraft:endermite"
+      ],
+      "chance": 0.1,
+      "strains": [
+        {
+          "strain": "bioforge:end_flu",
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "id": "bioforge:wither_skeleton_blight_reservoir",
+      "entities": [
+        "minecraft:wither_skeleton"
+      ],
+      "chance": 0.12,
+      "strains": [
+        {
+          "strain": "bioforge:wither_blight",
+          "weight": 100
+        }
+      ]
+    }
+  ]
+}

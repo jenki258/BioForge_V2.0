@@ -64,16 +64,17 @@ public final class TransmissionEngine {
     public static void onLivingTick(LivingEvent.LivingTickEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity.level() instanceof ServerLevel level)) return;
+        int tick = entity.tickCount + entity.getId();
+        if (Math.floorMod(tick, 10) != 0 || !BioForgeServerConfig.spreadingEnabled()) return;
         long now = level.getGameTime();
-        if (!BioForgeServerConfig.spreadingEnabled()) return;
         InfectionData data = InfectionCapability.get(entity);
         if (data != null && data.isInfected()
                 && data.isContagious()
-                && Math.floorMod(entity.tickCount + entity.getId(), 20) == 0) {
+                && Math.floorMod(tick, 20) == 0) {
             emitFromHost(level, entity, data, now);
         }
         if (data != null
-                && Math.floorMod(entity.tickCount + entity.getId(), 10) == 0) {
+                && Math.floorMod(tick, 10) == 0) {
             exposeFromSurface(level, entity, entity.blockPosition().below(), ExposureKind.STEP, now);
             if (data.isContagious()) depositFromStep(level, entity, data, now);
         }

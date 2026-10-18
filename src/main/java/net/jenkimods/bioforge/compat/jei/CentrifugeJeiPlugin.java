@@ -141,6 +141,11 @@ public class CentrifugeJeiPlugin implements IModPlugin {
     @Override
     public void onRuntimeAvailable(IJeiRuntime runtime) {
         this.runtime = runtime;
+        var legacyScanners = runtime.getIngredientManager()
+                .getAllIngredients(mezz.jei.api.constants.VanillaTypes.ITEM_STACK).stream()
+                .filter(stack -> stack.is(BioForge.OPEN_RIGHT_VIRAL_SCANNER_ITEM.get())).toList();
+        if (!legacyScanners.isEmpty()) runtime.getIngredientManager().removeIngredientsAtRuntime(
+                mezz.jei.api.constants.VanillaTypes.ITEM_STACK, legacyScanners);
         if (registeredVaccineRecipes.isEmpty()) {
             List<VaccineMakerRecipeWrapper> recipes = vaccineMakerRecipes();
             if (!recipes.isEmpty()) {

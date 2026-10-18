@@ -1,0 +1,16 @@
+{
+  "id": "bioforge:sculk_infection",
+  "incubation_ticks": 6000,
+  "adaptation_speed": 0.25,
+  "hostile_climate_incubation_rate": 0.35,
+  "adaptation_points_per_second": 0.25,
+  "hot_adaptation_threshold": 120.0,
+  "cold_adaptation_threshold": 120.0,
+  "hot_adaptation_mutation": "heat_adaptation",
+  "cold_adaptation_mutation": "cold_adaptation",
+  "dual_adaptation_mutation": "thermal_homeostasis",
+  "lifespan_ticks": 108000,
+  "infectivity": 0.25,
+  "cure_resistance": 0.06,
+  "contagious_during_incubation": false
+}

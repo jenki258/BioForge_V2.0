@@ -1,0 +1,41 @@
+{
+  "order": 734,
+  "title": {
+    "translate": "research.bioforge.page.minecraft_infections.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.minecraft_infections.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.minecraft_infections.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.minecraft_infections.content.3"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.minecraft_infections.content.4"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.sensory_disturbances.title",
+        "underlined": true,
+        "color": "dark_aqua"
+      },
+      "link": "bioforge:sensory_disturbances",
+      "line_breaks": 0
+    }
+  ]
+}

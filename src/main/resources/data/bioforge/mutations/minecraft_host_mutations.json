@@ -1,0 +1,190 @@
+{
+  "definitions": [
+    {
+      "id": "sculk_resonance",
+      "name": "Sculk Resonance",
+      "description": "Neural sculk growth causes brief slowdowns and soul-like motes.",
+      "pathogens": [
+        "FUNGI",
+        "UNIVERSAL"
+      ],
+      "rarity": "rare",
+      "weight": 0,
+      "tags": [
+        "wild_only",
+        "symptom",
+        "vaccine_target",
+        "neural",
+        "visual",
+        "suppressible:neural_damage"
+      ],
+      "effects": [
+        {
+          "type": "potion_effect",
+          "target": "minecraft:slowness",
+          "duration": 60,
+          "amplifier": 0,
+          "chance": 0.35,
+          "interval": 600,
+          "trigger": "continuous"
+        },
+        {
+          "type": "spawn_particle",
+          "target": "minecraft:sculk_soul",
+          "trigger": "continuous",
+          "count": 2,
+          "spread": 0.25,
+          "offset_y": 1.1,
+          "interval": 120,
+          "chance": 0.35
+        }
+      ]
+    },
+    {
+      "id": "ender_disorientation",
+      "name": "Ender Disorientation",
+      "description": "End-associated infection causes brief nausea and portal-like motes.",
+      "pathogens": [
+        "VIRUS",
+        "UNIVERSAL"
+      ],
+      "rarity": "rare",
+      "weight": 0,
+      "tags": [
+        "wild_only",
+        "symptom",
+        "vaccine_target",
+        "neural",
+        "suppressible:neural_damage"
+      ],
+      "effects": [
+        {
+          "type": "potion_effect",
+          "target": "minecraft:nausea",
+          "trigger": "continuous",
+          "duration": 100,
+          "amplifier": 0,
+          "chance": 0.3,
+          "interval": 500
+        },
+        {
+          "type": "spawn_particle",
+          "target": "minecraft:portal",
+          "trigger": "continuous",
+          "count": 3,
+          "spread": 0.3,
+          "offset_y": 0.8,
+          "interval": 160,
+          "chance": 0.3
+        }
+      ]
+    },
+    {
+      "id": "wither_necrosis",
+      "name": "Wither Necrosis",
+      "description": "Necrotic infection causes intermittent weakness and short bouts of withering.",
+      "pathogens": [
+        "BACTERIA",
+        "UNIVERSAL"
+      ],
+      "rarity": "rare",
+      "weight": 0,
+      "tags": [
+        "wild_only",
+        "symptom",
+        "vaccine_target",
+        "physical",
+        "suppressible:otoscope_lesions"
+      ],
+      "effects": [
+        {
+          "type": "potion_effect",
+          "target": "minecraft:weakness",
+          "trigger": "continuous",
+          "duration": 120,
+          "amplifier": 0,
+          "chance": 0.5,
+          "interval": 400
+        },
+        {
+          "type": "potion_effect",
+          "target": "minecraft:wither",
+          "trigger": "continuous",
+          "duration": 60,
+          "amplifier": 0,
+          "chance": 0.25,
+          "interval": 900
+        },
+        {
+          "type": "spawn_particle",
+          "target": "minecraft:smoke",
+          "trigger": "continuous",
+          "count": 2,
+          "spread": 0.2,
+          "offset_y": 0.9,
+          "interval": 160,
+          "chance": 0.3
+        }
+      ]
+    },
+    {
+      "id": "ender_displacement",
+      "name": "Ender Displacement",
+      "description": "Every five minutes, attempts a random teleport up to ten blocks to a safe supported location.",
+      "pathogens": [
+        "VIRUS",
+        "UNIVERSAL"
+      ],
+      "rarity": "rare",
+      "weight": 0,
+      "tags": [
+        "wild_only",
+        "spatial",
+        "vaccine_target"
+      ],
+      "effects": [
+        {
+          "type": "bioforge:safe_random_teleport",
+          "trigger": "continuous",
+          "interval": 20
+        },
+        {
+          "type": "bioforge:safe_random_teleport",
+          "trigger": "remove",
+          "reset": true
+        }
+      ]
+    },
+    {
+      "id": "sculk_echo",
+      "name": "Sculk Echo",
+      "description": "Persistent blindness replaces normal sight with reflected, sound-driven echoes of nearby geometry.",
+      "pathogens": [
+        "FUNGI",
+        "UNIVERSAL"
+      ],
+      "rarity": "rare",
+      "weight": 0,
+      "tags": [
+        "wild_only",
+        "sensory",
+        "vaccine_target"
+      ],
+      "effects": [
+        {
+          "type": "potion_effect",
+          "target": "minecraft:blindness",
+          "duration": 60,
+          "amplifier": 0,
+          "interval": 20,
+          "trigger": "continuous"
+        },
+        {
+          "type": "bioforge:clear_effect",
+          "target": "minecraft:blindness",
+          "trigger": "remove"
+        }
+      ]
+    }
+  ]
+}

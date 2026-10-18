@@ -1,0 +1,32 @@
+{
+  "order": 735,
+  "title": {
+    "translate": "research.bioforge.page.sensory_disturbances.title"
+  },
+  "content": [
+    {
+      "component": {
+        "translate": "research.bioforge.page.sensory_disturbances.content.1"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.sensory_disturbances.content.2"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.sensory_disturbances.content.3"
+      },
+      "line_breaks": 2
+    },
+    {
+      "component": {
+        "translate": "research.bioforge.page.sensory_disturbances.content.4"
+      },
+      "line_breaks": 0
+    }
+  ]
+}

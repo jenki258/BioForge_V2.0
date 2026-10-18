@@ -524,6 +524,7 @@ public class BioForge {
                 "bioforge-server.toml");
         context.registerConfig(ModConfig.Type.CLIENT,net.jenkimods.bioforge.config.BioForgeClientConfig.SPEC,"bioforge-client.toml");
         LegacyMutationBehaviors.register();
+        net.jenkimods.bioforge.mutation.MinecraftMutationBehaviors.register();
         VaccineMakerPageRegistry.bootstrapBuiltIns();
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
